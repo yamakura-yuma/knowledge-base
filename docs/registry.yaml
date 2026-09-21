@@ -1,0 +1,1485 @@
+# AI コーディングツール・ランドスケープ レジストリ
+#
+# このファイルが全項目の正本。詳細ティア (tier: detail) の項目は docs/tools/<slug>.md に
+# 本文を持ち、frontmatter はこのファイルから生成せずファイル側に置く。
+# 履歴ティア (tier: history) はこのファイルの 1 ブロックだけで完結する。
+#
+# verified が null の項目は「まだ裏取りしていない」ことを意味する。build.py が警告を出す。
+# 推測で値を埋めないこと。分からないものは null のままにする。
+
+meta:
+  schema_version: 1
+  # 層の定義。主軸は「リクエストが通る経路上の位置」。
+  layers:
+    L0:
+      name: モデル提供元
+      note: ツールではない。参考として並べる。
+    L1:
+      name: エージェント本体
+      note: 人が指示を出す面と、計画・ツール実行のループ。副軸 placement で実行場所を分ける。
+    L2:
+      name: モデルアクセス層
+      note: ルーティング・課金・圧縮・観測。エージェントとモデルの間に挟まる。
+    L3:
+      name: 共通基盤
+      note: >-
+        プロトコル・配布・指示形式など全層の下敷き。分類は暫定。subkind に気づいた性格を
+        記録しているが、HTML には出さない。割り方が見えた時点で割り直す。
+  placements:
+    terminal: ターミナルで動く CLI
+    ide: IDE / エディタ拡張
+    cloud: クラウドで非同期に走る
+  # 「ホット」の判定基準。fetch_metrics.py が取った実測値から build.py が機械的に決める。
+  status_rules:
+    active: 直近 90 日以内にリリースがある
+    hot: active かつ、直近 90 日のリリース数が 3 以上、または star が直近に大きく伸びた
+    stale: 6 か月以上リリースがない
+    ended: 公式にアーカイブ・統合・提供終了した
+
+tools:
+
+  # ============================================================
+  # L1 / terminal — ターミナルで動くエージェント CLI
+  # 母集団の出発点は Headroom の `headroom wrap` 対応リスト (README.md:49)。
+  # 実在の統合プロジェクトが「対応する価値がある」と判断した 15 個。
+  # ============================================================
+
+  - slug: claude-code
+    name: Claude Code
+    layer: L1
+    placement: terminal
+    vendor: Anthropic
+    oss: false
+    license: proprietary
+    url: https://claude.com/claude-code
+    repo: anthropics/claude-code
+    released: 2025-02
+    ended: null
+    succeeded_by: null
+    summary: ターミナルに常駐する Anthropic 純正エージェント。リポジトリを読んで理解した上でコードを書く。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/anthropics/claude-code
+      - https://claude.com/claude-code
+
+  - slug: codex-cli
+    name: Codex CLI
+    layer: L1
+    placement: terminal
+    vendor: OpenAI
+    oss: true
+    license: Apache-2.0
+    url: https://developers.openai.com/codex/cli
+    repo: openai/codex
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: OpenAI 純正の軽量ターミナルエージェント。ChatGPT のサブスクリプションで動く。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/openai/codex
+
+  - slug: gemini-cli
+    name: Gemini CLI
+    layer: L1
+    placement: terminal
+    vendor: Google
+    oss: true
+    license: Apache-2.0
+    url: https://github.com/google-gemini/gemini-cli
+    repo: google-gemini/gemini-cli
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Google 純正の OSS ターミナルエージェント。無料枠が厚いのが特徴。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/google-gemini/gemini-cli
+
+  - slug: copilot-cli
+    name: GitHub Copilot CLI
+    layer: L1
+    placement: terminal
+    vendor: GitHub
+    oss: false
+    license: proprietary
+    url: https://github.com/features/copilot/cli
+    repo: github/copilot-cli
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Copilot coding agent をターミナルに持ち込んだ GitHub 純正 CLI。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/github/copilot-cli
+
+  - slug: opencode
+    name: OpenCode
+    layer: L1
+    placement: terminal
+    vendor: Anomaly (旧 SST)
+    oss: true
+    license: MIT
+    url: https://opencode.ai
+    repo: anomalyco/opencode
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: OSS のコーディングエージェント。モデル非依存で、TUI とプラグイン機構を持つ。GitHub star はこの一覧の L1 で最多クラス。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/anomalyco/opencode
+      - https://opencode.ai
+
+  - slug: aider
+    name: Aider
+    layer: L1
+    placement: terminal
+    vendor: Aider AI
+    oss: true
+    license: Apache-2.0
+    url: https://aider.chat
+    repo: Aider-AI/aider
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: git のコミット単位で編集する古参 OSS。GitHub Releases は 2025-08 で止まっているが PyPI では 2026-02 に v0.86.2 が出ており、停止ではなく減速。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/Aider-AI/aider
+      - https://pypi.org/project/aider-chat/
+
+  - slug: goose
+    name: Goose
+    layer: L1
+    placement: terminal
+    vendor: Agentic AI Foundation (旧 Block)
+    oss: true
+    license: Apache-2.0
+    url: https://block.github.io/goose/
+    repo: aaif-goose/goose
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Rust 製のローカルファースト・エージェント。Block が開発し 2026-04 に AAIF へ移管された。MCP ネイティブ。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/aaif-goose/goose
+      - https://goose-docs.ai/blog/2026/04/07/goose-moves-to-aaif/
+      - https://aaif.io/projects/goose
+
+  - slug: amp
+    tier_reason: 商用専業エージェントの例。公開リポジトリが無い
+    tier: detail
+    pricing: 月額 20 / 200 ドル。加えて広告つきの無料枠がある
+    name: Amp
+    layer: L1
+    placement: terminal
+    vendor: Amp Inc (旧 Sourcegraph)
+    oss: false
+    license: proprietary
+    url: https://ampcode.com
+    repo: null
+    released: 2025-05
+    ended: null
+    succeeded_by: null
+    summary: Sourcegraph から 2025-12 に分社した専業エージェント。広告モデルの無料枠を持つのが珍しい。
+    verified: 2026-09-21
+    sources:
+      - https://ampcode.com
+      - https://sourcegraph.com/blog/why-sourcegraph-and-amp-are-becoming-independent-companies
+
+  - slug: crush
+    name: Crush
+    layer: L1
+    placement: terminal
+    vendor: Charm
+    oss: true
+    license: null
+    url: https://github.com/charmbracelet/crush
+    repo: charmbracelet/crush
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Charm 製の TUI エージェント。2025 年の分裂で OpenCode の Go 実装側を引き継いだ系譜にあたる。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/charmbracelet/crush
+
+  - slug: openhands
+    name: OpenHands
+    layer: L1
+    placement: terminal
+    vendor: OpenHands (旧 All Hands AI)
+    oss: true
+    license: MIT
+    url: https://github.com/All-Hands-AI/OpenHands
+    repo: OpenHands/OpenHands
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: OpenDevin として 2024-03 に登場した OSS エージェント。サンドボックス実行を前提に設計されている。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/OpenHands/OpenHands
+
+  - slug: openclaw
+    name: OpenClaw
+    layer: L1
+    placement: terminal
+    vendor: OpenClaw Foundation
+    oss: true
+    license: MIT
+    url: https://github.com/openclaw/openclaw
+    repo: openclaw/openclaw
+    released: 2025-11
+    ended: null
+    succeeded_by: null
+    summary: コーディング専用ではない汎用パーソナルエージェント。SOUL.md というマークダウンで人格と権限を定義する。GitHub 史上最多 star クラスまで一気に伸びた。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/openclaw/openclaw
+      - https://openclaw.ai/
+
+  - slug: grok-cli
+    name: Grok CLI
+    layer: L1
+    placement: terminal
+    vendor: Superagent (非公式)
+    oss: true
+    license: null
+    url: "https://github.com/superagent-ai/grok-cli"
+    repo: superagent-ai/grok-cli
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Grok API 向けの OSS エージェント。xAI 純正ではなくコミュニティ製。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/superagent-ai/grok-cli
+
+  - slug: kimi-cli
+    name: Kimi CLI
+    layer: L1
+    placement: terminal
+    vendor: Moonshot AI
+    oss: true
+    license: Apache-2.0
+    url: "https://github.com/MoonshotAI/kimi-cli"
+    repo: MoonshotAI/kimi-cli
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Moonshot AI の Kimi モデル向けターミナルエージェント。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/MoonshotAI/kimi-cli
+
+  - slug: mistral-vibe
+    name: Mistral Vibe
+    layer: L1
+    placement: terminal
+    vendor: Mistral AI
+    oss: true
+    license: null
+    url: "https://github.com/mistralai/mistral-vibe"
+    repo: mistralai/mistral-vibe
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Mistral 純正の最小構成 CLI エージェント。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/mistralai/mistral-vibe
+
+  - slug: oh-my-pi
+    name: Oh My Pi
+    layer: L1
+    placement: terminal
+    vendor: null
+    oss: true
+    license: null
+    url: "https://github.com/can1357/oh-my-pi"
+    repo: can1357/oh-my-pi
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: IDE を組み込んだターミナルエージェント。個人開発ながら star はこの層の中位を上回る。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/can1357/oh-my-pi
+
+  - slug: zcode
+    name: ZCode
+    layer: L1
+    placement: terminal
+    vendor: Z.ai
+    oss: false
+    license: proprietary
+    url: https://zcode.z.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Z.ai のデスクトップ版コーディング環境。GLM 系モデルを前提にする。
+    verified: 2026-09-21
+    sources:
+      - https://z.ai
+
+  # ============================================================
+  # L1 / ide — IDE / エディタに統合されるエージェント
+  # ============================================================
+
+  - slug: cursor
+    tier_reason: L1/IDE の代表格だが公開リポジトリが無い
+    tier: detail
+    name: Cursor
+    layer: L1
+    placement: ide
+    vendor: Anysphere
+    oss: false
+    license: proprietary
+    url: https://cursor.com
+    repo: null
+    released: 2023
+    ended: null
+    succeeded_by: null
+    summary: VS Code をフォークした AI 前提のエディタ。エディタごと置き換える路線の代表格。
+    verified: 2026-09-21
+    sources:
+      - https://cursor.com
+
+  - slug: github-copilot
+    tier_reason: この分野の最古参で比較の基準点になるが公開リポジトリが無い
+    tier: detail
+    name: GitHub Copilot
+    layer: L1
+    placement: ide
+    vendor: GitHub
+    oss: false
+    license: proprietary
+    url: https://github.com/features/copilot
+    repo: null
+    released: 2021-06
+    ended: null
+    succeeded_by: null
+    summary: 補完から始まった最古参。agent mode を経て、いまはエージェント製品群の総称になっている。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/features/copilot
+
+  - slug: cline
+    name: Cline
+    layer: L1
+    placement: ide
+    vendor: Cline
+    oss: true
+    license: Apache-2.0
+    url: https://cline.bot
+    repo: cline/cline
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: BYOK 前提の OSS エージェント。VS Code 拡張・CLI・SDK の三形態を持つ。Roo Code 終了後の移行先に指名された。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/cline/cline
+
+  - slug: windsurf
+    tier: history
+    name: Windsurf
+    layer: L1
+    placement: ide
+    vendor: Cognition
+    oss: false
+    license: proprietary
+    url: https://windsurf.com
+    repo: null
+    released: 2024-11
+    ended: 2026-06
+    succeeded_by: devin
+    summary: Codeium 発の AI エディタ。2025-07 に Cognition が買収し、2026-06-02 に Devin Desktop へ改名して名前が消えた。
+    verified: 2026-09-21
+    sources:
+      - https://www.webwire.com/ViewPressRel.asp?aId=329485
+      - https://cognition.com/blog/windsurf
+
+  - slug: roo-code
+    tier: history
+    name: Roo Code
+    layer: L1
+    placement: ide
+    vendor: Roo Code Inc
+    oss: true
+    license: Apache-2.0
+    url: https://roocode.com
+    repo: RooCodeInc/Roo-Code
+    released: null
+    ended: 2026-05
+    succeeded_by: roomote
+    summary: Cline のフォークとして伸びた VS Code 拡張。2026-04-20 に終了を告知し 2026-05-15 に停止。理由は「IDE はコーディングの未来ではない」。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/RooCodeInc/Roo-Code
+      - https://www.bodegaone.ai/blog/roo-code-shutdown-alternatives
+
+  - slug: continue
+    name: Continue
+    layer: L1
+    placement: ide
+    vendor: Continue
+    oss: true
+    license: Apache-2.0
+    url: https://continue.dev
+    repo: continuedev/continue
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: OSS のコーディングエージェント。モデルを自由に差し替えられる古参の IDE 拡張。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/continuedev/continue
+
+  - slug: zed
+    name: Zed
+    layer: L1
+    placement: ide
+    vendor: Zed Industries
+    oss: true
+    license: null
+    url: https://zed.dev
+    repo: zed-industries/zed
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Atom / Tree-sitter の作者陣による高速エディタ。エージェント機能を後から載せた側。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/zed-industries/zed
+
+  # ============================================================
+  # L1 / cloud — クラウドで非同期に走るエージェント
+  # ============================================================
+
+  - slug: devin
+    tier_reason: L1/クラウドの代表格だが公開リポジトリが無い
+    tier: detail
+    name: Devin
+    layer: L1
+    placement: cloud
+    vendor: Cognition
+    oss: false
+    license: proprietary
+    url: https://devin.ai
+    repo: null
+    released: 2024-03
+    ended: null
+    succeeded_by: null
+    summary: 「自律型 AI ソフトウェアエンジニア」を最初に世に広めた製品。2026-06 に Windsurf を Devin Desktop として取り込んだ。
+    verified: 2026-09-21
+    sources:
+      - https://devin.ai
+      - https://techcrunch.com/2025/07/14/cognition-maker-of-the-ai-coding-agent-devin-acquires-windsurf/
+
+  - slug: copilot-coding-agent
+    name: GitHub Copilot coding agent
+    layer: L1
+    placement: cloud
+    vendor: GitHub
+    oss: false
+    license: proprietary
+    url: https://docs.github.com/copilot/concepts/agents/coding-agent
+    repo: null
+    released: 2025-05
+    ended: null
+    succeeded_by: null
+    summary: issue を割り当てると PR が返る GitHub 純正エージェント。2026-02 からは Claude と Codex も選べる Agent HQ になった。
+    verified: 2026-09-21
+    sources:
+      - https://github.blog/changelog/2026-02-04-claude-and-codex-are-now-available-in-public-preview-on-github/
+
+  - slug: codex-cloud
+    name: Codex (cloud)
+    layer: L1
+    placement: cloud
+    vendor: OpenAI
+    oss: false
+    license: proprietary
+    url: https://chatgpt.com/codex
+    repo: null
+    released: 2025-05
+    ended: null
+    succeeded_by: null
+    summary: 短命のクラウド VM を並列に立てて PR を返す実行面。タスクごとにネットワークを遮断する設計が Jules と対照的。
+    verified: 2026-09-21
+    sources:
+      - https://chatgpt.com/codex
+
+  - slug: claude-code-web
+    name: Claude Code on the web
+    layer: L1
+    placement: cloud
+    vendor: Anthropic
+    oss: false
+    license: proprietary
+    url: https://claude.ai/code
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Claude Code をブラウザ側で非同期に走らせる実行面。ターミナル版と同じエージェントをクラウドに置いたもの。
+    verified: 2026-09-21
+    sources:
+      - https://claude.ai/code
+
+  - slug: jules
+    name: Jules
+    layer: L1
+    placement: cloud
+    vendor: Google
+    oss: false
+    license: proprietary
+    url: https://jules.google
+    repo: null
+    released: 2025-08
+    ended: null
+    succeeded_by: null
+    summary: Google Labs 発の非同期エージェント。2024-12 告知、2025-05 公開ベータ、2025-08-06 に GA。隔離 VM でリポジトリを clone して PR を返す。
+    verified: 2026-09-21
+    sources:
+      - https://jules.google
+      - https://kie.ai/blog/what-is-jules
+
+  - slug: factory-droid
+    name: Factory Droid
+    layer: L1
+    placement: cloud
+    vendor: Factory
+    oss: false
+    license: proprietary
+    url: https://factory.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: エンタープライズ向けの自律エージェント。SWE-bench 系のスコアで名前が出る。
+    verified: 2026-09-21
+    sources:
+      - https://factory.ai
+
+  # ============================================================
+  # L2 — モデルアクセス層（ルーティング・課金・圧縮・観測）
+  # ============================================================
+
+  - slug: openrouter
+    tier_reason: L2 の代表格だが公開リポジトリが無く star で測れない
+    tier: detail
+    pricing: "従量課金。モデル原価はパススルーで、クレジット購入時に 5.5%（Business は 8%）の手数料"
+    name: OpenRouter
+    layer: L2
+    placement: null
+    vendor: OpenRouter, Inc.
+    oss: false
+    license: proprietary
+    url: https://openrouter.ai
+    repo: null
+    released: 2023-05
+    ended: null
+    succeeded_by: null
+    summary: 1 本の API キーで 500 以上のモデルに振り分けるルーター。モデル単価には上乗せせず、入金手数料で稼ぐ。
+    verified: 2026-09-21
+    sources:
+      - https://openrouter.ai/pricing
+      - https://openrouter.ai/docs
+
+  - slug: litellm
+    name: LiteLLM
+    layer: L2
+    placement: null
+    vendor: BerriAI
+    oss: true
+    license: null
+    url: https://litellm.ai
+    repo: BerriAI/litellm
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 100 以上のプロバイダを OpenAI 互換に正規化する OSS ゲートウェイ。Rust コア + Python SDK。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/BerriAI/litellm
+
+  - slug: headroom
+    name: Headroom
+    layer: L2
+    placement: null
+    vendor: Headroom Labs
+    oss: true
+    license: Apache-2.0
+    url: https://github.com/headroomlabs-ai/headroom
+    repo: headroomlabs-ai/headroom
+    released: 2026-01
+    ended: null
+    succeeded_by: null
+    summary: ツール出力・ログ・RAG をモデルに渡す前に圧縮するローカルプロキシ。ルーティングではなくトークン削減が目的。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/headroomlabs-ai/headroom
+
+  - slug: portkey
+    name: Portkey
+    layer: L2
+    placement: null
+    vendor: Portkey AI
+    oss: true
+    license: MIT
+    url: https://portkey.ai
+    repo: Portkey-AI/gateway
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: "1,600 以上のモデルへのルーティングにガードレールを統合した OSS ゲートウェイ。"
+    verified: 2026-09-21
+    sources:
+      - https://github.com/Portkey-AI/gateway
+
+  - slug: helicone
+    name: Helicone
+    layer: L2
+    placement: null
+    vendor: Helicone
+    oss: true
+    license: Apache-2.0
+    url: https://helicone.ai
+    repo: Helicone/helicone
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 1 行で入る OSS の LLM 観測基盤。ルーティングより監視・評価に寄っている。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/Helicone/helicone
+
+  - slug: cloudflare-ai-gateway
+    name: Cloudflare AI Gateway
+    layer: L2
+    placement: null
+    vendor: Cloudflare
+    oss: false
+    license: proprietary
+    url: https://developers.cloudflare.com/ai-gateway/
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: エッジでキャッシュ・レート制限・観測を挟むゲートウェイ。自前の推論基盤を持つのが他と違う。
+    verified: 2026-09-21
+    sources:
+      - https://developers.cloudflare.com/ai-gateway/
+
+  - slug: vercel-ai-gateway
+    name: Vercel AI Gateway
+    layer: L2
+    placement: null
+    vendor: Vercel
+    oss: false
+    license: proprietary
+    url: https://vercel.com/docs/ai-gateway
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: AI SDK と一体で使う前提のゲートウェイ。アプリのデプロイ基盤に寄せた立ち位置。
+    verified: 2026-09-21
+    sources:
+      - https://vercel.com/docs/ai-gateway
+
+  - slug: claude-code-router
+    name: claude-code-router
+    layer: L2
+    placement: null
+    vendor: null
+    oss: true
+    license: MIT
+    url: https://github.com/musistudio/claude-code-router
+    repo: musistudio/claude-code-router
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Claude Code を他モデルに向けるために始まり、いまは複数エージェント向けのローカル制御面を名乗っている。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/musistudio/claude-code-router
+
+  # ============================================================
+  # L3 — 共通基盤（分類は暫定。subkind はメモであって確定分類ではない）
+  # ============================================================
+
+  - slug: mcp
+    tier_reason: star は閾値未満だが、全層が依存する接続規格のため
+    tier: detail
+    name: Model Context Protocol (MCP)
+    layer: L3
+    subkind: プロトコル・接続規格
+    placement: null
+    vendor: "Agentic AI Foundation (寄贈: Anthropic)"
+    oss: true
+    license: null
+    url: https://modelcontextprotocol.io
+    repo: modelcontextprotocol/modelcontextprotocol
+    released: 2024-11
+    ended: null
+    succeeded_by: null
+    summary: モデルとツール・データを繋ぐ接続規格。2024-11 に Anthropic が公開し、2025-12 に AAIF へ寄贈されて中立化した。
+    verified: 2026-09-21
+    sources:
+      - https://modelcontextprotocol.io
+      - https://blog.modelcontextprotocol.io/posts/2025-12-09-mcp-joins-agentic-ai-foundation/
+
+  - slug: agent-skills
+    name: Agent Skills
+    layer: L3
+    subkind: 指示と知識の受け渡し形式
+    placement: null
+    vendor: Anthropic
+    oss: true
+    license: null
+    url: https://code.claude.com/docs/en/skills
+    repo: anthropics/skills
+    released: 2025-09
+    ended: null
+    succeeded_by: null
+    summary: 手順書をフォルダ単位で配り、必要なときだけ読ませる仕組み。Anthropic 発でベンダー固有。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/anthropics/skills
+      - https://code.claude.com/docs/en/skills
+
+  - slug: agents-md
+    tier_reason: star が閾値をわずかに下回るが、AAIF 三本柱の一つのため
+    tier: detail
+    name: AGENTS.md
+    layer: L3
+    subkind: 指示と知識の受け渡し形式
+    placement: null
+    vendor: "Agentic AI Foundation (寄贈: OpenAI)"
+    oss: true
+    license: MIT
+    url: https://agents.md
+    repo: agentsmd/agents.md
+    released: 2025-08
+    ended: null
+    succeeded_by: null
+    summary: エージェントにプロジェクト固有の指示を渡すための共通ファイル形式。2025-12 に OpenAI から AAIF へ寄贈された。
+    verified: 2026-09-21
+    sources:
+      - https://agents.md
+      - https://github.com/agentsmd/agents.md
+      - https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation
+
+  - slug: apm
+    name: apm
+    layer: L3
+    subkind: 配布・パッケージ管理
+    placement: null
+    vendor: Microsoft
+    oss: true
+    license: null
+    url: "https://github.com/microsoft/apm"
+    repo: microsoft/apm
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: エージェント向けの指示・スキル・MCP サーバーをパッケージとして配布する CLI。Microsoft 製。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/microsoft/apm
+    note: 本機に v0.31.0 が入っており、~/.apm と dotfiles から Claude Code へ配布している。
+
+  - slug: orca
+    name: orca
+    layer: L3
+    subkind: 実行・ランナー
+    placement: null
+    vendor: Stably
+    oss: true
+    license: null
+    url: "https://github.com/stablyai/orca"
+    repo: stablyai/orca
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 並列に走らせた複数エージェントを束ねる ADE。デスクトップ・モバイル・リモートから同じ実行環境に繋ぐ。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/stablyai/orca
+    note: 本機ではターミナル/セッション管理として稼働し、Claude Code と Codex の両方に hook を挿している。
+
+  - slug: headroom-plugins
+    name: Headroom プラグイン群 (openclaw / hermes / opencode)
+    layer: L3
+    subkind: 既存エージェントへの差し込み
+    placement: null
+    vendor: Headroom Labs
+    oss: true
+    license: Apache-2.0
+    url: https://github.com/headroomlabs-ai/headroom
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Headroom が同梱する各エージェント向け差し込み。OpenCode はトランスポート差し替え、OpenClaw は contextEngine スロット、Hermes は復元ツールのみ、と刺さり方が違う。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/headroomlabs-ai/headroom
+
+  # ============================================================
+  # 墓場・改名・統合 — 履歴ティア（表の 1 行だけ。散文は書かない）
+  # タイムラインを意味あるものにするのはこの層。盛衰が見えないと「今ホットか」が判断できない。
+  # ============================================================
+
+  - slug: autogpt
+    name: AutoGPT
+    layer: L1
+    placement: cloud
+    tier: history
+    vendor: Significant Gravitas
+    oss: true
+    license: null
+    url: https://agpt.co
+    repo: Significant-Gravitas/AutoGPT
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 2023 年の自律エージェント熱狂の象徴。いまはエージェント構築プラットフォームに方向転換している。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/Significant-Gravitas/AutoGPT
+
+  - slug: babyagi
+    name: BabyAGI
+    layer: L1
+    placement: cloud
+    tier: history
+    vendor: null
+    oss: true
+    license: null
+    url: null
+    repo: yoheinakajima/babyagi
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: タスク生成ループを 100 行台で示し、2023 年の自律エージェント流行の起点になった実験。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/yoheinakajima/babyagi
+
+  - slug: gpt-engineer
+    name: GPT Engineer
+    layer: L1
+    placement: terminal
+    tier: history
+    vendor: null
+    oss: true
+    license: MIT
+    url: null
+    repo: AntonOsika/gpt-engineer
+    released: null
+    ended: 2024-06
+    succeeded_by: null
+    summary: 自然言語から一式を生成する実験。リポジトリはアーカイブ済みで、系譜は Lovable に続いている。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/AntonOsika/gpt-engineer
+
+  - slug: smol-developer
+    name: smol developer
+    layer: L1
+    placement: terminal
+    tier: history
+    vendor: null
+    oss: true
+    license: MIT
+    url: null
+    repo: smol-ai/developer
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 開発エージェントをアプリに組み込む発想を最初に示したライブラリ。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/smol-ai/developer
+
+  - slug: swe-agent
+    name: SWE-agent
+    layer: L1
+    placement: terminal
+    tier: history
+    vendor: Princeton / Stanford
+    oss: true
+    license: MIT
+    url: https://swe-agent.com
+    repo: SWE-agent/SWE-agent
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: GitHub の issue を受け取って自動修正する研究系エージェント。SWE-bench 文脈の基準実装。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/SWE-agent/SWE-agent
+
+  - slug: sweep
+    name: Sweep
+    layer: L1
+    placement: cloud
+    tier: history
+    vendor: Sweep AI
+    oss: true
+    license: null
+    url: null
+    repo: sweepai/sweep
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: issue から PR を作る初期のクラウドエージェント。後に JetBrains 向けアシスタントへ転換した。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/sweepai/sweep
+
+  - slug: cody
+    name: Cody
+    layer: L1
+    placement: ide
+    tier: history
+    vendor: Sourcegraph
+    oss: true
+    license: null
+    url: null
+    repo: null
+    released: 2023-04
+    ended: 2025-07
+    succeeded_by: null
+    summary: Sourcegraph の IDE アシスタント。2025-07-23 に無料・Pro 版を終了し、以後はエンタープライズ専用。Amp は別会社の別製品であって改名ではない。
+    verified: 2026-09-21
+    sources:
+      - https://sourcegraph.com/blog/cody-is-generally-available
+      - https://sourcegraph.com/blog/changes-to-cody-free-pro-and-enterprise-starter-plans
+
+  - slug: copilot-workspace
+    name: GitHub Copilot Workspace
+    layer: L1
+    placement: cloud
+    tier: history
+    vendor: GitHub
+    oss: false
+    license: proprietary
+    url: null
+    repo: null
+    released: 2024-04
+    ended: 2025-05
+    succeeded_by: copilot-coding-agent
+    summary: GitHub Next の技術プレビュー。2025-05-30 に終了し、知見は Copilot の agent mode と coding agent に吸収された。
+    verified: 2026-09-21
+    sources:
+      - https://github.blog/news-insights/product-news/github-copilot-workspace/
+      - https://githubnext.com/projects/copilot-workspace/
+
+  - slug: codewhisperer
+    name: Amazon CodeWhisperer
+    layer: L1
+    placement: ide
+    tier: history
+    vendor: AWS
+    oss: false
+    license: proprietary
+    url: null
+    repo: null
+    released: 2022-06
+    ended: 2024-04
+    succeeded_by: q-developer
+    summary: AWS の補完アシスタント。2024-04 に Amazon Q Developer へ統合されて名前が消えた。
+    verified: 2026-09-21
+    sources:
+      - https://aws.amazon.com/about-aws/whats-new/2022/06/aws-announces-amazon-codewhisperer-preview/
+      - https://aws.amazon.com/about-aws/whats-new/2023/04/amazon-codewhisperer-generally-available/
+
+  - slug: q-developer
+    name: Amazon Q Developer
+    layer: L1
+    placement: ide
+    tier: history
+    vendor: AWS
+    oss: false
+    license: proprietary
+    url: https://aws.amazon.com/q/developer/
+    repo: null
+    released: 2024-04
+    ended: null
+    succeeded_by: null
+    summary: CodeWhisperer を引き継いだ AWS のアシスタント。AWS 環境との結合が強い。
+    verified: 2026-09-21
+    sources:
+      - https://aws.amazon.com/q/developer/
+
+  - slug: tabnine
+    name: Tabnine
+    layer: L1
+    placement: ide
+    tier: history
+    vendor: Tabnine
+    oss: false
+    license: proprietary
+    url: https://tabnine.com
+    repo: null
+    released: 2018-01
+    ended: null
+    succeeded_by: null
+    summary: LLM ブーム以前から続く補完サービス。自社ホスティングとコンプライアンスを売りにして生き残っている。
+    verified: 2026-09-21
+    sources:
+      - https://tabnine.com
+
+  - slug: replit-agent
+    name: Replit Agent
+    layer: L1
+    placement: cloud
+    tier: history
+    vendor: Replit
+    oss: false
+    license: proprietary
+    url: https://replit.com
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: ブラウザ上の開発環境に組み込まれたエージェント。非開発者向けの「作って動かす」体験に振っている。
+    verified: 2026-09-21
+    sources:
+      - https://replit.com
+
+  # ============================================================
+  # L0 — モデル提供元（参考。ツールではないので比較表の対象外、付録の小表に出す）
+  # ============================================================
+
+  - slug: anthropic
+    name: Anthropic
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Anthropic
+    oss: false
+    license: proprietary
+    url: https://anthropic.com
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Claude シリーズの提供元。MCP を公開し AAIF に寄贈した側でもある。
+    verified: 2026-09-21
+    sources:
+      - https://anthropic.com
+
+  - slug: openai
+    name: OpenAI
+    layer: L0
+    placement: null
+    tier: history
+    vendor: OpenAI
+    oss: false
+    license: proprietary
+    url: https://openai.com
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: GPT / Codex 系の提供元。AGENTS.md を公開し AAIF に寄贈した。
+    verified: 2026-09-21
+    sources:
+      - https://openai.com
+
+  - slug: google-deepmind
+    name: Google DeepMind
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Google
+    oss: false
+    license: proprietary
+    url: https://deepmind.google
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Gemini シリーズの提供元。Gemini CLI と Jules を自前で持つ。
+    verified: 2026-09-21
+    sources:
+      - https://deepmind.google
+
+  - slug: xai
+    name: xAI
+    layer: L0
+    placement: null
+    tier: history
+    vendor: xAI
+    oss: false
+    license: proprietary
+    url: https://x.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Grok シリーズの提供元。純正 CLI は持たず、コミュニティ製が使われている。
+    verified: 2026-09-21
+    sources:
+      - https://x.ai
+
+  - slug: deepseek
+    name: DeepSeek
+    layer: L0
+    placement: null
+    tier: history
+    vendor: DeepSeek
+    oss: true
+    license: null
+    url: https://deepseek.com
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 重みを公開するモデル提供元。価格の安さでゲートウェイ経由の利用が多い。
+    verified: 2026-09-21
+    sources:
+      - https://deepseek.com
+
+  - slug: meta-llama
+    name: Meta (Llama)
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Meta
+    oss: true
+    license: null
+    url: https://llama.com
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Llama シリーズの提供元。ローカル実行の裾野を作った。
+    verified: 2026-09-21
+    sources:
+      - https://llama.com
+
+  - slug: mistral
+    name: Mistral AI
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Mistral AI
+    oss: true
+    license: null
+    url: https://mistral.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 欧州拠点のモデル提供元。Mistral Vibe という純正 CLI を持つ。
+    verified: 2026-09-21
+    sources:
+      - https://mistral.ai
+
+  - slug: qwen
+    name: Qwen
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Alibaba
+    oss: true
+    license: null
+    url: https://qwen.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Alibaba のモデル群。重み公開系の中で採用が広い。
+    verified: 2026-09-21
+    sources:
+      - https://qwen.ai
+
+  - slug: zai
+    name: Z.ai
+    layer: L0
+    placement: null
+    tier: history
+    vendor: Z.ai
+    oss: true
+    license: null
+    url: https://z.ai
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: GLM シリーズの提供元。Anthropic 互換エンドポイントを出しており、Claude 系ツールから繋ぎやすい。
+    verified: 2026-09-21
+    sources:
+      - https://z.ai
+
+  # ============================================================
+  # 調査中に見つかって追加した項目
+  # （Headroom の wrap リストと GitHub の実測から拾ったもの。私の印象では選んでいない）
+  # ============================================================
+
+  - slug: kilo-code
+    name: Kilo Code
+    layer: L1
+    placement: ide
+    vendor: Kilo
+    oss: true
+    license: null
+    url: https://kilocode.ai
+    repo: Kilo-Org/kilocode
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Cline 系譜のフォークの中で最大手。Roo Code 終了時の移行先の一つとして案内された。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/Kilo-Org/kilocode
+
+  - slug: roomote
+    name: Roomote
+    layer: L1
+    placement: cloud
+    vendor: Roo Code Inc
+    oss: true
+    license: null
+    url: https://roomote.dev
+    repo: RooCodeInc/Roomote
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: Roo Code のチームが IDE 拡張を畳んで賭けた Slack 起点のクラウドエージェント。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/RooCodeInc/Roomote
+
+  - slug: ponytail
+    name: ponytail
+    layer: L3
+    subkind: 指示と知識の受け渡し形式
+    placement: null
+    vendor: null
+    oss: true
+    license: null
+    url: https://github.com/DietrichGebert/ponytail
+    repo: DietrichGebert/ponytail
+    released: 2026-06
+    ended: null
+    succeeded_by: null
+    summary: 「一番怠惰なシニア開発者のように考えさせる」スキル集。20 近いエージェントに同じ手順を配る形を取る。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/DietrichGebert/ponytail
+
+  - slug: codegraph
+    name: CodeGraph
+    layer: L3
+    subkind: コードの索引を供給する
+    placement: null
+    vendor: null
+    oss: true
+    license: null
+    url: https://github.com/colbymchenry/codegraph
+    repo: colbymchenry/codegraph
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: コードを事前にグラフ化して各エージェントに渡す索引。grep と Read の往復をツール 1 回に畳むのが狙い。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/colbymchenry/codegraph
+
+  - slug: graphify
+    name: graphify
+    layer: L3
+    subkind: コードの索引を供給する
+    placement: null
+    tier: history
+    vendor: null
+    oss: true
+    license: null
+    url: null
+    repo: null
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 任意の入力を永続的なナレッジグラフに変換する索引ツール。PyPI では graphifyy として配布。
+    verified: 2026-09-21
+    sources:
+      - https://pypi.org/project/graphifyy/
+    note: GitHub リポジトリを特定できていないため star / リリース指標は取れない。
+
+  # ============================================================
+  # 文脈の最適化まわり（context-optimization.html で比較する対抗馬）
+  # 手元で使っている Headroom / CodeGraph / graphify と同じ土俵に載るもの。
+  # ============================================================
+
+  - slug: serena
+    name: Serena
+    layer: L3
+    subkind: コードの索引を供給する
+    placement: null
+    vendor: Oraios AI
+    oss: true
+    license: null
+    url: https://github.com/oraios/serena
+    repo: oraios/serena
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: LSP を使って意味的にコードを検索・編集する MCP ツールキット。`headroom wrap` を使うと既定で入る（`--code-memory none` で止まる）。`headroom install apply` 経由の常駐構成では入らない。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/oraios/serena
+
+  - slug: claude-context
+    name: Claude Context
+    layer: L3
+    subkind: コードの索引を供給する
+    placement: null
+    vendor: Zilliz
+    oss: true
+    license: null
+    url: https://github.com/zilliztech/claude-context
+    repo: zilliztech/claude-context
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: ベクトル検索でコードベース全体を文脈にする MCP。索引をベクトル DB に持たせる方式。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/zilliztech/claude-context
+
+  - slug: ast-grep
+    name: ast-grep
+    layer: L3
+    subkind: コードの索引を供給する
+    placement: null
+    vendor: null
+    oss: true
+    license: null
+    url: https://ast-grep.github.io
+    repo: ast-grep/ast-grep
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 構文木で検索・置換する CLI。索引は持たないが、grep より正確に構造を掴める。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/ast-grep/ast-grep
+
+  - slug: llmlingua
+    name: LLMLingua
+    layer: L2
+    placement: null
+    vendor: Microsoft
+    oss: true
+    license: null
+    url: https://github.com/microsoft/LLMLingua
+    repo: microsoft/LLMLingua
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: プロンプトを言語モデルで圧縮する研究発の手法。Headroom が初期に採用し、のちに外した経緯がある。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/microsoft/LLMLingua
+
+  - slug: graphrag
+    name: GraphRAG
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: Microsoft
+    oss: true
+    license: null
+    url: https://github.com/microsoft/graphrag
+    repo: microsoft/graphrag
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 文書からエンティティ・関係を抽出してグラフ化し、そのグラフを検索する RAG。graphify と同じ発想の本家筋。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/microsoft/graphrag
+
+  - slug: lightrag
+    name: LightRAG
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: HKUDS
+    oss: true
+    license: null
+    url: https://github.com/HKUDS/LightRAG
+    repo: HKUDS/LightRAG
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: GraphRAG を軽く速くした系統。構築コストの重さが GraphRAG の弱点だという前提に立つ。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/HKUDS/LightRAG
+
+  - slug: cognee
+    name: cognee
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: Topoteretes
+    oss: true
+    license: null
+    url: https://github.com/topoteretes/cognee
+    repo: topoteretes/cognee
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: エージェント向けの記憶基盤。グラフとベクトルを併用して過去の文脈を引き当てる。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/topoteretes/cognee
+
+  - slug: mem0
+    name: Mem0
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: Mem0
+    oss: true
+    license: null
+    url: https://mem0.ai
+    repo: mem0ai/mem0
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: エージェントに差し込む記憶層。会話から事実を抽出して持ち越す、時間方向の圧縮にあたる。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/mem0ai/mem0
+
+  - slug: letta
+    name: Letta (MemGPT)
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: Letta
+    oss: true
+    license: null
+    url: https://letta.com
+    repo: letta-ai/letta
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: MemGPT 論文発の、状態を持つエージェント基盤。文脈window の外に記憶を退避する発想の源流。
+    verified: 2026-09-21
+    sources:
+      - https://github.com/letta-ai/letta
