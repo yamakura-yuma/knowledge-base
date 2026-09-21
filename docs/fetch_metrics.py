@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml"]
 # ///
-"""GitHub から実測値を取って docs/data/metrics.json に落とす。
+"""GitHub から実測値を取って docs/src/data/metrics.json に落とす。
 
 方針:
   - 取れた値しか書かない。取れなければ前回値を温存する。推測は一切しない。
@@ -11,7 +11,7 @@
     続けて 2 回流しても git の差分は出ない。
   - 認証は `gh` に任せる。gh が無い / 未認証なら未認証の API に落として続行する。
 
-使い方:  uv run docs/fetch_metrics.py [--registry docs/registry.yaml]
+使い方:  uv run docs/fetch_metrics.py [--registry docs/src/landscape/registry.yaml]
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ import urllib.request
 import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
+SRC = HERE / "src"
 API = "https://api.github.com"
 WINDOW_DAYS = 90
 # star は大きなリポジトリだと数秒で動く。そのまま比較すると定期実行のたびに
@@ -124,8 +125,8 @@ def materially_same(old: dict, new: dict) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--registry", default=str(HERE / "registry.yaml"))
-    ap.add_argument("--out", default=str(HERE / "data" / "metrics.json"))
+    ap.add_argument("--registry", default=str(SRC / "landscape" / "registry.yaml"))
+    ap.add_argument("--out", default=str(SRC / "data" / "metrics.json"))
     ap.add_argument("--only", default=None,
                     help="スラグをカンマ区切りで指定。そのリポジトリだけ引き直す（改名対応の再実行用）")
     ap.add_argument("--allow-unauthenticated", action="store_true",

@@ -1,6 +1,6 @@
 # AI コーディングツール・ランドスケープ レジストリ
 #
-# このファイルが全項目の正本。詳細ティア (tier: detail) の項目は docs/tools/<slug>.md に
+# このファイルが全項目の正本。詳細ティア (tier: detail) の項目は docs/src/landscape/tools/<slug>.md に
 # 本文を持ち、frontmatter はこのファイルから生成せずファイル側に置く。
 # 履歴ティア (tier: history) はこのファイルの 1 ブロックだけで完結する。
 #
