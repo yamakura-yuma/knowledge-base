@@ -236,7 +236,7 @@
   <h1>AI コーディングツール・ランドスケープ</h1>
   <p class="sub">78 項目を 4 層に分けて並べた。星の数・直近リリース・アーカイブ状態は GitHub API の実測値（取得日 <b>2026-09-21</b>）で、状態の判定はすべてその数字から機械的に出している。詳細は層ごとのページに分けた。</p>
 </header>
-<nav class="nav"><a href="index.html" class="on">全体</a><a href="l1-terminal.html" class="">ターミナル</a><a href="l1-ide.html" class="">IDE</a><a href="l1-cloud.html" class="">クラウド</a><a href="l2.html" class="">モデルアクセス</a><a href="l3.html" class="">共通基盤</a><a href="l0.html" class="">モデル提供元</a><a href="context-optimization.html" class="">文脈の最適化</a><a href="dotfiles.html" class="">dotfiles 構成</a></nav>
+<nav class="nav"><a href="../landscape/index.html" class="on">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../dotfiles/context-optimization.html" class="">文脈の最適化</a><a href="../dotfiles/dotfiles.html" class="">dotfiles 構成</a></nav>
 
 <h2>1. この分類はどうやって導いたか</h2>
 <p>
@@ -347,7 +347,7 @@ L3  共通基盤          MCP / AGENTS.md / Agent Skills / apm …       全層�
 
 <h2>4. 層ごとのページ</h2>
 <p>詳細はここには置かず、層ごとのページに分けてある。1 ページが長くなりすぎると読めないため。</p>
-<div class="pagegrid"><a class="pcard" href="l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a><a class="pcard" href="dotfiles.html"><b>dotfiles 構成</b><span>このホストのエージェント環境が、どう組み立てられているか</span></a></div>
+<div class="pagegrid"><a class="pcard" href="../landscape/l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="../landscape/l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="../landscape/l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="../landscape/l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="../dotfiles/context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a><a class="pcard" href="../dotfiles/dotfiles.html"><b>dotfiles 構成</b><span>このホストのエージェント環境が、どう組み立てられているか</span></a></div>
 
 <h2>5. この表が答えていないこと</h2>
 <p>ランドスケープの類は、何を載せたかより<strong>何を載せなかったか</strong>で誤解を生む。先に書いておく。</p>
@@ -373,9 +373,9 @@ L3  共通基盤          MCP / AGENTS.md / Agent Skills / apm …       全層�
   星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-21、
   <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
   裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
-  正本は <code>docs/registry.yaml</code>・<code>docs/tools/*.md</code>・<code>docs/pages/*.md</code>。
+  正本は <code>docs/src/landscape/registry.yaml</code>・<code>docs/src/landscape/tools/*.md</code>・<code>docs/src/&lt;話題&gt;/*.md</code>。
   この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
-  更新手順は <code>docs/UPDATE_PROMPT.md</code>。
+  更新手順は <code>docs/src/landscape/UPDATE_PROMPT.md</code>。
 </footer>
 </div>
 </body>

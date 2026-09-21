@@ -236,7 +236,7 @@
   <h1>文脈の最適化 — いま使っている 3 つと、その対抗馬</h1>
   <p class="sub">Headroom・CodeGraph・graphify が実際に何を解いていて、同じ問題に別の答えを出しているものが何か。星の数と直近 push は GitHub API の実測値。</p>
 </header>
-<nav class="nav"><a href="index.html" class="">全体</a><a href="l1-terminal.html" class="">ターミナル</a><a href="l1-ide.html" class="">IDE</a><a href="l1-cloud.html" class="">クラウド</a><a href="l2.html" class="">モデルアクセス</a><a href="l3.html" class="">共通基盤</a><a href="l0.html" class="">モデル提供元</a><a href="context-optimization.html" class="on">文脈の最適化</a><a href="dotfiles.html" class="">dotfiles 構成</a></nav>
+<nav class="nav"><a href="../landscape/index.html" class="">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../dotfiles/context-optimization.html" class="on">文脈の最適化</a><a href="../dotfiles/dotfiles.html" class="">dotfiles 構成</a></nav>
 <h2>問題は「文脈が足りない」ではなく「余計なものが多い」</h2>
 <p>エージェントがトークンを食う理由は、だいたい次の 3 つに割れる。<strong>この 3 つは別の問題で、効く薬も違う。</strong>
 手元の 3 ツールは、たまたま 3 つをきれいに分担している。</p>
@@ -434,9 +434,9 @@ CodeGraph 一本に決め、①の genshijin-compress も外した。
   星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-21、
   <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
   裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
-  正本は <code>docs/registry.yaml</code>・<code>docs/tools/*.md</code>・<code>docs/pages/*.md</code>。
+  正本は <code>docs/src/landscape/registry.yaml</code>・<code>docs/src/landscape/tools/*.md</code>・<code>docs/src/&lt;話題&gt;/*.md</code>。
   この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
-  更新手順は <code>docs/UPDATE_PROMPT.md</code>。
+  更新手順は <code>docs/src/landscape/UPDATE_PROMPT.md</code>。
 </footer>
 </div>
 </body>

@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml", "markdown"]
 # ///
-"""registry.yaml + metrics.json + tools/*.md から docs/index.html を組む。
+"""registry.yaml + metrics.json + tools/*.md から docs/site/ 以下の HTML を組む。
 
 設計方針:
   - 出力は自己完結。外部 CDN・Web フォント・JS を一切使わない。
@@ -28,6 +28,8 @@ import markdown as md_lib
 import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
+SRC = HERE / "src"            # 正本。手で書く markdown と registry
+OUT = HERE / "site"           # 生成物。話題ごとのディレクトリに出す
 TL_START = (2021, 1)          # タイムラインの左端
 STAR_THRESHOLD = 25_000       # 詳細ティアの自動昇格ライン
 ACTIVE_DAYS = 90
@@ -128,8 +130,8 @@ def num(n) -> str:
 
 
 def load() -> tuple[dict, dict]:
-    reg = yaml.safe_load((HERE / "registry.yaml").read_text(encoding="utf-8"))
-    mp = HERE / "data" / "metrics.json"
+    reg = yaml.safe_load((SRC / "landscape" / "registry.yaml").read_text(encoding="utf-8"))
+    mp = SRC / "data" / "metrics.json"
     metrics = json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else {"repos": {}}
     return reg, metrics
 
@@ -235,12 +237,12 @@ def cards(rows: list[dict], warnings: list[str]) -> str:
     conv = md_lib.Markdown(extensions=["tables", "fenced_code"])
     out = []
     for r in rows:
-        body_path = HERE / "tools" / f'{r["slug"]}.md'
+        body_path = SRC / "landscape" / "tools" / f'{r["slug"]}.md'
         if body_path.exists():
             conv.reset()
             body = demote_headings(conv.convert(body_path.read_text(encoding="utf-8")))
         else:
-            warnings.append(f'詳細ティアだが本文が無い: docs/tools/{r["slug"]}.md')
+            warnings.append(f'詳細ティアだが本文が無い: docs/src/landscape/tools/{r["slug"]}.md')
             body = f'<p class="todo">本文未着手。{esc(r.get("summary") or "")}</p>'
         m = r["m"]
         meta = [f'<span class="k">層</span>{r["layer"]}・{LAYER_LABEL[r["layer"]]}']
@@ -523,23 +525,31 @@ L3  共通基盤          MCP / AGENTS.md / Agent Skills / apm …       全層�
 
 STATIC_ROWS: list[dict] = []   # main() が組み立てた rows を静的ページから参照するため
 
+# (ファイル名, ラベル, 層の選択, 話題)。話題は site/<話題>/ の出力先と、
+# ページ間リンクの `../<話題>/<ファイル名>` の両方に使う。
 PAGES = [
-    ("index.html",               "全体",            None),
-    ("l1-terminal.html",         "ターミナル",      ("L1", "terminal")),
-    ("l1-ide.html",              "IDE",             ("L1", "ide")),
-    ("l1-cloud.html",            "クラウド",        ("L1", "cloud")),
-    ("l2.html",                  "モデルアクセス",  ("L2", None)),
-    ("l3.html",                  "共通基盤",        ("L3", None)),
-    ("l0.html",                  "モデル提供元",    ("L0", None)),
-    ("context-optimization.html","文脈の最適化",    "static"),
-    ("dotfiles.html",            "dotfiles 構成",   "static"),
+    ("index.html",               "全体",            None,               "landscape"),
+    ("l1-terminal.html",         "ターミナル",      ("L1", "terminal"), "landscape"),
+    ("l1-ide.html",              "IDE",             ("L1", "ide"),      "landscape"),
+    ("l1-cloud.html",            "クラウド",        ("L1", "cloud"),    "landscape"),
+    ("l2.html",                  "モデルアクセス",  ("L2", None),       "landscape"),
+    ("l3.html",                  "共通基盤",        ("L3", None),       "landscape"),
+    ("l0.html",                  "モデル提供元",    ("L0", None),       "landscape"),
+    ("context-optimization.html","文脈の最適化",    "static",           "dotfiles"),
+    ("dotfiles.html",            "dotfiles 構成",   "static",           "dotfiles"),
 ]
+
+
+def href(fname: str) -> str:
+    """ページ間リンク。どのページも site/<話題>/ の 1 階層下に出るので一律 ../<話題>/<file>。"""
+    topic = next(t for f, _, _, t in PAGES if f == fname)
+    return f"../{topic}/{fname}"
 
 
 def nav(active: str) -> str:
     items = "".join(
-        f'<a href="{f}" class="{"on" if f == active else ""}">{esc(l)}</a>'
-        for f, l, _ in PAGES)
+        f'<a href="{href(f)}" class="{"on" if f == active else ""}">{esc(l)}</a>'
+        for f, l, _, _ in PAGES)
     return f'<nav class="nav">{items}</nav>'
 
 
@@ -566,9 +576,9 @@ def shell(active: str, title: str, sub: str, body: str, fetched: str) -> str:
   星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 {esc(fetched)}、
   <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
   裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
-  正本は <code>docs/registry.yaml</code>・<code>docs/tools/*.md</code>・<code>docs/pages/*.md</code>。
+  正本は <code>docs/src/landscape/registry.yaml</code>・<code>docs/src/landscape/tools/*.md</code>・<code>docs/src/&lt;話題&gt;/*.md</code>。
   この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
-  更新手順は <code>docs/UPDATE_PROMPT.md</code>。
+  更新手順は <code>docs/src/landscape/UPDATE_PROMPT.md</code>。
 </footer>
 </div>
 </body>
@@ -588,7 +598,7 @@ def layer_page(fname, label, sel, rows, metrics, warnings) -> str:
 <p class="sub2">
   {esc(LAYER_LABEL[layer])}{place_txt} の {len(sub_rows)} 項目。
   うち詳細を書いたのは {len(detail)} 項目、残り {len(hist)} 項目は表の 1 行のみ。
-  <a href="index.html">分類軸と全体のタイムラインは「全体」ページ</a>。
+  <a href="{href('index.html')}">分類軸と全体のタイムラインは「全体」ページ</a>。
 </p>
 <h2>一覧</h2>
 <div class="tblwrap"><table>
@@ -635,11 +645,11 @@ def fill_placeholders(text: str, rows: list[dict], warnings: list[str]) -> str:
     return re.sub(r"\{\{(star|status|push|name):([a-z0-9-]+)\}\}", sub, text)
 
 
-def static_page(fname, label, metrics, warnings) -> str:
-    """docs/pages/<name>.md を同じ外枠で描く。図は md の中に生 HTML で書く。"""
-    src = HERE / "pages" / fname.replace(".html", ".md")
+def static_page(fname, label, topic, metrics, warnings) -> str:
+    """docs/src/<話題>/<name>.md を同じ外枠で描く。図は md の中に生 HTML で書く。"""
+    src = SRC / topic / fname.replace(".html", ".md")
     if not src.exists():
-        warnings.append(f"静的ページの原稿が無い: docs/pages/{src.name}")
+        warnings.append(f"静的ページの原稿が無い: docs/src/{topic}/{src.name}")
         return ""
     raw = fill_placeholders(src.read_text(encoding="utf-8"), STATIC_ROWS, warnings)
     title, sub, body_md = label, "", raw
@@ -665,7 +675,7 @@ def page(reg, metrics, rows, warnings) -> str:
     n_detail = sum(1 for r in rows if r["tier"] == "detail")
     fetched = metrics.get("fetched_at", "—")
     links = []
-    for fname, label, sel in PAGES:
+    for fname, label, sel, _topic in PAGES:
         if sel is None:
             continue
         if sel == "static":
@@ -673,14 +683,14 @@ def page(reg, metrics, rows, warnings) -> str:
                     "いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する",
                     "dotfiles.html":
                     "このホストのエージェント環境が、どう組み立てられているか"}[fname]
-            links.append(f'<a class="pcard" href="{fname}"><b>{esc(label)}</b>'
+            links.append(f'<a class="pcard" href="{href(fname)}"><b>{esc(label)}</b>'
                          f'<span>{esc(desc)}</span></a>')
             continue
         layer, place = sel
         sub = [r for r in rows if r["layer"] == layer
                and (place is None or r.get("placement") == place)]
         nd = sum(1 for r in sub if r["tier"] == "detail")
-        links.append(f'<a class="pcard" href="{fname}"><b>{esc(label)}</b>'
+        links.append(f'<a class="pcard" href="{href(fname)}"><b>{esc(label)}</b>'
                      f'<span>{esc(layer)}・{len(sub)} 項目（詳細 {nd}）</span></a>')
     page_links = "".join(links)
 
@@ -835,7 +845,7 @@ def main() -> int:
 
     # 前回の状態を読み、遷移を出す。index.html を diff させるより確実で、
     # git 管理下に無くても機能する。
-    st_path = HERE / "data" / "status.json"
+    st_path = SRC / "data" / "status.json"
     prev_status = {}
     if st_path.exists():
         prev_status = json.loads(st_path.read_text(encoding="utf-8")).get("status", {})
@@ -848,25 +858,27 @@ def main() -> int:
                                       indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     written, unchanged = [], []
-    def emit(fname: str, html_text: str) -> None:
+    def emit(topic: str, fname: str, html_text: str) -> None:
         if not html_text:
             return
-        f = HERE / fname
+        rel = f"{topic}/{fname}"
+        f = OUT / topic / fname
+        f.parent.mkdir(parents=True, exist_ok=True)
         if f.exists() and f.read_text(encoding="utf-8") == html_text:
-            unchanged.append(fname)
+            unchanged.append(rel)
         else:
             f.write_text(html_text, encoding="utf-8")
-            written.append(fname)
+            written.append(rel)
 
     STATIC_ROWS[:] = rows
-    emit("index.html", page(reg, metrics, rows, warnings))
-    for fname, label, sel in PAGES:
+    emit("landscape", "index.html", page(reg, metrics, rows, warnings))
+    for fname, label, sel, topic in PAGES:
         if sel is None:
             continue
         if sel == "static":
-            emit(fname, static_page(fname, label, metrics, warnings))
+            emit(topic, fname, static_page(fname, label, topic, metrics, warnings))
         else:
-            emit(fname, layer_page(fname, label, sel, rows, metrics, warnings))
+            emit(topic, fname, layer_page(fname, label, sel, rows, metrics, warnings))
 
     if written:
         print("生成: " + "、".join(written))

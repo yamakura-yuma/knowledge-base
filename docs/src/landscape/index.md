@@ -1,6 +1,6 @@
 # AI コーディングツール・ランドスケープ
 
-表示用の一枚物は [`index.html`](./index.html)（生成物。ブラウザで直接開ける）。
+表示用の一枚物は [`site/landscape/index.html`](../../site/landscape/index.html)（生成物。ブラウザで直接開ける）。
 このファイルは、そこに載せきれない「どう作ってあるか」を書いたもの。
 
 ## 分類軸
@@ -54,15 +54,17 @@ HTML には出していない（見出しにすると分類が確定したよう
 
 ## ファイルの役割
 
+パスはすべて `docs/` からの相対。
+
 | パス | 役割 |
 |---|---|
-| `registry.yaml` | **正本。** 全項目の構造化データ。ここを編集する |
-| `tools/<slug>.md` | 詳細ティアの本文。**散文のみ**（frontmatter は持たない。構造化データは registry 側） |
-| `data/metrics.json` | GitHub API の実測値。`fetch_metrics.py` の出力。手で編集しない |
+| `src/landscape/registry.yaml` | **正本。** 全項目の構造化データ。ここを編集する |
+| `src/landscape/tools/<slug>.md` | 詳細ティアの本文。**散文のみ**（frontmatter は持たない。構造化データは registry 側） |
+| `src/data/metrics.json` | GitHub API の実測値。`fetch_metrics.py` の出力。手で編集しない |
 | `fetch_metrics.py` | star・push 日時・リリース数・アーカイブ状態を取得 |
-| `build.py` | 上記 3 つから `index.html` を生成 |
-| `index.html` | **生成物。直接編集しない** |
-| `UPDATE_PROMPT.md` | 定期更新の手順書 |
+| `build.py` | 上記 3 つから `site/landscape/*.html` を生成 |
+| `site/landscape/index.html` | **生成物。直接編集しない** |
+| `src/landscape/UPDATE_PROMPT.md` | 定期更新の手順書 |
 
 ## 使い方
 
