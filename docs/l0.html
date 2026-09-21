@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>モデル提供元</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line);
+       letter-spacing:-.01em; }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto;
+        margin:14px 0; color:var(--ink); }
+  pre code { background:none; padding:0; }
+  ul { margin:10px 0; padding-left:20px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+           vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em;
+       text-transform:uppercase; white-space:nowrap; }
+  .note { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--l1);
+          border-radius:8px; padding:14px 18px; margin:20px 0; font-size:13.5px; color:var(--ink-2); }
+  .note strong { color:var(--ink); }
+
+  /* ---- 凡例・ピル ---- */
+  .pill { display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 7px;
+          border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
+          border:1px solid currentColor; }
+  .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
+
+  /* ---- 層の図 ---- */
+  .layers { display:grid; gap:8px; margin:18px 0; }
+  .lay { display:grid; grid-template-columns:130px 1fr; gap:14px; align-items:start;
+         background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .lay b { font-family:var(--mono); font-size:12px; }
+  .lay.L1 b{color:var(--l1)} .lay.L2 b{color:var(--l2)}
+  .lay.L3 b{color:var(--l3)} .lay.L0 b{color:var(--l0)}
+  .lay div { font-size:13.5px; color:var(--ink-2); }
+
+  /* ---- タイムライン ---- */
+  .tl { display:grid; grid-template-columns:150px 1fr; gap:2px 10px; margin:18px 0 8px;
+        font-size:12px; }
+  .tl-axis, .tl-track { display:grid; grid-template-columns:repeat(var(--cols),1fr);
+                        grid-column:2 !important; }
+  .tl-axis { border-bottom:1px solid var(--line); padding-bottom:3px; margin-bottom:5px; }
+  .tick { font-family:var(--mono); font-size:10.5px; color:var(--ink-3);
+          border-left:1px solid var(--line); padding-left:4px; }
+  .tl-name { font-size:11.5px; color:var(--ink-2); text-align:right; white-space:nowrap;
+             overflow:hidden; text-overflow:ellipsis; line-height:16px; }
+  .tl-name.approx { color:var(--ink-3); font-style:italic; }
+  .tl-track { height:16px; align-items:center; }
+  .bar { height:8px; border-radius:2px; display:block; }
+  .bar.l-L1{background:var(--l1)} .bar.l-L2{background:var(--l2)} .bar.l-L3{background:var(--l3)}
+  .bar.s-ended { background:var(--dead) !important; }
+  .bar.s-stale { opacity:.42; }
+  .bar.s-hot { box-shadow:0 0 0 2px color-mix(in srgb, var(--hot) 45%, transparent); }
+  /* 表示範囲より前に始まっているバーは、左端を斜めに切って「ここが起点ではない」ことを示す */
+  .bar.clipped { border-radius:0 2px 2px 0;
+                 clip-path:polygon(4px 0, 100% 0, 100% 100%, 0 100%); }
+  .legend { font-size:12px; color:var(--ink-3); margin:6px 0 0; }
+  .legend span { margin-right:14px; white-space:nowrap; }
+  .sw { display:inline-block; width:14px; height:8px; border-radius:2px; vertical-align:1px;
+        margin-right:5px; }
+
+  /* ---- CSS だけの絞り込み（JS を使わない） ---- */
+  .filters { position:absolute; opacity:0; pointer-events:none; }
+  .fbar { display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 4px; }
+  .fbar label { font-family:var(--mono); font-size:11.5px; padding:3px 10px; border-radius:5px;
+                border:1px solid var(--line); color:var(--ink-2); cursor:pointer;
+                background:var(--surface); user-select:none; }
+  #f-all:checked  ~ .fbar label[for=f-all],
+  #f-L1:checked   ~ .fbar label[for=f-L1],
+  #f-L2:checked   ~ .fbar label[for=f-L2],
+  #f-L3:checked   ~ .fbar label[for=f-L3],
+  #f-L0:checked   ~ .fbar label[for=f-L0],
+  #f-live:checked ~ .fbar label[for=f-live],
+  #f-dead:checked ~ .fbar label[for=f-dead]
+    { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  #f-L1:checked ~ .tblwrap tr:not([data-layer=L1]),
+  #f-L2:checked ~ .tblwrap tr:not([data-layer=L2]),
+  #f-L3:checked ~ .tblwrap tr:not([data-layer=L3]),
+  #f-L0:checked ~ .tblwrap tr:not([data-layer=L0]),
+  #f-live:checked ~ .tblwrap tr[data-status=ended],
+  #f-live:checked ~ .tblwrap tr[data-status=stale],
+  #f-dead:checked ~ .tblwrap tr[data-status=hot],
+  #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=unknown]
+    { display:none; }
+
+  /* ラジオは見えないが focus は残す。キーボードでも絞り込みを操作できるようにする。 */
+  #f-all:focus-visible ~ .fbar label[for=f-all],
+  #f-L1:focus-visible ~ .fbar label[for=f-L1],
+  #f-L2:focus-visible ~ .fbar label[for=f-L2],
+  #f-L3:focus-visible ~ .fbar label[for=f-L3],
+  #f-L0:focus-visible ~ .fbar label[for=f-L0],
+  #f-live:focus-visible ~ .fbar label[for=f-live],
+  #f-dead:focus-visible ~ .fbar label[for=f-dead]
+    { outline:2px solid var(--l1); outline-offset:2px; }
+
+  /* ---- ページ間ナビ ---- */
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .sub2 { color:var(--ink-2); font-size:13.5px; margin:14px 0 0; }
+
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr));
+              gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; font-family:var(--mono); }
+
+  /* ---- 図のための部品（dotfiles ページで使う） ---- */
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3);
+                margin:-4px 0 12px; letter-spacing:.02em; }
+  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .box { border:1px solid var(--line); border-radius:6px; padding:11px 13px;
+         background:var(--bg); }
+  .box b { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
+  .box span, .box p { font-size:12px; color:var(--ink-2); margin:0; line-height:1.6; }
+  .box.k1 { border-left:3px solid var(--l1); }
+  .box.k2 { border-left:3px solid var(--l2); }
+  .box.k3 { border-left:3px solid var(--l3); }
+  .box.bad { border-left:3px solid var(--hot); }
+  .box.ok  { border-left:3px solid var(--ok); }
+  .down { text-align:center; color:var(--ink-3); font-family:var(--mono);
+          font-size:15px; line-height:1.2; margin:7px 0; }
+
+  /* src ──▶ dst の対応表 */
+  .map { display:grid; grid-template-columns:1fr 26px 1fr; gap:3px 10px; align-items:center;
+         font-family:var(--mono); font-size:11.5px; }
+  .map .s { text-align:right; color:var(--l1); word-break:break-all; }
+  .map .a { color:var(--ink-3); text-align:center; }
+  .map .d { color:var(--l3); word-break:break-all; }
+  .map .h { color:var(--ink-3); font-size:10.5px; padding-bottom:5px;
+            border-bottom:1px solid var(--line); margin-bottom:4px; }
+  .map .h.r { text-align:right; }
+
+  /* 判定の縦レール */
+  .rail { display:grid; grid-template-columns:1fr 128px; gap:9px; align-items:center; }
+  .rail .q { border:1px solid var(--line); border-left:3px solid var(--stale);
+             border-radius:6px; padding:9px 12px; background:var(--bg); font-size:12.5px; }
+  .rail .q b { color:var(--ink); }
+  .rail .v { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+  .rail .v .no { color:var(--hot); font-weight:600; }
+  .rail .v .yes { color:var(--ok); }
+  .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
+
+  .tblwrap { overflow-x:auto; }
+  .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
+  .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+  .c-layer, .c-date, .c-num { font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+                              white-space:nowrap; }
+  .c-num { text-align:right; }
+  .c-sum { color:var(--ink-2); min-width:22em; }
+  .succ { font-family:var(--mono); font-size:10.5px; color:var(--ink-3); margin-left:6px; }
+  .unsure { display:block; margin-top:3px; font-size:11.5px; color:var(--stale); }
+  .approx { border-bottom:1px dotted var(--ink-3); }
+
+  /* ---- 詳細カード ---- */
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+          padding:18px 22px; margin:18px 0; }
+  .card h3 { margin:0 0 8px; font-size:16px; }
+  .card .meta { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono);
+                font-size:11px; color:var(--ink-3); margin-bottom:12px;
+                padding-bottom:10px; border-bottom:1px solid var(--line); }
+  .card .meta .k { color:var(--ink-3); opacity:.7; margin-right:5px; }
+  .card h4 { font-size:13px; margin:16px 0 4px; color:var(--ink);
+              letter-spacing:.02em; }
+  .card h5 { font-size:12.5px; margin:12px 0 4px; color:var(--ink-2); font-weight:600; }
+  .card p { font-size:14px; }
+  .card .todo { color:var(--ink-3); font-style:italic; }
+  .src { margin-top:14px; padding-top:10px; border-top:1px solid var(--line);
+         font-family:var(--mono); font-size:10.5px; color:var(--ink-3); }
+  .src a { color:var(--ink-3); margin-right:10px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  @media (max-width:760px) {
+    .wrap { padding:32px 14px 64px; }
+    .lay { grid-template-columns:1fr; gap:4px; }
+    .tl { grid-template-columns:104px 1fr; }
+    .tl-name { font-size:10.5px; }
+    .c-sum { display:none; }
+    .row3, .row2 { grid-template-columns:1fr; }
+    .map { grid-template-columns:1fr; gap:1px; }
+    .map .s { text-align:left; }
+    .map .a, .map .h { display:none; }
+    .map .d { padding-left:14px; margin-bottom:5px; }
+    .rail { grid-template-columns:1fr; gap:3px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>モデル提供元</h1>
+  <p class="sub">AI コーディングツール・ランドスケープ ／ L0　実測値の取得日 2026-09-21</p>
+</header>
+<nav class="nav"><a href="index.html" class="">全体</a><a href="l1-terminal.html" class="">ターミナル</a><a href="l1-ide.html" class="">IDE</a><a href="l1-cloud.html" class="">クラウド</a><a href="l2.html" class="">モデルアクセス</a><a href="l3.html" class="">共通基盤</a><a href="l0.html" class="on">モデル提供元</a><a href="context-optimization.html" class="">文脈の最適化</a><a href="dotfiles.html" class="">dotfiles 構成</a></nav>
+
+<p class="sub2">
+  モデル提供元 の 9 項目。
+  うち詳細を書いたのは 0 項目、残り 9 項目は表の 1 行のみ。
+  <a href="index.html">分類軸と全体のタイムラインは「全体」ページ</a>。
+</p>
+<h2>一覧</h2>
+<div class="tblwrap"><table>
+<thead><tr><th>名前</th><th>層</th><th>登場</th><th>終了</th><th>状態</th>
+<th style="text-align:right">star</th><th>直近リリース</th><th>一言</th></tr></thead>
+<tbody><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://anthropic.com">Anthropic</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Claude シリーズの提供元。MCP を公開し AAIF に寄贈した側でもある。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://openai.com">OpenAI</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">GPT / Codex 系の提供元。AGENTS.md を公開し AAIF に寄贈した。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://deepmind.google">Google DeepMind</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Gemini シリーズの提供元。Gemini CLI と Jules を自前で持つ。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://x.ai">xAI</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Grok シリーズの提供元。純正 CLI は持たず、コミュニティ製が使われている。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://deepseek.com">DeepSeek</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">重みを公開するモデル提供元。価格の安さでゲートウェイ経由の利用が多い。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://llama.com">Meta (Llama)</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Llama シリーズの提供元。ローカル実行の裾野を作った。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://mistral.ai">Mistral AI</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">欧州拠点のモデル提供元。Mistral Vibe という純正 CLI を持つ。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://qwen.ai">Qwen</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Alibaba のモデル群。重み公開系の中で採用が広い。</td></tr><tr data-layer="L0" data-status="unknown"><td class="c-name"><a href="https://z.ai">Z.ai</a></td><td class="c-layer">L0</td><td class="c-date">—</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">GLM シリーズの提供元。Anthropic 互換エンドポイントを出しており、Claude 系ツールから繋ぎやすい。</td></tr></tbody>
+</table></div>
+<h2>行だけ残した 9 項目</h2><p>Anthropic、OpenAI、Google DeepMind、xAI、DeepSeek、Meta (Llama)、Mistral AI、Qwen、Z.ai。終了・停滞、あるいは自動昇格ラインに届かなかったもの。<strong>人気を理由に落としたものは無い。</strong>詳細を書いていないだけで、上の表には出ている。</p>
+<footer>
+  分類は「リクエストが通る経路上の位置」を主軸、実行場所を副軸に取った。
+  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-21、
+  <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
+  裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
+  正本は <code>docs/registry.yaml</code>・<code>docs/tools/*.md</code>・<code>docs/pages/*.md</code>。
+  この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
+  更新手順は <code>docs/UPDATE_PROMPT.md</code>。
+</footer>
+</div>
+</body>
+</html>

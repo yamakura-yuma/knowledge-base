@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エージェント本体（IDE）</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line);
+       letter-spacing:-.01em; }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto;
+        margin:14px 0; color:var(--ink); }
+  pre code { background:none; padding:0; }
+  ul { margin:10px 0; padding-left:20px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+           vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em;
+       text-transform:uppercase; white-space:nowrap; }
+  .note { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--l1);
+          border-radius:8px; padding:14px 18px; margin:20px 0; font-size:13.5px; color:var(--ink-2); }
+  .note strong { color:var(--ink); }
+
+  /* ---- 凡例・ピル ---- */
+  .pill { display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 7px;
+          border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
+          border:1px solid currentColor; }
+  .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
+
+  /* ---- 層の図 ---- */
+  .layers { display:grid; gap:8px; margin:18px 0; }
+  .lay { display:grid; grid-template-columns:130px 1fr; gap:14px; align-items:start;
+         background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .lay b { font-family:var(--mono); font-size:12px; }
+  .lay.L1 b{color:var(--l1)} .lay.L2 b{color:var(--l2)}
+  .lay.L3 b{color:var(--l3)} .lay.L0 b{color:var(--l0)}
+  .lay div { font-size:13.5px; color:var(--ink-2); }
+
+  /* ---- タイムライン ---- */
+  .tl { display:grid; grid-template-columns:150px 1fr; gap:2px 10px; margin:18px 0 8px;
+        font-size:12px; }
+  .tl-axis, .tl-track { display:grid; grid-template-columns:repeat(var(--cols),1fr);
+                        grid-column:2 !important; }
+  .tl-axis { border-bottom:1px solid var(--line); padding-bottom:3px; margin-bottom:5px; }
+  .tick { font-family:var(--mono); font-size:10.5px; color:var(--ink-3);
+          border-left:1px solid var(--line); padding-left:4px; }
+  .tl-name { font-size:11.5px; color:var(--ink-2); text-align:right; white-space:nowrap;
+             overflow:hidden; text-overflow:ellipsis; line-height:16px; }
+  .tl-name.approx { color:var(--ink-3); font-style:italic; }
+  .tl-track { height:16px; align-items:center; }
+  .bar { height:8px; border-radius:2px; display:block; }
+  .bar.l-L1{background:var(--l1)} .bar.l-L2{background:var(--l2)} .bar.l-L3{background:var(--l3)}
+  .bar.s-ended { background:var(--dead) !important; }
+  .bar.s-stale { opacity:.42; }
+  .bar.s-hot { box-shadow:0 0 0 2px color-mix(in srgb, var(--hot) 45%, transparent); }
+  /* 表示範囲より前に始まっているバーは、左端を斜めに切って「ここが起点ではない」ことを示す */
+  .bar.clipped { border-radius:0 2px 2px 0;
+                 clip-path:polygon(4px 0, 100% 0, 100% 100%, 0 100%); }
+  .legend { font-size:12px; color:var(--ink-3); margin:6px 0 0; }
+  .legend span { margin-right:14px; white-space:nowrap; }
+  .sw { display:inline-block; width:14px; height:8px; border-radius:2px; vertical-align:1px;
+        margin-right:5px; }
+
+  /* ---- CSS だけの絞り込み（JS を使わない） ---- */
+  .filters { position:absolute; opacity:0; pointer-events:none; }
+  .fbar { display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 4px; }
+  .fbar label { font-family:var(--mono); font-size:11.5px; padding:3px 10px; border-radius:5px;
+                border:1px solid var(--line); color:var(--ink-2); cursor:pointer;
+                background:var(--surface); user-select:none; }
+  #f-all:checked  ~ .fbar label[for=f-all],
+  #f-L1:checked   ~ .fbar label[for=f-L1],
+  #f-L2:checked   ~ .fbar label[for=f-L2],
+  #f-L3:checked   ~ .fbar label[for=f-L3],
+  #f-L0:checked   ~ .fbar label[for=f-L0],
+  #f-live:checked ~ .fbar label[for=f-live],
+  #f-dead:checked ~ .fbar label[for=f-dead]
+    { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  #f-L1:checked ~ .tblwrap tr:not([data-layer=L1]),
+  #f-L2:checked ~ .tblwrap tr:not([data-layer=L2]),
+  #f-L3:checked ~ .tblwrap tr:not([data-layer=L3]),
+  #f-L0:checked ~ .tblwrap tr:not([data-layer=L0]),
+  #f-live:checked ~ .tblwrap tr[data-status=ended],
+  #f-live:checked ~ .tblwrap tr[data-status=stale],
+  #f-dead:checked ~ .tblwrap tr[data-status=hot],
+  #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=unknown]
+    { display:none; }
+
+  /* ラジオは見えないが focus は残す。キーボードでも絞り込みを操作できるようにする。 */
+  #f-all:focus-visible ~ .fbar label[for=f-all],
+  #f-L1:focus-visible ~ .fbar label[for=f-L1],
+  #f-L2:focus-visible ~ .fbar label[for=f-L2],
+  #f-L3:focus-visible ~ .fbar label[for=f-L3],
+  #f-L0:focus-visible ~ .fbar label[for=f-L0],
+  #f-live:focus-visible ~ .fbar label[for=f-live],
+  #f-dead:focus-visible ~ .fbar label[for=f-dead]
+    { outline:2px solid var(--l1); outline-offset:2px; }
+
+  /* ---- ページ間ナビ ---- */
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .sub2 { color:var(--ink-2); font-size:13.5px; margin:14px 0 0; }
+
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr));
+              gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; font-family:var(--mono); }
+
+  /* ---- 図のための部品（dotfiles ページで使う） ---- */
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3);
+                margin:-4px 0 12px; letter-spacing:.02em; }
+  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .box { border:1px solid var(--line); border-radius:6px; padding:11px 13px;
+         background:var(--bg); }
+  .box b { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
+  .box span, .box p { font-size:12px; color:var(--ink-2); margin:0; line-height:1.6; }
+  .box.k1 { border-left:3px solid var(--l1); }
+  .box.k2 { border-left:3px solid var(--l2); }
+  .box.k3 { border-left:3px solid var(--l3); }
+  .box.bad { border-left:3px solid var(--hot); }
+  .box.ok  { border-left:3px solid var(--ok); }
+  .down { text-align:center; color:var(--ink-3); font-family:var(--mono);
+          font-size:15px; line-height:1.2; margin:7px 0; }
+
+  /* src ──▶ dst の対応表 */
+  .map { display:grid; grid-template-columns:1fr 26px 1fr; gap:3px 10px; align-items:center;
+         font-family:var(--mono); font-size:11.5px; }
+  .map .s { text-align:right; color:var(--l1); word-break:break-all; }
+  .map .a { color:var(--ink-3); text-align:center; }
+  .map .d { color:var(--l3); word-break:break-all; }
+  .map .h { color:var(--ink-3); font-size:10.5px; padding-bottom:5px;
+            border-bottom:1px solid var(--line); margin-bottom:4px; }
+  .map .h.r { text-align:right; }
+
+  /* 判定の縦レール */
+  .rail { display:grid; grid-template-columns:1fr 128px; gap:9px; align-items:center; }
+  .rail .q { border:1px solid var(--line); border-left:3px solid var(--stale);
+             border-radius:6px; padding:9px 12px; background:var(--bg); font-size:12.5px; }
+  .rail .q b { color:var(--ink); }
+  .rail .v { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+  .rail .v .no { color:var(--hot); font-weight:600; }
+  .rail .v .yes { color:var(--ok); }
+  .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
+
+  .tblwrap { overflow-x:auto; }
+  .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
+  .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+  .c-layer, .c-date, .c-num { font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+                              white-space:nowrap; }
+  .c-num { text-align:right; }
+  .c-sum { color:var(--ink-2); min-width:22em; }
+  .succ { font-family:var(--mono); font-size:10.5px; color:var(--ink-3); margin-left:6px; }
+  .unsure { display:block; margin-top:3px; font-size:11.5px; color:var(--stale); }
+  .approx { border-bottom:1px dotted var(--ink-3); }
+
+  /* ---- 詳細カード ---- */
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+          padding:18px 22px; margin:18px 0; }
+  .card h3 { margin:0 0 8px; font-size:16px; }
+  .card .meta { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono);
+                font-size:11px; color:var(--ink-3); margin-bottom:12px;
+                padding-bottom:10px; border-bottom:1px solid var(--line); }
+  .card .meta .k { color:var(--ink-3); opacity:.7; margin-right:5px; }
+  .card h4 { font-size:13px; margin:16px 0 4px; color:var(--ink);
+              letter-spacing:.02em; }
+  .card h5 { font-size:12.5px; margin:12px 0 4px; color:var(--ink-2); font-weight:600; }
+  .card p { font-size:14px; }
+  .card .todo { color:var(--ink-3); font-style:italic; }
+  .src { margin-top:14px; padding-top:10px; border-top:1px solid var(--line);
+         font-family:var(--mono); font-size:10.5px; color:var(--ink-3); }
+  .src a { color:var(--ink-3); margin-right:10px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  @media (max-width:760px) {
+    .wrap { padding:32px 14px 64px; }
+    .lay { grid-template-columns:1fr; gap:4px; }
+    .tl { grid-template-columns:104px 1fr; }
+    .tl-name { font-size:10.5px; }
+    .c-sum { display:none; }
+    .row3, .row2 { grid-template-columns:1fr; }
+    .map { grid-template-columns:1fr; gap:1px; }
+    .map .s { text-align:left; }
+    .map .a, .map .h { display:none; }
+    .map .d { padding-left:14px; margin-bottom:5px; }
+    .rail { grid-template-columns:1fr; gap:3px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>エージェント本体（IDE）</h1>
+  <p class="sub">AI コーディングツール・ランドスケープ ／ L1　実測値の取得日 2026-09-21</p>
+</header>
+<nav class="nav"><a href="index.html" class="">全体</a><a href="l1-terminal.html" class="">ターミナル</a><a href="l1-ide.html" class="on">IDE</a><a href="l1-cloud.html" class="">クラウド</a><a href="l2.html" class="">モデルアクセス</a><a href="l3.html" class="">共通基盤</a><a href="l0.html" class="">モデル提供元</a><a href="context-optimization.html" class="">文脈の最適化</a><a href="dotfiles.html" class="">dotfiles 構成</a></nav>
+
+<p class="sub2">
+  エージェント本体（IDE） の 12 項目。
+  うち詳細を書いたのは 6 項目、残り 6 項目は表の 1 行のみ。
+  <a href="index.html">分類軸と全体のタイムラインは「全体」ページ</a>。
+</p>
+<h2>一覧</h2>
+<div class="tblwrap"><table>
+<thead><tr><th>名前</th><th>層</th><th>登場</th><th>終了</th><th>状態</th>
+<th style="text-align:right">star</th><th>直近リリース</th><th>一言</th></tr></thead>
+<tbody><tr data-layer="L1" data-status="unknown"><td class="c-name"><a href="https://cursor.com">Cursor</a></td><td class="c-layer">L1 / IDE</td><td class="c-date">2023-01</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">VS Code をフォークした AI 前提のエディタ。エディタごと置き換える路線の代表格。</td></tr><tr data-layer="L1" data-status="unknown"><td class="c-name"><a href="https://github.com/features/copilot">GitHub Copilot</a></td><td class="c-layer">L1 / IDE</td><td class="c-date">2021-06</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">補完から始まった最古参。agent mode を経て、いまはエージェント製品群の総称になっている。</td></tr><tr data-layer="L1" data-status="hot"><td class="c-name"><a href="https://cline.bot">Cline</a></td><td class="c-layer">L1 / IDE</td><td class="c-date"><span class="approx" title="公表日が裏取りできていないため、リポジトリ作成日で代用">2024-07</span></td><td class="c-date"></td><td class="c-stat"><span class="pill p-hot">勢いあり</span></td><td class="c-num">68,893</td><td class="c-date">2026-09-18</td><td class="c-sum">BYOK 前提の OSS エージェント。VS Code 拡張・CLI・SDK の三形態を持つ。Roo Code 終了後の移行先に指名された。</td></tr><tr data-layer="L1" data-status="ended"><td class="c-name"><a href="https://windsurf.com">Windsurf</a><span class="succ">→ devin</span></td><td class="c-layer">L1 / IDE</td><td class="c-date">2024-11</td><td class="c-date">2026-06</td><td class="c-stat"><span class="pill p-ended">終了</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Codeium 発の AI エディタ。2025-07 に Cognition が買収し、2026-06-02 に Devin Desktop へ改名して名前が消えた。</td></tr><tr data-layer="L1" data-status="ended"><td class="c-name"><a href="https://roocode.com">Roo Code</a><span class="succ">→ roomote</span></td><td class="c-layer">L1 / IDE</td><td class="c-date"><span class="approx" title="公表日が裏取りできていないため、リポジトリ作成日で代用">2024-10</span></td><td class="c-date">2026-05</td><td class="c-stat"><span class="pill p-ended">終了</span></td><td class="c-num">24,303</td><td class="c-date">2026-05-15</td><td class="c-sum">Cline のフォークとして伸びた VS Code 拡張。2026-04-20 に終了を告知し 2026-05-15 に停止。理由は「IDE はコーディングの未来ではない」。</td></tr><tr data-layer="L1" data-status="active"><td class="c-name"><a href="https://continue.dev">Continue</a></td><td class="c-layer">L1 / IDE</td><td class="c-date"><span class="approx" title="公表日が裏取りできていないため、リポジトリ作成日で代用">2023-05</span></td><td class="c-date"></td><td class="c-stat"><span class="pill p-active">現役</span></td><td class="c-num">35,963</td><td class="c-date">2026-06-19</td><td class="c-sum">OSS のコーディングエージェント。モデルを自由に差し替えられる古参の IDE 拡張。</td></tr><tr data-layer="L1" data-status="hot"><td class="c-name"><a href="https://zed.dev">Zed</a></td><td class="c-layer">L1 / IDE</td><td class="c-date"><span class="approx" title="公表日が裏取りできていないため、リポジトリ作成日で代用">2021-02</span></td><td class="c-date"></td><td class="c-stat"><span class="pill p-hot">勢いあり</span></td><td class="c-num">90,631</td><td class="c-date">2026-09-17</td><td class="c-sum">Atom / Tree-sitter の作者陣による高速エディタ。エージェント機能を後から載せた側。</td></tr><tr data-layer="L1" data-status="ended"><td class="c-name">Cody</td><td class="c-layer">L1 / IDE</td><td class="c-date">2023-04</td><td class="c-date">2025-07</td><td class="c-stat"><span class="pill p-ended">終了</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">Sourcegraph の IDE アシスタント。2025-07-23 に無料・Pro 版を終了し、以後はエンタープライズ専用。Amp は別会社の別製品であって改名ではない。</td></tr><tr data-layer="L1" data-status="ended"><td class="c-name">Amazon CodeWhisperer<span class="succ">→ q-developer</span></td><td class="c-layer">L1 / IDE</td><td class="c-date">2022-06</td><td class="c-date">2024-04</td><td class="c-stat"><span class="pill p-ended">終了</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">AWS の補完アシスタント。2024-04 に Amazon Q Developer へ統合されて名前が消えた。</td></tr><tr data-layer="L1" data-status="unknown"><td class="c-name"><a href="https://aws.amazon.com/q/developer/">Amazon Q Developer</a></td><td class="c-layer">L1 / IDE</td><td class="c-date">2024-04</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">CodeWhisperer を引き継いだ AWS のアシスタント。AWS 環境との結合が強い。</td></tr><tr data-layer="L1" data-status="unknown"><td class="c-name"><a href="https://tabnine.com">Tabnine</a></td><td class="c-layer">L1 / IDE</td><td class="c-date">2018-01</td><td class="c-date"></td><td class="c-stat"><span class="pill p-unknown">指標なし</span></td><td class="c-num">—</td><td class="c-date"></td><td class="c-sum">LLM ブーム以前から続く補完サービス。自社ホスティングとコンプライアンスを売りにして生き残っている。</td></tr><tr data-layer="L1" data-status="hot"><td class="c-name"><a href="https://kilocode.ai">Kilo Code</a></td><td class="c-layer">L1 / IDE</td><td class="c-date"><span class="approx" title="公表日が裏取りできていないため、リポジトリ作成日で代用">2025-03</span></td><td class="c-date"></td><td class="c-stat"><span class="pill p-hot">勢いあり</span></td><td class="c-num">27,380</td><td class="c-date">2026-09-18</td><td class="c-sum">Cline 系譜のフォークの中で最大手。Roo Code 終了時の移行先の一つとして案内された。</td></tr></tbody>
+</table></div>
+<h2>詳細（6 項目）</h2><article class="card" id="t-cursor"><h3>Cursor <span class="pill p-unknown">指標なし</span><span class="pill p-manual" title="L1/IDE の代表格だが公開リポジトリが無い">手動で詳細に指定</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>Anysphere</span><span><span class="k">ライセンス</span>proprietary</span><span><span class="k">手動昇格の理由</span>L1/IDE の代表格だが公開リポジトリが無い</span></div><h4>何をするものか</h4>
+<p>VS Code をフォークして作られた AI 前提のコードエディタ。
+補完・チャット・エージェントをエディタ本体に統合し、「エディタごと置き換える」路線の代表格になった。</p>
+<h4>向いている用途</h4>
+<p>GUI での編集を主軸に置きつつ、エージェントにも任せたい場合。
+VS Code の操作感と拡張資産をそのまま持ち込める。</p>
+<h4>注意点</h4>
+<p>公開リポジトリが無いため、<strong>この一覧の star / リリース指標には載っていない</strong>。
+表で「指標なし」になっているのは活動が無いという意味ではない。</p>
+<h4>他ツールとの関係</h4>
+<p>同じ枠には Windsurf がいたが、2026-06 に Devin Desktop へ改名して名前が消えた。
+ターミナル側の Claude Code / OpenCode とは、どこを主戦場にするかで分かれている。</p><div class="src">出典 <a href="https://cursor.com">cursor.com</a>｜確認 2026-09-21</div></article><article class="card" id="t-github-copilot"><h3>GitHub Copilot <span class="pill p-unknown">指標なし</span><span class="pill p-manual" title="この分野の最古参で比較の基準点になるが公開リポジトリが無い">手動で詳細に指定</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>GitHub</span><span><span class="k">ライセンス</span>proprietary</span><span><span class="k">手動昇格の理由</span>この分野の最古参で比較の基準点になるが公開リポジトリが無い</span></div><h4>何をするものか</h4>
+<p>2021 年に補完機能として始まった、この分野の最古参。
+以後 chat、agent mode、coding agent と守備範囲を広げ、
+現在は単一の機能ではなく Copilot ブランドの製品群の総称になっている。</p>
+<h4>向いている用途</h4>
+<p>GitHub を中心に開発が回っている組織。issue から PR までを同じ画面で完結させたい場合。</p>
+<h4>注意点</h4>
+<p>「Copilot」が指すものが年によって違うので、記事を読むときは時期の確認が要る。
+技術プレビューだった Copilot Workspace は 2025-05 に終了し、知見は agent mode と coding agent に吸収された。</p>
+<h4>他ツールとの関係</h4>
+<p>2026-02 からは Claude と Codex を Copilot の中から選べるようになり、
+<strong>「エージェントの実行面」と「モデル・エージェントの実体」が分離する</strong>方向に動いている。
+この一覧の層構造で言えば、L1 の中でさらに受け皿と中身が割れつつある。</p><div class="src">出典 <a href="https://github.com/features/copilot">github.com/features/copilot</a>｜確認 2026-09-21</div></article><article class="card" id="t-cline"><h3>Cline <span class="pill p-hot">勢いあり</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>Cline</span><span><span class="k">ライセンス</span>Apache-2.0</span><span><span class="k">star</span>68,893</span><span><span class="k">直近リリース</span>2026-09-18</span></div><h4>何をするものか</h4>
+<p>BYOK を前提にした OSS エージェント。VS Code 拡張として広まり、
+現在は CLI と SDK も持つ。モデルを自分で選べることを一貫して売りにしている。</p>
+<h4>向いている用途</h4>
+<p>使うモデルとコストを自分で管理したい場合。IDE 内で作業を完結させたい場合。</p>
+<h4>注意点</h4>
+<p>BYOK なので、コストの上限管理は自分の責任になる。</p>
+<h4>他ツールとの関係</h4>
+<p><strong>この系譜からフォークが多数出た。</strong> Roo Code（旧 Roo Cline）と Kilo Code が代表で、
+Roo Code が 2026-05 に終了した際には、チーム自身が移行先として Cline を挙げている。</p><div class="src">出典 <a href="https://github.com/cline/cline">github.com/cline/cline</a>｜確認 2026-09-21</div></article><article class="card" id="t-continue"><h3>Continue <span class="pill p-active">現役</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>Continue</span><span><span class="k">ライセンス</span>Apache-2.0</span><span><span class="k">star</span>35,963</span><span><span class="k">直近リリース</span>2026-06-19</span></div><h4>何をするものか</h4>
+<p>OSS のコーディングエージェント。IDE 拡張として古くからあり、
+モデルを差し替えられる構成を早い段階から提供していた。</p>
+<h4>向いている用途</h4>
+<p>ローカルモデルを含め、繋ぐ先を細かく設定したい場合。</p>
+<h4>注意点</h4>
+<p><strong>リリースの間隔が開いている。</strong> リポジトリへの push は続いているが、
+タグ付きリリースは 2026-06 が直近。採用を検討する場合は現在の開発状況を自分で確認すること。</p>
+<h4>他ツールとの関係</h4>
+<p>Cline と競合する位置にいるが、Cline 系のフォーク群ほどの分岐は生んでいない。</p><div class="src">出典 <a href="https://github.com/continuedev/continue">github.com/continuedev/continue</a>｜確認 2026-09-21</div></article><article class="card" id="t-zed"><h3>Zed <span class="pill p-hot">勢いあり</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>Zed Industries</span><span><span class="k">star</span>90,631</span><span><span class="k">直近リリース</span>2026-09-17</span></div><h4>何をするものか</h4>
+<p>Atom と Tree-sitter の作者陣が作った高性能エディタ。
+もともとは速度と共同編集を売りにしており、<strong>エージェント機能は後から載せた側</strong>にあたる。
+リポジトリ自体は 2021 年からあり、この一覧で最も古い。</p>
+<h4>向いている用途</h4>
+<p>エディタとしての速度を優先しつつ、エージェントも使いたい場合。</p>
+<h4>注意点</h4>
+<p>エージェント専用ツールと比べると、エージェント機能の歴史は浅い。</p>
+<h4>他ツールとの関係</h4>
+<p>Cursor が「VS Code をフォークして AI を入れた」のに対し、Zed は「独自エディタに AI を足した」。
+出自が違うので、比較するときは前提を揃える必要がある。</p><div class="src">出典 <a href="https://github.com/zed-industries/zed">github.com/zed-industries/zed</a>｜確認 2026-09-21</div></article><article class="card" id="t-kilo-code"><h3>Kilo Code <span class="pill p-hot">勢いあり</span></h3><div class="meta"><span><span class="k">層</span>L1・エージェント本体</span><span><span class="k">提供</span>Kilo</span><span><span class="k">star</span>27,380</span><span><span class="k">直近リリース</span>2026-09-18</span></div><h4>何をするものか</h4>
+<p>Cline 系譜のフォークの中で最大手。VS Code 拡張として始まり、
+現在は「一体型のエージェンティック開発プラットフォーム」を名乗っている。</p>
+<h4>向いている用途</h4>
+<p>Cline の使い勝手を踏襲しつつ、より多くの機能が入った状態で使いたい場合。</p>
+<h4>注意点</h4>
+<p>フォーク元と機能が分岐しているので、Cline 向けの設定や記事がそのまま通るとは限らない。</p>
+<h4>他ツールとの関係</h4>
+<p>Cline → Roo Code → Kilo Code と枝分かれした系譜の一つ。
+Roo Code が 2026-05 に終了した際、移行先の一つとして案内された。</p><div class="src">出典 <a href="https://github.com/Kilo-Org/kilocode">github.com/Kilo-Org/kilocode</a>｜確認 2026-09-21</div></article><h2>行だけ残した 6 項目</h2><p>Windsurf、Roo Code、Cody、Amazon CodeWhisperer、Amazon Q Developer、Tabnine。終了・停滞、あるいは自動昇格ラインに届かなかったもの。<strong>人気を理由に落としたものは無い。</strong>詳細を書いていないだけで、上の表には出ている。</p>
+<footer>
+  分類は「リクエストが通る経路上の位置」を主軸、実行場所を副軸に取った。
+  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-21、
+  <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
+  裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
+  正本は <code>docs/registry.yaml</code>・<code>docs/tools/*.md</code>・<code>docs/pages/*.md</code>。
+  この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
+  更新手順は <code>docs/UPDATE_PROMPT.md</code>。
+</footer>
+</div>
+</body>
+</html>
