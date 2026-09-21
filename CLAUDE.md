@@ -72,7 +72,7 @@ git の差分が出ないことが、正しく終わった証拠になる。
 ## graphify
 
 知識グラフは `graphify-out/` に置くが、機械ローカルの生成物なので gitignore してあり、
-チェックアウト直後には無い。`graphify .` で作れる。
+チェックアウト直後には無い。`graphify update .` で作れる。
 
 規約:
 - コードベースについての質問は、graphify-out/graph.json があればまず
