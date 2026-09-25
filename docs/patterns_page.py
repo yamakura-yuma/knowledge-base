@@ -58,6 +58,24 @@ PAGE_CSS = """
   #pf-missing:checked ~ .pt-fbar label[for=pf-missing] { background:var(--ink); color:var(--bg); border-color:var(--ink); }
   #pf-missing:checked ~ .tablewrap tr.r:not(.s-missing) { display:none; }
   .pt .finding { color:var(--ink); margin:4px 0 12px; }
+  .wb { --wb-ink:#1f1f1f; --wb-blue:#1d5fd0; --wb-red:#d7372b; }
+  .wb .wb-board { fill:#fdfdfb; stroke:#c9c8c2; stroke-width:6; }
+  .wb .wb-line { fill:none; stroke:var(--wb-ink); stroke-linecap:round; stroke-linejoin:round; }
+  .wb .wb-red { fill:none; stroke:var(--wb-red); stroke-linecap:round; stroke-linejoin:round; }
+  .wb .wb-blue { fill:none; stroke:var(--wb-blue); }
+  .wb .wb-fill-blue { fill:var(--wb-blue); }
+  .wb .wb-dot { fill:#fdfdfb; stroke:var(--wb-ink); stroke-width:2; }
+  .wb .wb-note { fill:#fff; stroke:var(--wb-blue); stroke-width:2.2; }
+  .pt svg.wb text.wb-t { fill:var(--wb-ink);
+    font-family:'Klee','Klee One','Yomogi','Zen Kurenaido','UD Digi Kyokasho NK-R','UD デジタル 教科書体 NK-R',
+                'Segoe Print','Comic Sans MS',cursive,var(--sans); font-weight:600; }
+  .pt svg.wb text.wb-tr { fill:var(--wb-red); }
+  .pt h2.first { border-top:none; padding-top:4px; }
+  .picks { margin:8px 0 6px; padding-left:1.4em; }
+  .picks li { margin:0 0 10px; }
+  .picks .why { color:var(--ink-2); font-size:13.5px; }
+  .pick-crit { font-size:12px; color:var(--ink-3); }
+  .gc { font-family:var(--mono); font-size:11px; color:var(--ink-3); white-space:nowrap; }
   .legend-crit { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px;
                  color:var(--ink-2); margin:8px 0 0; }
 """
@@ -97,6 +115,9 @@ def check(cat: dict, warnings: list[str]) -> None:
                 warnings.append(f"パターンが未知の出典を参照: {pid} → {r.get('source')}")
             if not str(r.get("url", "")).startswith("https://"):
                 warnings.append(f"出典リンクが無い: {pid} ({r.get('source')})")
+        if p.get("state") in ("missing", "partial"):
+            if p.get("impact") not in IMPACT_JA or p.get("effort") not in EFFORT_JA or not (p.get("gain") and p.get("cost")):
+                warnings.append(f"未採用・部分的なのに効果と手間（impact/effort/gain/cost）が無い: {pid}")
         if p.get("state") in ("adopted", "partial") and not p.get("self"):
             warnings.append(f"採用済・部分的なのに自作側の根拠が無い: {pid}")
 
@@ -168,55 +189,6 @@ def wobble_rect(x, y, w, h, seed) -> str:
             f"Q{x - 3},{y + h / 2} {x},{y + r} Q{x},{y + j[0]} {x + r},{y + j[0]}")
 
 
-def fig_nest(c: dict) -> str:
-    W, H = 760, 400
-    out = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="プロンプト ⊂ ハーネス ⊂ ループ ⊂ グラフ の入れ子">',
-           f'<rect x="0" y="0" width="{W}" height="{H}" rx="10" fill="var(--paper)"/>']
-    boxes = [("graph", 20, 20, 470, 360), ("loop", 50, 76, 410, 280),
-             ("harness", 80, 132, 350, 200), ("prompt", 110, 188, 290, 120)]
-    tint = {"graph": "var(--l0)", "loop": "var(--l2)", "harness": "var(--l1)", "prompt": "var(--l3)"}
-    for i, (l, x, y, w, h) in enumerate(boxes):
-        out.append(f'<path d="{wobble_rect(x, y, w, h, i + 1)}" fill="{tint[l]}" fill-opacity=".07" '
-                   f'stroke="{tint[l]}" stroke-width="2.4" stroke-linecap="round"/>')
-        tot = sum(c[l][s] for s in BAR_STATES)
-        # 見出しにマーカーを引く。未採用の件数を横に丸で囲む。
-        out.append(f'<rect x="{x + 14}" y="{y + 12}" width="{len(LAYER_JA[l]) * 17 + 8}" height="12" '
-                   f'fill="var(--hl)" opacity=".85" transform="rotate(-1.2 {x + 14} {y + 18})"/>'
-                   f'<text x="{x + 18}" y="{y + 24}" font-size="16" font-weight="700">{LAYER_JA[l]}</text>'
-                   f'<text x="{x + 22 + len(LAYER_JA[l]) * 17}" y="{y + 24}" font-size="12" class="ink2">'
-                   f'{LAYER_NOTE[l]}</text>')
-        miss = c[l]["missing"]
-        cx = x + w - 34
-        out.append(f'<ellipse cx="{cx}" cy="{y + 20}" rx="26" ry="14" fill="none" stroke="var(--missing)" '
-                   f'stroke-width="1.8" transform="rotate(-4 {cx} {y + 20})"/>'
-                   f'<text x="{cx}" y="{y + 24}" text-anchor="middle" font-size="11.5" '
-                   f'style="fill:var(--missing)" font-weight="700">未{miss}/{tot}</text>')
-    # 中心の例と、右側の吹き出し。
-    out.append('<text x="255" y="262" text-anchor="middle" font-size="12.5" class="ink2">'
-               'CLAUDE.md・スキル本文・出力の型</text>')
-    notes = [
-        (515, 40, "グラフ", "誰がどの順で動くか", "worktree・並列・CI"),
-        (515, 130, "ループ", "いつ止め、やり直すか", "検証・Stop フック・振り返り"),
-        (515, 220, "ハーネス", "何が見え、何ができるか", "ツール・権限・フック・索引"),
-        (515, 310, "プロンプト", "何を言うか", "規範・スキル・メモリ"),
-    ]
-    for i, (x, y, t, a, b) in enumerate(notes):
-        rot = (-1.5, 1.2, -0.8, 1.4)[i]
-        out.append(f'<g transform="rotate({rot} {x + 110} {y + 30})">'
-                   f'<rect x="{x}" y="{y}" width="232" height="62" rx="4" fill="var(--surface)" '
-                   f'stroke="var(--line)"/>'
-                   f'<text x="{x + 12}" y="{y + 22}" font-size="12.5" font-weight="700">{t}：{a}</text>'
-                   f'<text x="{x + 12}" y="{y + 44}" font-size="12" class="ink2">例）{b}</text></g>')
-    # 吹き出しから箱への矢印（手描き風の曲線）。
-    tips = [(490, 70), (460, 150), (430, 240), (400, 290)]
-    for (x, y, *_), (tx, ty) in zip(notes, tips):
-        out.append(f'<path class="pen" d="M{x - 2},{y + 31} Q{(x + tx) / 2},{y + 40} {tx + 6},{ty}" '
-                   f'stroke-width="1.4" stroke-dasharray="4 3"/>'
-                   f'<circle cx="{tx + 6}" cy="{ty}" r="2.6" fill="var(--pen)"/>')
-    out.append("</svg>")
-    return "".join(out)
-
-
 # ---------------------------------------------------------------- 図 3: 収集 → 抽出 → 採否 → 取り込み
 
 def fig_flow(cat: dict, cand: dict, c: dict) -> str:
@@ -273,6 +245,148 @@ def fig_flow(cat: dict, cand: dict, c: dict) -> str:
     return "".join(out)
 
 
+# ---------------------------------------------------------------- 次に取り込む候補
+
+IMPACT_JA = {3: "高", 2: "中", 1: "低"}
+EFFORT_JA = {1: "小", 2: "中", 3: "大"}
+
+
+def next_picks(pats: list[dict], n: int = 5) -> list[dict]:
+    """未採用・部分的の行を 効果 − 手間 → 効果 → 出典数 の順に並べる（基準は catalog.yaml の priority_criteria）。"""
+    rated = [p for p in pats if p.get("state") in ("missing", "partial") and p.get("impact") and p.get("effort")]
+    rated.sort(key=lambda p: (-(p["impact"] - p["effort"]), -p["impact"], -len(p.get("sources") or []), p["id"]))
+    return rated[:n]
+
+
+def picks_list(picks: list[dict], crit: dict) -> str:
+    items = "".join(
+        f'<li><strong>{esc(p["name"])}</strong> <span class="ly">{LAYER_JA[p["layer"]]}・{STATE_JA[p["state"]]}'
+        f'・効果 {IMPACT_JA[p["impact"]]}／手間 {EFFORT_JA[p["effort"]]}</span><br>'
+        f'<span class="why">{esc(p["gain"])}。手間は、{esc(p["cost"])}。</span></li>'
+        for p in picks)
+    ic, ec = crit.get("impact", {}), crit.get("effort", {})
+    legend = (f'効果 高＝{esc(ic.get(3))}、中＝{esc(ic.get(2))}、低＝{esc(ic.get(1))}。'
+              f'手間 小＝{esc(ec.get(1))}、中＝{esc(ec.get(2))}、大＝{esc(ec.get(3))}。'
+              f'並べ方は {esc(crit.get("order"))}。')
+    return f'<ol class="picks">{items}</ol><p class="pick-crit">{legend}</p>'
+
+
+# ---------------------------------------------------------------- 図 0: 白板のグラレコ
+
+def _wrap(t: str, n: int) -> list[str]:
+    """n 文字で 2 行に折る。句読点が行頭に来るなら前の行に寄せる。"""
+    a, b = t[:n], t[n:]
+    while b and b[0] in "、。）」":
+        a, b = a + b[0], b[1:]
+    return [a, b] if b else [a]
+
+
+def _icon(layer: str, x: float, y: float) -> str:
+    """層の小さな絵。吹き出し（言う）・盾（守る）・回る矢印（繰り返す）・つながる点（流れ）。"""
+    k = 'class="wb-line" stroke-width="2.4"'
+    if layer == "prompt":
+        return (f'<path {k} d="M{x-14},{y-10} h28 a4,4 0 0 1 4,4 v12 a4,4 0 0 1 -4,4 h-16 l-8,7 v-7 '
+                f'h-4 a4,4 0 0 1 -4,-4 v-12 a4,4 0 0 1 4,-4 z"/>'
+                f'<path {k} d="M{x-8},{y-3} h16 M{x-8},{y+3} h10"/>')
+    if layer == "harness":
+        return (f'<path {k} d="M{x},{y-14} L{x+13},{y-9} Q{x+13},{y+7} {x},{y+15} Q{x-13},{y+7} {x-13},{y-9} Z"/>'
+                f'<path {k} d="M{x-6},{y} l4,5 l8,-9"/>')
+    if layer == "loop":
+        return (f'<path {k} d="M{x+12},{y-4} A13,13 0 1 0 {x+9},{y+9}"/>'
+                f'<path {k} d="M{x+6},{y-9} l6,5 l5,-7"/>')
+    return (f'<path {k} d="M{x-11},{y+9} L{x},{y-9} L{x+12},{y+9} M{x-11},{y+9} H{x+12}"/>'
+            f'<circle cx="{x-11}" cy="{y+9}" r="4.5" class="wb-dot"/><circle cx="{x}" cy="{y-9}" r="4.5" class="wb-dot"/>'
+            f'<circle cx="{x+12}" cy="{y+9}" r="4.5" class="wb-dot"/>')
+
+
+def _pip(state: str, x: float, y: float) -> str:
+    if state == "adopted":
+        return f'<circle cx="{x}" cy="{y}" r="6.5" class="wb-fill-blue"/>'
+    if state == "partial":
+        return (f'<circle cx="{x}" cy="{y}" r="6.5" class="wb-blue" stroke-width="2"/>'
+                f'<path d="M{x},{y-6.5} A6.5,6.5 0 0 0 {x},{y+6.5} Z" class="wb-fill-blue"/>')
+    return f'<circle cx="{x}" cy="{y}" r="6.5" class="wb-red" stroke-width="2.2"/>'
+
+
+def fig_whiteboard(c: dict, picks: list[dict]) -> str:
+    """4 層の入れ子に、層ごとの採否を丸（塗り＝採用済・半分＝部分的・白抜き赤＝未採用）で描き、
+    次に取り込む 5 つを付箋にして、差し込む層まで線でつなぐ。文字は層名と付箋だけにする。"""
+    W, H = 1000, 630
+    rings = {  # 外側から。(x, y, w, h)
+        "graph": (40, 78, 520, 486), "loop": (68, 158, 464, 392),
+        "harness": (96, 238, 408, 298), "prompt": (124, 318, 352, 204),
+    }
+    out = [f'<svg class="wb" viewBox="0 0 {W} {H}" role="img" '
+           f'aria-label="4 層の採否と、次に取り込む 5 つのパターン（白板の手描き図）">',
+           '<defs><filter id="wb-rough" x="-3%" y="-3%" width="106%" height="106%">'
+           '<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="5" result="n"/>'
+           '<feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/></filter>'
+           '<filter id="wb-rough-t"><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="1" seed="2" result="n"/>'
+           '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.4" xChannelSelector="R" yChannelSelector="G"/></filter>'
+           '<marker id="wb-ah" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="9" markerHeight="9" orient="auto">'
+           '<path d="M1,1 L10,6 L1,11" class="wb-red" stroke-width="2.2"/></marker></defs>',
+           f'<rect x="4" y="4" width="{W-8}" height="{H-8}" rx="14" class="wb-board"/>']
+    g = ['<g filter="url(#wb-rough)">']
+    t = ['<g filter="url(#wb-rough-t)">']
+    # タイトル
+    t.append('<text x="40" y="52" class="wb-t" font-size="26">自作ハーネスの いま</text>')
+    g.append('<path class="wb-line" stroke-width="2.4" d="M40,62 q60,6 120,0 t120,2"/>')
+    thin = max(LAYERS, key=lambda l: c[l]["missing"] / max(1, sum(c[l][s] for s in BAR_STATES)))
+    anchor = {}
+    for i, l in enumerate(LAYERS[::-1]):  # graph → prompt の順に外から描く
+        x, y, w, h = rings[l]
+        g.append(f'<path d="{wobble_rect(x, y, w, h, i + 2)}" class="wb-line" stroke-width="2.6"/>')
+        g.append(f'<path d="{wobble_rect(x + 2, y + 1, w - 3, h - 2, i + 5)}" class="wb-line" stroke-width="1" opacity=".45"/>')
+        g.append(_icon(l, x + 30, y + 30))
+        t.append(f'<text x="{x + 54}" y="{y + 38}" class="wb-t" font-size="21">{LAYER_JA[l]}</text>')
+        px, py = x + 58, y + 62  # 丸は層名の下に 1 列で並べる
+        k = 0
+        for st in BAR_STATES:
+            for _ in range(c[l][st]):
+                g.append(_pip(st, px + k * 16, py))
+                k += 1
+        anchor[l] = (x + w, y + 31)
+        if l == thin:  # いちばん穴の多い層に赤で丸をつける
+            cx, cy, rx = px + (k - 1) * 16 / 2, py, (k - 1) * 16 / 2 + 13
+            g.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="14" class="wb-red" stroke-width="2.4" '
+                     f'transform="rotate(-1.5 {cx} {cy})"/>')
+            tx = x + 58 + len(LAYER_JA[l]) * 21 + 34
+            t.append(f'<text x="{tx}" y="{y + 36}" class="wb-t wb-tr" font-size="19">穴が多い!</text>')
+            g.append(f'<path class="wb-red" stroke-width="2" marker-end="url(#wb-ah)" '
+                     f'd="M{tx + 100},{y + 30} q24,6 8,{py - y - 44}"/>')
+    # 中心: モデル
+    g.append('<ellipse cx="300" cy="455" rx="62" ry="30" class="wb-line" stroke-width="2.2"/>')
+    t.append('<text x="300" y="462" text-anchor="middle" class="wb-t" font-size="18">モデル</text>')
+    # 右: 次に取り込む 5 つ。電球の絵と赤いマーカー
+    g.append('<path class="wb-red" stroke-width="12" opacity=".22" d="M636,44 h262"/>')
+    t.append('<text x="640" y="52" class="wb-t" font-size="24">つぎに入れる 5 つ</text>')
+    g.append('<path class="wb-line" stroke-width="2.2" d="M610,34 a13,13 0 1 1 18,0 v9 h-18 z M612,49 h14 M614,54 h10"/>'
+             '<path class="wb-line" stroke-width="1.6" d="M598,22 l-6,-5 M619,12 v-7 M640,22 l6,-5"/>')
+    for i, p in enumerate(picks):
+        x, y = 612, 78 + i * 100
+        rot = (-1.5, 1.2, -0.8, 1.6, -1.1)[i % 5]
+        g.append(f'<g transform="rotate({rot} {x + 170} {y + 42})">'
+                 f'<path d="{wobble_rect(x, y, 350, 84, i + 7)}" class="wb-note"/></g>')
+        g.append(f'<circle cx="{x + 30}" cy="{y + 42}" r="19" class="wb-red" stroke-width="2.6"/>')
+        t.append(f'<text x="{x + 30}" y="{y + 50}" text-anchor="middle" class="wb-t wb-tr" font-size="22">{i + 1}</text>')
+        g.append(_icon(p["layer"], x + 318, y + 42))
+        for j, line in enumerate(_wrap(p["name"], 12)):
+            t.append(f'<text x="{x + 60}" y="{y + 36 + j * 26}" class="wb-t" font-size="19">{esc(line)}</text>')
+        # 付箋から、差し込む層の右端へ赤い矢印
+        ax, ay = anchor[p["layer"]]
+        g.append(f'<path class="wb-red" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#wb-ah)" '
+                 f'd="M{x - 4},{y + 42} C{x - 30},{y + 42} {ax + 40},{ay + (i - 2) * 6} {ax + 6},{ay + (i - 2) * 4}"/>')
+    # 凡例は丸 3 つだけ
+    ly = H - 22
+    for i, (st, lab) in enumerate([("adopted", "ある"), ("partial", "一部"), ("missing", "ない")]):
+        g.append(_pip(st, 44 + i * 86, ly - 6))
+        t.append(f'<text x="{58 + i * 86}" y="{ly}" class="wb-t" font-size="16">{lab}</text>')
+    g.append("</g>")
+    t.append("</g>")
+    out += g + t + ["</svg>"]
+    return "".join(out)
+
+
 # ---------------------------------------------------------------- 表
 
 def catalog_table(cat: dict, layer: str) -> str:
@@ -292,11 +406,14 @@ def catalog_table(cat: dict, layer: str) -> str:
             for r in p.get("sources") or [])
         selfs = "".join(f"<li><code>{esc(s)}</code></li>" for s in p.get("self") or [])
         note = f'<br><small>{esc(p["note"])}</small>' if p.get("note") else ""
+        gc = (f'<span class="gc">効果 {IMPACT_JA[p["impact"]]}</span> {esc(p["gain"])}<br>'
+              f'<span class="gc">手間 {EFFORT_JA[p["effort"]]}</span> {esc(p["cost"])}') if p.get("gain") else "—"
         rows.append(
             f'<tr class="r s-{esc(p.get("state"))}">'
             f'<td><strong>{esc(p.get("name"))}</strong></td>'
             f'<td><ul>{refs}</ul></td>'
             f'<td>{esc(p.get("problem"))}</td>'
+            f'<td>{gc}</td>'
             f'<td><span class="st st-{esc(p.get("state"))}">{esc(STATE_JA.get(p.get("state"), p.get("state")))}</span></td>'
             f'<td>{("<ul>" + selfs + "</ul>") if selfs else "—"}{note}</td>'
             f'<td><ul>{mat}</ul></td></tr>')
@@ -353,18 +470,20 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <p class="finding"><strong>{esc(findings.get(l, ""))}</strong></p>
 <p><small>{tally}</small></p>
 <div class="tablewrap"><table>
-<thead><tr><th>パターン</th><th>出典</th><th>解く問題</th><th>自作での状態</th>
+<thead><tr><th>パターン</th><th>出典</th><th>解く問題</th><th>取り込んだ場合（効果 / 手間）</th><th>自作での状態</th>
 <th>自作側の根拠（~/dotfiles）</th><th>出典の成熟度</th></tr></thead>
 <tbody>{catalog_table(cat, l)}</tbody></table></div>""")
+    picks = next_picks(pats)
     body = f"""
+<figure class="pt-fig">{fig_whiteboard(c, picks)}</figure>
+<h2 class="first">次に取り込む候補 上位 5</h2>
+{picks_list(picks, cat.get("priority_criteria") or {})}
+
+<h2>層 × 採否の件数</h2>
 <figure class="pt-fig">{fig_counts(c)}
 <figcaption>{len(pats)} パターンを層 × 自作ハーネスでの状態で数えたもの。未採用の割合がいちばん高いのは
 <strong>{LAYER_JA[thinnest]}</strong>。</figcaption></figure>
 <div class="legend-crit">{crit}</div>
-
-<h2>4 層の捉え方</h2>
-<figure class="pt-fig">{fig_nest(c)}
-<figcaption>内側ほどモデルに近い。丸囲みは各層の「未採用 / 計」（観察を除く）。</figcaption></figure>
 
 <h2>カタログの作り方</h2>
 <figure class="pt-fig">{fig_flow(cat, cand, c)}</figure>
