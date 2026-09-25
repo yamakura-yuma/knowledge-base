@@ -2,56 +2,44 @@
 
 > 概要ページの結論の中身。構成の各部、デプロイ完了と削除完了の取り方、採らない案、基盤側の負荷、通信規格、運用保守。**できること:** 基盤側の設定を触らずに、デプロイ完了と削除完了を取る。**できないこと:** 受信役が、ある Namespace の生存期間中ずっと止まっていた場合は、その削除を取れない。
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：基盤と利用者の間に壁がある。推奨構成では、利用者は壁を越えずに自分の側だけで通知を組む">
-<path class="hl" d="M40,52 L520,48"/>
-<text class="th" x="40" y="58">壁を越えずに、通知を組む</text>
-<text class="ts" x="600" y="56">推奨構成の詳細</text>
-<g filter="url(#wob)">
-  <!-- 壁 -->
-  <path class="wk fw" d="M480,100 L520,100 L520,520 L480,520 Z"/>
-  <path class="wk thin" d="M480,140 l40,0 M480,180 l40,0 M480,220 l40,0 M480,260 l40,0 M480,300 l40,0 M480,340 l40,0 M480,380 l40,0 M480,420 l40,0 M480,460 l40,0 M500,100 l0,40 M500,180 l0,40 M500,260 l0,40 M500,340 l0,40 M500,420 l0,40"/>
-  <!-- 基盤側：道具箱 -->
-  <circle class="wb-b fw" cx="90" cy="170" r="18"/>
-  <path class="wb-b" d="M90,188 L90,240 M90,206 L60,222 M90,206 L122,214 M90,240 L72,276 M90,240 L108,276"/>
-  <rect class="wb-b fb" x="150" y="190" width="260" height="120" rx="10"/>
-  <path class="wb-b" d="M170,248 Q200,226 230,248 Q200,270 170,248 Z"/>
-  <circle class="fk" cx="200" cy="248" r="6"/>
-  <circle class="wk fw" cx="280" cy="248" r="20"/>
-  <path class="wk" d="M280,248 L280,234 M280,248 L290,254"/>
-  <path class="wb-b fw" d="M330,226 L390,226 L390,274 L330,274 Z"/>
-  <!-- 越えない、1 本の転送 -->
-  <path class="wb-b" d="M412,250 C450,200 550,200 590,250" marker-end="url(#ab)"/>
-  <!-- 利用者側 -->
-  <path class="wk fw" d="M600,230 L680,230 L656,270 L656,296 L624,296 L624,270 Z"/>
-  <path class="wk" d="M680,262 L760,262" marker-end="url(#ak)"/>
-  <rect class="wk fw" x="766" y="236" width="90" height="52" rx="6"/>
-  <rect class="wk fw" x="700" y="330" width="46" height="34" rx="4"/>
-  <path class="wk" d="M710,330 v-10 a13,13 0 0 1 26,0 v10"/>
-  <circle class="wk fw" cx="900" cy="370" r="18"/>
-  <path class="wk" d="M900,388 L900,440 M900,406 L870,420 M900,406 L930,396 M900,440 L882,476 M900,440 L918,476"/>
-  <!-- Before：壁をよじ登る -->
-  <path class="wr dash" d="M860,470 C760,520 600,510 530,470 C470,440 440,440 400,440" marker-end="url(#ar)"/>
-  <path class="wk fw" d="M300,410 l90,0 l0,70 l-90,0 z"/>
-  <path class="wr" d="M296,404 L396,488 M396,404 L296,488"/>
-</g>
-<text class="tb" x="60" y="130">基盤チーム</text>
-<text class="ts" x="160" y="340">見張り・突き合わせ・Broker</text>
-<text class="ts tb" x="540" y="196">転送 1 本</text>
-<text x="600" y="130">利用者</text>
-<text class="ts" x="606" y="220">Trigger</text>
-<text class="ts" x="780" y="268">宛先</text>
-<text class="ts" x="690" y="390">Secret</text>
-<text class="ts" x="780" y="520">自分の namespace だけ</text>
-<text class="ts tr" x="300" y="400">notifications-cm</text>
-<text class="ts tr" x="560" y="540">Before：壁を越えて頼む</text>
+<p class="eli5">これまでの方法では、通知を一つ足すたびに、基盤チームの Namespace（argocd）にある設定を書き換えてもらう必要がありました。推奨構成では線を引き直します。基盤チームは「見張り役」と「郵便局（Broker）」と、チームごとの転送を一本だけ持ちます。あなたは自分の Namespace に、振り分けの決まり（Trigger）と、Slack の鍵を入れた Secret と、受け手の Pod を置くだけです。宛先を足すのも、条件を変えるのも、自分の Namespace の中で終わります。</p>
+
+<figure class="dd">
+<svg viewBox="0 30 960 200" role="img" aria-labelledby="dd-rec-title dd-rec-desc">
+<title id="dd-rec-title">通知を足すとき、あなたが触るのは自分の Namespace だけ</title>
+<desc id="dd-rec-desc">基盤チームは見張り役と Broker と転送を 1 本持つ。あなたは自分の Namespace に Trigger・Secret・受け手を置くだけで通知を足せる。</desc>
+<defs><marker id="dd-rec-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rec-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rec-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="30" width="960" height="200"/>
+<line class="dd-bound" x1="520" y1="38" x2="520" y2="226"/>
+<path class="dd-line dd-acc" d="M472,120 L560,120" marker-end="url(#dd-rec-ara)"/>
+<path class="dd-line" d="M700,120 L740,120" marker-end="url(#dd-rec-ar)"/>
+<path class="dd-line" d="M240,120 L268,120" marker-end="url(#dd-rec-ar)"/>
+<text class="dd-eyebrow" x="504" y="52" text-anchor="end">基盤チームが持つ</text>
+<text class="dd-eyebrow" x="536" y="52" text-anchor="start">あなたの Namespace</text>
+<rect class="dd-mask" x="473" y="96" width="86" height="16" rx="2"/>
+<text class="dd-lbl dd-acc-t" x="516" y="108" text-anchor="middle">転送 1 本</text>
+<rect class="dd-node" x="40" y="92" width="200" height="56" rx="6"/>
+<text class="dd-name" x="140" y="116" text-anchor="middle">見張り役</text>
+<text class="dd-sub" x="140" y="134" text-anchor="middle">Namespace を watch</text>
+<rect class="dd-store" x="272" y="92" width="200" height="56" rx="6"/>
+<text class="dd-name" x="372" y="116" text-anchor="middle">Broker</text>
+<text class="dd-sub" x="372" y="134" text-anchor="middle">全チーム共通</text>
+<rect class="dd-focal" x="564" y="92" width="136" height="56" rx="6"/>
+<text class="dd-name" x="632" y="116" text-anchor="middle">Trigger</text>
+<text class="dd-sub" x="632" y="134" text-anchor="middle">条件・再送</text>
+<rect class="dd-ext" x="744" y="92" width="176" height="56" rx="6"/>
+<text class="dd-name" x="832" y="116" text-anchor="middle">受け手</text>
+<text class="dd-sub" x="832" y="134" text-anchor="middle">Slack へ送る</text>
+<rect class="dd-store" x="564" y="176" width="136" height="44" rx="6"/>
+<text class="dd-name" x="632" y="194" text-anchor="middle">Secret</text>
+<text class="dd-sub" x="632" y="212" text-anchor="middle">Slack の鍵</text>
 </svg>
-</div>
+</figure>
 
 
 
 
-[このページを一言で（たとえ話と図 1 枚）](index.html#grareco) は概要ページにある。
+[このページを一言で（たとえ話と図）](index.html#grareco) は概要ページにある。
 
 ## 推奨構成のアーキテクチャ
 

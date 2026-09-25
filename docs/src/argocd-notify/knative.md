@@ -4,60 +4,39 @@
 >
 > ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。**検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。** 6 方式の中で配送層が最も強い。
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：Knative は Broker から先の配送が強い。ただし Source が止まっている間の変化は届かないので、突き合わせで拾う">
-<path class="hl" d="M40,52 L560,48"/>
-<text class="th" x="40" y="58">Broker の先は強い、入口は寝る</text>
-<text class="ts" x="600" y="56">Knative Eventing</text>
-<g filter="url(#wob)">
-  <!-- Namespace -->
-  <rect class="wk fw" x="40" y="180" width="110" height="80" rx="8"/>
-  <!-- 目（ApiServerSource） -->
-  <path class="wb-b fb" d="M190,220 Q240,176 290,220 Q240,264 190,220 Z"/>
-  <circle class="fk" cx="240" cy="220" r="10"/>
-  <path class="wb-b" d="M294,220 L352,220" marker-end="url(#ab)"/>
-  <!-- ハンコ（EventTransform） -->
-  <rect class="wb-b fw" x="360" y="190" width="96" height="60" rx="6"/>
-  <path class="wb-b" d="M384,190 l0,-24 l48,0 l0,24 M396,166 l0,-18 l24,0 l0,18"/>
-  <path class="wb-b" d="M460,220 L520,220" marker-end="url(#ab)"/>
-  <!-- Broker（タンク） -->
-  <path class="wb-b fb" d="M530,170 L650,170 L650,280 L530,280 Z"/>
-  <ellipse class="wb-b fw" cx="590" cy="170" rx="60" ry="14"/>
-  <path class="wb-b thin" d="M530,280 Q590,300 650,280"/>
-  <!-- Trigger と宛先、retry ループ -->
-  <path class="wb-b" d="M654,220 L740,220" marker-end="url(#ab)"/>
-  <path class="wk fw" d="M748,190 L820,190 L798,226 L798,250 L770,250 L770,226 Z"/>
-  <path class="wk" d="M800,232 L880,232" marker-end="url(#ak)"/>
-  <rect class="wk fw" x="886" y="206" width="80" height="50" rx="6"/>
-  <path class="wr" d="M882,248 C860,300 820,300 810,262" marker-end="url(#ar)"/>
-  <path class="wr" d="M870,262 C900,340 880,360 850,380" marker-end="url(#ar)"/>
-  <path class="wk fw" d="M800,384 l80,0 l-10,64 l-60,0 z M796,384 l88,0"/>
-  <!-- 寝ている目 -->
-  <path class="wk" d="M190,330 Q240,354 290,330"/>
-  <path class="wr fr" d="M222,380 l30,0 l0,20 l-30,0 z M222,380 l15,11 l15,-11"/>
-  <path class="wr dash" d="M237,346 L237,376"/>
-  <!-- 網（PingSource 突き合わせ） -->
-  <path class="wb-b" d="M160,470 Q240,506 320,470"/>
-  <path class="wb-b thin" d="M176,478 L190,494 M204,486 L214,500 M232,490 L236,502 M258,490 L256,502 M284,486 L278,500 M306,478 L296,494 M180,488 L310,486"/>
-  <circle class="wk fw" cx="90" cy="470" r="28"/>
-  <path class="wk" d="M90,470 L90,450 M90,470 L104,478"/>
-  <path class="wb-b" d="M324,470 C420,460 500,380 560,290" marker-end="url(#ab)"/>
-</g>
-<text class="ts" x="54" y="226">Namespace</text>
-<text class="ts tb" x="200" y="170">ApiServerSource</text>
-<text class="ts tb" x="364" y="276">uid:deleted</text>
-<text class="tb" x="556" y="236">Broker</text>
-<text class="ts" x="664" y="300">永続化した土台</text>
-<text class="ts" x="760" y="180">Trigger</text>
-<text class="ts" x="900" y="236">宛先</text>
-<text class="ts tr" x="820" y="310">retry</text>
-<text class="ts" x="818" y="470">DLQ</text>
-<text class="ts tr" x="300" y="346">zzz 止まってる間</text>
-<text class="ts tr" x="262" y="398">落ちる</text>
-<text class="ts" x="66" y="526">PingSource 毎分</text>
-<text class="ts tb" x="190" y="534">突き合わせで拾う</text>
+<p class="eli5">Knative Eventing は、クラスタの中の郵便局のようなものです。受付係（ApiServerSource）が Kubernetes の変化（Namespace ができた・消えた）を見て手紙にし、郵便局（Broker）に預けます。郵便局は手紙を保管し、宛先が留守なら時間をおいて配り直し、それでもだめなら保管箱（DLQ）に入れます。弱点は受付係です。受付係の Pod が再起動している間に起きた変化は、手紙にならず、あとから思い出すこともありません。</p>
+
+<figure class="dd">
+<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-kn-title dd-kn-desc">
+<title id="dd-kn-title">Knative の配送路：入口が止まると、その間の変化は入らない</title>
+<desc id="dd-kn-desc">ApiServerSource が Kubernetes の変化を見て Broker に入れ、Trigger が宛先に配る。Broker から先は再送と DLQ があるが、ApiServerSource が止まっている間の変化は Broker に入らない。</desc>
+<defs><marker id="dd-kn-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
+<path class="dd-line" d="M172,120 L212,120" marker-end="url(#dd-kn-ar)"/>
+<path class="dd-line" d="M376,120 L420,120" marker-end="url(#dd-kn-ar)"/>
+<path class="dd-line dd-acc" d="M584,120 L628,120" marker-end="url(#dd-kn-ara)"/>
+<path class="dd-line" d="M752,120 L796,120" marker-end="url(#dd-kn-ar)"/>
+<path class="dd-line dd-red dd-dash" d="M690,148 L690,188 Q690,196 698,196 L716,196" marker-end="url(#dd-kn-arr)"/>
+<rect class="dd-store" x="40" y="92" width="132" height="56" rx="6"/>
+<text class="dd-name" x="106" y="116" text-anchor="middle">Namespace</text>
+<text class="dd-sub" x="106" y="134" text-anchor="middle">Pod の入れ物</text>
+<rect class="dd-node" x="216" y="92" width="160" height="56" rx="6"/>
+<text class="dd-name" x="296" y="116" text-anchor="middle">ApiServerSource</text>
+<text class="dd-sub" x="296" y="134" text-anchor="middle">変化を見る係</text>
+<rect class="dd-focal" x="424" y="92" width="160" height="56" rx="6"/>
+<text class="dd-name" x="504" y="116" text-anchor="middle">Broker</text>
+<text class="dd-sub" x="504" y="134" text-anchor="middle">保管・再送</text>
+<rect class="dd-node" x="632" y="92" width="120" height="56" rx="6"/>
+<text class="dd-name" x="692" y="116" text-anchor="middle">Trigger</text>
+<text class="dd-sub" x="692" y="134" text-anchor="middle">振り分け</text>
+<rect class="dd-ext" x="800" y="92" width="120" height="56" rx="6"/>
+<text class="dd-name" x="860" y="125" text-anchor="middle">宛先</text>
+<rect class="dd-ext" x="720" y="176" width="120" height="40" rx="6"/>
+<text class="dd-name" x="780" y="201" text-anchor="middle">DLQ</text>
+<text class="dd-name dd-red-t" x="216" y="196" text-anchor="start">ここが止まると取りこぼす</text>
+<text class="dd-aside" x="424" y="196" text-anchor="start">ここから先は再送できる</text>
 </svg>
-</div>
+</figure>
 
 
 

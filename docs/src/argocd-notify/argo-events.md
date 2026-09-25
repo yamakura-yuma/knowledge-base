@@ -2,50 +2,33 @@
 
 > resource EventSource が Application を informer で監視し、イベントを EventBus（JetStream など）に書き込む。Sensor がそれを購読し、フィルタを通ったものだけ trigger（HTTP など）で送る。**削除完了は 7 ms で届く。ただし検知層は、停止中に起きた削除を取りこぼす。配送層は、設定しないと at-most-once で動く。**
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 540" role="img" aria-label="グラレコ：Argo Events は EventBus に乗ったあとは永続化される。既定では 1 回しか送らず、500 も成功扱いになる">
-<path class="hl" d="M40,52 L520,48"/>
-<text class="th" x="40" y="58">バスに乗れば安心、乗る前が危ない</text>
-<text class="ts" x="640" y="56">Argo Events</text>
-<g filter="url(#wob)">
-  <!-- アンテナ（EventSource） -->
-  <path class="wk" d="M100,300 L100,200 M80,200 L120,200 M100,200 L70,160 M100,200 L130,160"/>
-  <path class="wb-b thin" d="M140,170 q14,14 0,28 M154,160 q24,24 0,48"/>
-  <!-- バス（EventBus） -->
-  <rect class="wb-b fb" x="250" y="190" width="300" height="110" rx="18"/>
-  <path class="wb-b thin" d="M270,210 l50,0 l0,36 l-50,0 z M334,210 l50,0 l0,36 l-50,0 z M398,210 l50,0 l0,36 l-50,0 z M462,210 l60,0 l0,50 l-60,0 z"/>
-  <circle class="wk fw" cx="310" cy="304" r="20"/>
-  <circle class="wk fw" cx="490" cy="304" r="20"/>
-  <path class="wb-b" d="M170,250 L240,250" marker-end="url(#ab)"/>
-  <!-- ふるい（Sensor） -->
-  <path class="wk fw" d="M600,210 L720,210 L700,270 L620,270 Z"/>
-  <path class="wk thin" d="M620,230 l80,0 M626,250 l68,0 M640,210 l0,60 M660,210 l0,60 M680,210 l0,60"/>
-  <path class="wb-b" d="M554,245 L596,245" marker-end="url(#ab)"/>
-  <path class="wk" d="M722,240 L820,240" marker-end="url(#ak)"/>
-  <rect class="wk fw" x="826" y="212" width="120" height="56" rx="6"/>
-  <!-- 乗る前に落ちる -->
-  <path class="wr fr" d="M150,380 l30,0 l0,20 l-30,0 z M150,380 l15,11 l15,-11"/>
-  <path class="wr dash" d="M165,306 L165,374"/>
-  <!-- 既定は 1 回・500 も OK -->
-  <path class="wr fr" d="M830,330 h120 a10,10 0 0 1 10,10 v44 a10,10 0 0 1 -10,10 h-120 a10,10 0 0 1 -10,-10 v-44 a10,10 0 0 1 10,-10 z"/>
-  <path class="wr" d="M720,360 C760,330 790,330 818,350" marker-end="url(#ar)"/>
-  <!-- 鍵（設定で直す） -->
-  <rect class="wb-b fw" x="620" y="420" width="40" height="30" rx="4"/>
-  <path class="wb-b" d="M628,420 v-10 a12,12 0 0 1 24,0 v10"/>
-</g>
-<text class="ts" x="70" y="330">EventSource</text>
-<text class="tb" x="330" y="286">EventBus</text>
-<text class="ts" x="330" y="346">ここから先は永続</text>
-<text class="ts" x="616" y="196">Sensor</text>
-<text class="ts" x="846" y="246">HTTP</text>
-<text class="ts tr" x="120" y="430">止まってる間は</text>
-<text class="ts tr" x="120" y="450">乗れない</text>
-<text class="ts tr" x="840" y="360">既定は 1 回</text>
-<text class="ts tr" x="840" y="382">500 も成功</text>
-<text class="ts tb" x="676" y="432">atLeastOnce</text>
-<text class="ts tb" x="676" y="454">status.allow で直す</text>
+<p class="eli5">Argo Events は、駅とバスにたとえられます。停留所（EventSource）で変化を拾い、バス（EventBus）に乗せ、終点の係（Sensor）が条件に合うものだけを届けます。バスに乗ったあとは、席（保管）が確保されるので安心です。危ないのは二か所で、停留所の Pod が止まっている間の乗客は乗れません。もう一つは、終点の係が初期設定では一回しか届けようとせず、宛先がエラーを返しても「届けた」と扱うことです。</p>
+
+<figure class="dd">
+<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-ae-title dd-ae-desc">
+<title id="dd-ae-title">Argo Events の 3 段：EventBus に乗る前が危ない</title>
+<desc id="dd-ae-desc">EventSource が変化を拾い、EventBus に保管され、Sensor が条件を満たすものを送る。EventBus から先は保管されるが、既定では 1 回しか送らない。</desc>
+<defs><marker id="dd-ae-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
+<path class="dd-line" d="M200,120 L260,120" marker-end="url(#dd-ae-ar)"/>
+<path class="dd-line" d="M500,120 L560,120" marker-end="url(#dd-ae-ar)"/>
+<path class="dd-line" d="M740,120 L800,120" marker-end="url(#dd-ae-ar)"/>
+<rect class="dd-node" x="40" y="92" width="160" height="56" rx="6"/>
+<text class="dd-name" x="120" y="116" text-anchor="middle">EventSource</text>
+<text class="dd-sub" x="120" y="134" text-anchor="middle">変化を拾う</text>
+<rect class="dd-focal" x="264" y="84" width="236" height="72" rx="6"/>
+<text class="dd-name" x="382" y="116" text-anchor="middle">EventBus</text>
+<text class="dd-sub" x="382" y="134" text-anchor="middle">ここから先は保管される</text>
+<rect class="dd-node" x="564" y="92" width="176" height="56" rx="6"/>
+<text class="dd-name" x="652" y="116" text-anchor="middle">Sensor</text>
+<text class="dd-sub" x="652" y="134" text-anchor="middle">条件で絞る</text>
+<rect class="dd-ext" x="804" y="92" width="116" height="56" rx="6"/>
+<text class="dd-name" x="862" y="125" text-anchor="middle">宛先</text>
+<text class="dd-name dd-red-t" x="40" y="188" text-anchor="start">止まっている間の変化は乗れない</text>
+<text class="dd-name dd-red-t" x="564" y="188" text-anchor="start">既定は 1 回だけ送る</text>
+<text class="dd-sub" x="564" y="208" text-anchor="start">atLeastOnce の設定で直る</text>
 </svg>
-</div>
+</figure>
 
 
 

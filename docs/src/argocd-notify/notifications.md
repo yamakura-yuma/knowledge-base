@@ -4,54 +4,51 @@
 >
 > Argo CD に同梱の `argocd-notifications-controller` が、Application を informer で見て trigger の条件式を評価し、template で組んだ本文を service（webhook・Slack など）で送る。**デプロイ完了は取れるが、削除完了は原理的に取れない。**
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：Notifications の設定は argocd namespace の中にあり、利用者は外から頼むしかない。on-deleted は消え始めで鳴り、4 回失敗すると諦める">
-<path class="hl" d="M40,52 L520,48"/>
-<text class="th" x="40" y="58">設定は基盤の部屋の中</text>
-<text class="ts" x="560" y="56">Argo CD Notifications</text>
-<g filter="url(#wob)">
-  <!-- 部屋 -->
-  <path class="wb-b fb" d="M40,110 L600,110 L600,500 L40,500 Z"/>
-  <rect class="wk fw" x="560" y="270" width="40" height="80"/>
-  <rect class="wk fw" x="572" y="296" width="22" height="18" rx="3"/>
-  <path class="wk" d="M577,296 v-7 a6,6 0 0 1 12,0 v7"/>
-  <!-- ConfigMap の紙 -->
-  <path class="wk fw" d="M80,150 l150,0 l0,120 l-150,0 z"/>
-  <path class="wk thin" d="M96,196 l110,0 M96,218 l90,0 M96,240 l116,0"/>
-  <!-- ベル（on-deleted） -->
-  <path class="wr fr" d="M320,230 q0,-50 40,-50 q40,0 40,50 l14,20 l-108,0 z"/>
-  <circle class="wr fw" cx="360" cy="262" r="8"/>
-  <path class="wr thin" d="M294,190 l-16,-10 M292,214 l-20,0 M426,190 l16,-10 M428,214 l20,0"/>
-  <!-- まだ消えていない Namespace -->
-  <rect class="wk fw" x="470" y="170" width="70" height="56" rx="6"/>
-  <!-- 4 回投げて諦める -->
-  <path class="wk" d="M120,360 l30,0 l0,20 l-30,0 z M120,360 l15,11 l15,-11"/>
-  <path class="wk thin" d="M156,372 C230,340 300,340 360,372" marker-end="url(#ak)"/>
-  <path class="wk thin" d="M156,378 C230,392 300,392 360,380" marker-end="url(#ak)"/>
-  <path class="wk thin" d="M156,384 C230,430 300,430 360,392" marker-end="url(#ak)"/>
-  <path class="wk thin" d="M156,388 C230,470 300,470 362,402" marker-end="url(#ak)"/>
-  <rect class="wr fr" x="370" y="352" width="46" height="70" rx="4"/>
-  <path class="wk" d="M440,420 l60,0 l-8,56 l-44,0 z M436,420 l68,0"/>
-  <!-- 利用者（部屋の外） -->
-  <circle class="wk fw" cx="800" cy="250" r="20"/>
-  <path class="wk" d="M800,270 L800,330 M800,290 L760,296 M800,290 L840,300 M800,330 L780,370 M800,330 L820,370"/>
-  <path class="wk" d="M700,300 l-60,0" marker-end="url(#ak)"/>
-  <path class="wk fw" d="M680,150 h240 a12,12 0 0 1 12,12 v44 a12,12 0 0 1 -12,12 h-120 l-20,18 l4,-18 h-104 a12,12 0 0 1 -12,-12 v-44 a12,12 0 0 1 12,-12 z"/>
-</g>
-<text class="tb" x="54" y="140">argocd namespace（基盤）</text>
-<text class="ts" x="96" y="176">notifications-cm</text>
-<text class="ts tr" x="310" y="300">on-deleted</text>
-<text class="ts tr" x="292" y="322">消え始めで鳴る</text>
-<text class="ts" x="468" y="246">まだある</text>
-<text class="ts" x="130" y="350">送信</text>
-<text class="ts tr" x="372" y="444">500</text>
-<text class="ts" x="428" y="530">4 回で諦める</text>
-<text x="700" y="190">cm を変えてください…</text>
-<text class="ts" x="760" y="400">利用者</text>
-<text class="ts" x="640" y="470">デプロイ完了は oncePer で 1 回だけ</text>
-<text class="ts" x="640" y="494">→ Argo CD を持つチームなら代替になる</text>
+<p class="eli5">Argo CD には通知係（Notifications）が付いていて、アプリの状態が変わるとメッセージを送ってくれます。ただし、誰に・いつ・何を送るかの決まりは、基盤チームの部屋（argocd という Namespace）にある ConfigMap に書く決まりです。アプリの開発者は自分の Namespace から手が届かないので、変えるたびに頼むことになります。もう一つの落とし穴は、削除の知らせ（on-deleted）が「片づけを始めた」瞬間に鳴ることです。Pod がまだ動いているうちに「消えました」と届きます。</p>
+
+<figure class="dd">
+<svg viewBox="0 30 960 190" role="img" aria-labelledby="dd-notif-title dd-notif-desc">
+<title id="dd-notif-title">Notifications で通知を足すとき、利用者は基盤の設定を頼む</title>
+<desc id="dd-notif-desc">Notifications の設定は argocd namespace の ConfigMap と Secret にあり、利用者は基盤チームに編集を頼む。コントローラはそれを読んで送る。</desc>
+<defs><marker id="dd-notif-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="30" width="960" height="190"/>
+<line class="dd-bound" x1="640" y1="38" x2="640" y2="210"/>
+<path class="dd-line dd-red" d="M720,120 L560,120" marker-end="url(#dd-notif-arr)"/>
+<path class="dd-line" d="M412,120 L352,120" marker-end="url(#dd-notif-ar)"/>
+<path class="dd-line" d="M212,120 L160,120" marker-end="url(#dd-notif-ar)"/>
+<text class="dd-eyebrow" x="624" y="52" text-anchor="end">argocd namespace（基盤）</text>
+<text class="dd-eyebrow" x="656" y="52" text-anchor="start">あなた</text>
+<rect class="dd-mask" x="603" y="96" width="74" height="16" rx="2"/>
+<text class="dd-lbl dd-red-t" x="640" y="108" text-anchor="middle">編集を頼む</text>
+<rect class="dd-store" x="420" y="92" width="140" height="56" rx="6"/>
+<text class="dd-name" x="490" y="116" text-anchor="middle">ConfigMap</text>
+<text class="dd-sub" x="490" y="134" text-anchor="middle">trigger・template</text>
+<rect class="dd-node" x="212" y="92" width="140" height="56" rx="6"/>
+<text class="dd-name" x="282" y="116" text-anchor="middle">通知コントローラ</text>
+<text class="dd-sub" x="282" y="134" text-anchor="middle">設定を読む</text>
+<rect class="dd-ext" x="40" y="92" width="120" height="56" rx="6"/>
+<text class="dd-name" x="100" y="125" text-anchor="middle">宛先</text>
+<rect class="dd-ext" x="728" y="92" width="176" height="56" rx="6"/>
+<text class="dd-name" x="816" y="116" text-anchor="middle">アプリの開発者</text>
+<text class="dd-sub" x="816" y="134" text-anchor="middle">Slack に欲しい</text>
+<text class="dd-aside" x="420" y="196" text-anchor="start">変えるたびに頼む</text>
 </svg>
-</div>
+</figure>
+
+<figure class="dd">
+<svg viewBox="0 36 960 100" role="img" aria-labelledby="dd-notif-t-title dd-notif-t-desc">
+<title id="dd-notif-t-title">on-deleted が鳴る時点</title>
+<desc id="dd-notif-t-desc">削除を依頼して 0.05 秒で on-deleted が鳴り、Application が消えるのは 6.80 秒後（run3）。</desc>
+<defs><marker id="dd-notif-t-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-t-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-t-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="36" width="960" height="100"/>
+<line class="dd-base" x1="80" y1="80" x2="900" y2="80"/>
+<circle class="dd-dot-red" cx="85.9" cy="80" r="6"/>
+<circle class="dd-dot" cx="882.4" cy="80" r="4"/>
+<text class="dd-name dd-red-t" x="85.9" y="58" text-anchor="start">on-deleted が鳴る（0.05 秒）</text>
+<text class="dd-sub" x="882.4" y="110" text-anchor="end">Application が消える（6.80 秒）</text>
+<text class="dd-sub" x="80" y="110" text-anchor="start">削除を依頼</text>
+</svg>
+</figure>
 
 
 

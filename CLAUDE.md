@@ -28,10 +28,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   外部へ通知する方式の比較。`index.md`（概要・評価マトリクス）と方式ごとの md 6 本。
   ほかの話題とは独立していて、専用の `docs/build_argocd_notify.py` が生成する。
   `build.py` の PAGES・ナビ・CSS には載せず、既存の話題とのリンクも張らない。
-  図は md の中の ```diagram ブロック（YAML）に書き、ビルド時に SVG になる。ページ冒頭は
-  「たとえ話 1 段落（eli5）＋図 1 枚（diagram-design）」に置き換え中で、index と hooks が新形式。
-  残りのページの手描きグラレコは移行までの暫定で、手書きフォント（Yomogi、OFL）は `fonts/`
-  から使う字だけを抜き出して HTML に埋め込む
+  図は md の中の ```diagram ブロック（YAML）に書き、ビルド時に SVG になる。各ページの冒頭は
+  「たとえ話 1 段落（eli5）＋図（diagram-design、基本 1 枚）」で、生の SVG を md に書く
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない

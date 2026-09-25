@@ -17,7 +17,7 @@
   @media (prefers-color-scheme: dark) {
     :root {
       --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
-      --ink-3:#807e78; --line:#33333a;
+      --ink-3:#95938c; --line:#33333a;
       --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
       --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
     }
@@ -54,7 +54,7 @@
   .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
   .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
          padding:16px 18px; margin:18px 0; }
-  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
   .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
   .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
            background:var(--surface); text-decoration:none; }
@@ -68,8 +68,8 @@
   .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
   .fig text { fill:var(--ink-2); font-size:12px; }
   .fig .t-ink { fill:var(--ink); font-weight:600; }
-  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
-  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
   .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
   .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
   .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
@@ -98,55 +98,6 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
-  .gr .fig text { font-size:13px; fill:var(--ink); }
-  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
-  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
-  .gr .gr-m { font-size:14px; fill:var(--ink); }
-  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
-  .gr .gr-b { font-weight:700; }
-  .gr .gr-big { font-size:64px; font-weight:800; }
-  .gr .gr-red { fill:var(--hot); }
-  .gr .gr-code { font-family:var(--mono); }
-  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
-  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-dot { fill:var(--ink); }
-  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
-  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
-  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
-  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
-  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
-  .gr .gr-ink { fill:var(--ink); }
-  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
-
-  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
-  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
-  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
-  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
-
-  /* ホワイトボードのグラレコ。背景は明暗どちらのテーマでも白、マーカーは黒・青・赤の 3 色 */
-  .grwb { margin:22px 0 26px; }
-  .grwb svg { display:block; width:100%; height:auto; }
-  .grwb .wbg { fill:#fdfdfb; stroke:#cfcfc8; stroke-width:2; }
-  .grwb text { font-family:'WB Yomogi','Klee One','Yomogi','Hiragino Maru Gothic ProN',sans-serif;
-               fill:#23232a; font-size:19px; }
-  .grwb .th { font-size:28px; }
-  .grwb .ts { font-size:15px; fill:#4a4a52; }
-  .grwb .tb { fill:#1d56c2; } .grwb .tr { fill:#d0342c; }
-  .grwb .wk, .grwb .wb-b, .grwb .wr { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
-  .grwb .wk { stroke:#23232a; } .grwb .wb-b { stroke:#1d56c2; } .grwb .wr { stroke:#d0342c; }
-  .grwb .thin { stroke-width:2; } .grwb .dash { stroke-dasharray:7 7; }
-  .grwb .hl { fill:none; stroke:#ffe14d; stroke-width:16; stroke-linecap:round; opacity:.7; }
-  .grwb .fb { fill:#e6eefc; } .grwb .fr { fill:#fde6e3; } .grwb .fk { fill:#23232a; } .grwb .fw { fill:#fdfdfb; }
-
   /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
      図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
@@ -164,7 +115,10 @@
   .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-drop { stroke:var(--line); stroke-width:1; }
   .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); }
+  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
+  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
+  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
+  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
   .dd text { fill:var(--ink); }
   .dd .dd-name { font-size:14px; font-weight:600; }
@@ -178,7 +132,7 @@
   table.mx td, table.mx th { text-align:center; }
   table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
   table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
-  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
                       margin-top:2px; font-family:var(--mono); }
   .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
                        font-family:var(--mono); font-size:12px; font-weight:600; }
@@ -196,48 +150,42 @@
 </header>
 <nav class="nav"><a href="index.html" class="on">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
 <h2 id="grareco">このページを一言で</h2>
-<p class="eli5">部屋を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。管理会社の掲示板は「片づけを始めました」の時点で知らせを出してしまい、掲示の中身を変えるにも管理会社に頼むしかありません。そこで、管理会社の仕組みには触らず、建物の外に見張り役を置きます。見張り役は部屋が空になったのを確かめてから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
+<p class="eli5">部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。Namespace を消すと、中の Pod や Deployment が順に片づけられ、最後に Namespace そのものが消えます。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで、建物の外に見張り役を置きます。見張り役は Kubernetes に「この Namespace はまだあるか」を問い合わせ続け、完全に消えたのを見てから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
 
 <figure class="dd">
-<svg viewBox="0 36 960 216" role="img" aria-labelledby="dd-index-title dd-index-desc">
+<svg viewBox="0 36 960 220" role="img" aria-labelledby="dd-index-title dd-index-desc">
 <title id="dd-index-title">推奨構成：外から見張って、消えたことを 1 通で届ける</title>
-<desc id="dd-index-desc">基盤チームが持つ Namespace が消えると、外に置いた見張り役がそれを確かめて Broker に 1 通送り、利用者が自分の側に置いた Trigger を通って宛先に届く。</desc>
-<defs>
-<marker id="dd-index-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker>
-<marker id="dd-index-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker>
-</defs>
-<rect class="dd-paper" width="100%" height="100%"/>
-<!-- boundary -->
+<desc id="dd-index-desc">基盤チームの Job が Namespace を消すと、外に置いた見張り役が消えたのを確かめて Broker に 1 通送り、利用者の Trigger を通って宛先へ届く。</desc>
+<defs><marker id="dd-index-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="36" width="960" height="220"/>
 <line class="dd-bound" x1="636" y1="44" x2="636" y2="240"/>
-<text class="dd-eyebrow" x="40" y="56">基盤チームが持つ（触らない）</text>
-<text class="dd-eyebrow" x="660" y="56">あなたが持つ</text>
-<!-- arrows first -->
-<line class="dd-line" x1="184" y1="152" x2="228" y2="152" marker-end="url(#dd-index-ar)"/>
-<line class="dd-line dd-acc" x1="384" y1="152" x2="436" y2="152" marker-end="url(#dd-index-ara)"/>
-<line class="dd-line" x1="580" y1="152" x2="676" y2="152" marker-end="url(#dd-index-ar)"/>
-<line class="dd-line" x1="796" y1="152" x2="836" y2="152" marker-end="url(#dd-index-ar)"/>
-<rect class="dd-mask" x="382" y="126" width="56" height="14" rx="2"/>
-<text class="dd-lbl" x="410" y="136" text-anchor="middle">1 通</text>
-<rect class="dd-mask" x="596" y="126" width="64" height="14" rx="2"/>
-<text class="dd-lbl" x="628" y="136" text-anchor="middle">転送</text>
-<!-- nodes -->
+<path class="dd-line" d="M184,152 L228,152" marker-end="url(#dd-index-ar)"/>
+<path class="dd-line dd-acc" d="M384,152 L436,152" marker-end="url(#dd-index-ara)"/>
+<path class="dd-line" d="M580,152 L676,152" marker-end="url(#dd-index-ar)"/>
+<path class="dd-line" d="M796,152 L836,152" marker-end="url(#dd-index-ar)"/>
+<text class="dd-eyebrow" x="620" y="58" text-anchor="end">基盤チームが持つ（触らない）</text>
+<text class="dd-eyebrow" x="652" y="58" text-anchor="start">あなたが持つ</text>
 <rect class="dd-store" x="40" y="124" width="144" height="56" rx="6"/>
-<text class="dd-name" x="112" y="150" text-anchor="middle">Namespace</text>
-<text class="dd-sub" x="112" y="168" text-anchor="middle">基盤の Job が消す</text>
+<text class="dd-name" x="112" y="148" text-anchor="middle">Namespace</text>
+<text class="dd-sub" x="112" y="166" text-anchor="middle">Job が消す</text>
 <rect class="dd-focal" x="232" y="112" width="152" height="80" rx="6"/>
-<text class="dd-name" x="308" y="144" text-anchor="middle">見張り役</text>
-<text class="dd-sub" x="308" y="162" text-anchor="middle">消えたのを確かめる</text>
-<text class="dd-sub" x="308" y="178" text-anchor="middle">1 分ごとに照合</text>
+<text class="dd-name" x="308" y="139" text-anchor="middle">見張り役</text>
+<text class="dd-sub" x="308" y="157" text-anchor="middle">消えたのを確かめる</text>
+<text class="dd-sub" x="308" y="175" text-anchor="middle">1 分ごとに照合</text>
 <rect class="dd-store" x="440" y="124" width="140" height="56" rx="6"/>
-<text class="dd-name" x="510" y="150" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="510" y="168" text-anchor="middle">入口は 1 つ</text>
+<text class="dd-name" x="510" y="148" text-anchor="middle">Broker</text>
+<text class="dd-sub" x="510" y="166" text-anchor="middle">入口は 1 つ</text>
 <rect class="dd-node" x="680" y="124" width="116" height="56" rx="6"/>
-<text class="dd-name" x="738" y="150" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="738" y="168" text-anchor="middle">再送・DLQ</text>
+<text class="dd-name" x="738" y="148" text-anchor="middle">Trigger</text>
+<text class="dd-sub" x="738" y="166" text-anchor="middle">再送・DLQ</text>
 <rect class="dd-ext" x="840" y="124" width="96" height="56" rx="6"/>
-<text class="dd-name" x="888" y="150" text-anchor="middle">宛先</text>
-<text class="dd-sub" x="888" y="168" text-anchor="middle">Slack など</text>
-<text class="dd-aside" x="232" y="228">Argo CD の設定にも Job にも手を入れない</text>
+<text class="dd-name" x="888" y="148" text-anchor="middle">宛先</text>
+<text class="dd-sub" x="888" y="166" text-anchor="middle">Slack など</text>
+<rect class="dd-mask" x="385" y="124" width="50" height="16" rx="2"/>
+<text class="dd-lbl dd-acc-t" x="410" y="136" text-anchor="middle">1 通</text>
+<rect class="dd-mask" x="609" y="124" width="38" height="16" rx="2"/>
+<text class="dd-lbl" x="628" y="136" text-anchor="middle">転送</text>
+<text class="dd-aside" x="232" y="228" text-anchor="start">Argo CD の設定にも Job にも手を入れない</text>
 </svg>
 </figure>
 
@@ -474,7 +422,7 @@
 </table>
 <hr />
 <h2>推奨構成の図</h2>
-<div class="dgm"><div class="cap">図 1 推奨構成。基盤側の設定（Argo CD・Notifications・Namespace 削除の Job）には手を入れず、観測だけで取る。入口は Broker 1 つ</div><svg class="fig" viewBox="0 0 1000 520" role="img" aria-label="推奨構成"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-plain" x="10" y="30" width="230" height="450" rx="8"/><text class="t-zone" x="20" y="46">基盤側（変更しない）</text><rect class="zone zone-platform" x="260" y="30" width="400" height="450" rx="8"/><text class="t-zone" x="270" y="46">通知基盤（obs namespace）</text><rect class="zone zone-app" x="680" y="30" width="310" height="450" rx="8"/><text class="t-zone" x="690" y="46">アプリ側の namespace</text><rect class="nd nd-comp" x="25" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="35" y="79">Namespace 削除の Job</text><text class="t-mono" x="35" y="95">delete ns --wait</text><rect class="nd nd-app" x="25" y="150" width="200" height="60" rx="6"/><text class="t-ink" x="35" y="169">Namespace（ラベル付き）</text><text class="t-mono" x="35" y="185">Terminating → 消滅</text><rect class="nd nd-app" x="25" y="300" width="200" height="60" rx="6"/><text class="t-ink" x="35" y="319">Application</text><text class="t-mono" x="35" y="335">Synced / Healthy / revision</text><rect class="nd nd-comp" x="275" y="60" width="180" height="54" rx="6"/><text class="t-ink" x="285" y="79">ApiServerSource</text><text class="t-mono" x="285" y="95">Namespace と Application</text><rect class="nd nd-comp" x="470" y="60" width="175" height="44" rx="6"/><text class="t-ink" x="480" y="79">PingSource（毎分）</text><rect class="nd nd-comp" x="470" y="140" width="175" height="54" rx="6"/><text class="t-ink" x="480" y="159">観測 Service</text><text class="t-mono" x="480" y="175">判定・突き合わせ</text><rect class="nd nd-state" x="470" y="225" width="175" height="50" rx="6"/><text class="t-ink" x="480" y="244">uid 一覧</text><text class="t-mono" x="480" y="260">ConfigMap</text><rect class="nd nd-state" x="275" y="300" width="180" height="60" rx="6"/><text class="t-ink" x="285" y="319">Broker（入口 1 つ）</text><text class="t-mono" x="285" y="335">永続化した土台</text><rect class="nd nd-comp" x="275" y="170" width="180" height="54" rx="6"/><text class="t-ink" x="285" y="189">EventTransform</text><text class="t-mono" x="285" y="205">id = uid:deleted</text><rect class="nd nd-comp" x="695" y="300" width="280" height="60" rx="6"/><text class="t-ink" x="705" y="319">Trigger（宛先ごと）</text><text class="t-mono" x="705" y="335">delivery: retry / DLQ</text><rect class="nd nd-ext" x="695" y="400" width="280" height="54" rx="6"/><text class="t-ink" x="705" y="419">宛先（Slack / 社内 API）</text><text class="t-mono" x="705" y="435">id で重複を消す</text><path class="ln ln-http" d="M125,114 L125,150" marker-end="url(#a-http)"/><rect class="lbl-bg" x="110" y="121" width="29" height="15" rx="3"/><text class="t-mono" x="125" y="132" text-anchor="middle">削除</text><path class="ln ln-watch" d="M275,87 L250,87 L250,180 L225,180" marker-end="url(#a-watch)"/><path class="ln ln-watch" d="M275,97 L250,100 L250,330 L225,330" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="230" y="264" width="40" height="15" rx="3"/><text class="t-mono" x="250" y="275" text-anchor="middle">watch</text><path class="ln ln-ce" d="M558,104 L558,140" marker-end="url(#a-ce)"/><path class="ln ln-patch" d="M558,194 L558,225" marker-end="url(#a-patch)"/><path class="ln ln-ce" d="M275,87 L265,87 L265,330 L275,330" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M365,300 L365,224" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="342" y="251" width="46" height="15" rx="3"/><text class="t-mono" x="365" y="262" text-anchor="middle">delete</text><path class="ln ln-ce" d="M455,316 L460,315 L460,167 L470,167" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="422" y="280" width="71" height="15" rx="3"/><text class="t-mono" x="458" y="291" text-anchor="middle">add/update</text><path class="ln ln-ce" d="M557,194 L555,345 L455,337" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="494" y="334" width="121" height="15" rx="3"/><text class="t-mono" x="555" y="345" text-anchor="middle">deployed / deleted</text><path class="ln ln-ce" d="M455,330 L695,330" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M835,360 L835,400" marker-end="url(#a-ce)"/><path class="ln ln-watch" d="M20,510 L48,510" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="514">watch</text><path class="ln ln-http" d="M107.5,510 L135.5,510" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="514">HTTP</text><path class="ln ln-ce" d="M188.7,510 L216.7,510" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="514">CloudEvent</text><path class="ln ln-patch" d="M307.7,510 L335.7,510" marker-end="url(#a-patch)"/><text class="t-mono" x="341.7" y="514">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="556.9" y="502" width="16" height="12" rx="2"/><text class="t-mono" x="578.9" y="514">状態を持つ場所</text></svg></div>
+<div class="dgm"><div class="cap">図 1 推奨構成。基盤側の設定（Argo CD・Notifications・Namespace 削除の Job）には手を入れず、観測だけで取る。入口は Broker 1 つ</div><svg class="fig" viewBox="0 0 1000 520" role="img" aria-label="推奨構成"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-plain" x="10" y="30" width="230" height="450" rx="8"/><text class="t-zone" x="20" y="46">基盤側（変更しない）</text><rect class="zone zone-platform" x="260" y="30" width="400" height="450" rx="8"/><text class="t-zone" x="270" y="46">通知基盤（obs namespace）</text><rect class="zone zone-app" x="680" y="30" width="310" height="450" rx="8"/><text class="t-zone" x="690" y="46">アプリ側の namespace</text><rect class="nd nd-comp" x="25" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="35" y="79">Namespace 削除の Job</text><text class="t-mono" x="35" y="95">delete ns --wait</text><rect class="nd nd-app" x="25" y="150" width="200" height="60" rx="6"/><text class="t-ink" x="35" y="169">Namespace（ラベル付き）</text><text class="t-mono" x="35" y="185">Terminating → 消滅</text><rect class="nd nd-app" x="25" y="300" width="200" height="60" rx="6"/><text class="t-ink" x="35" y="319">Application</text><text class="t-mono" x="35" y="335">Synced / Healthy / revision</text><rect class="nd nd-comp" x="275" y="60" width="180" height="54" rx="6"/><text class="t-ink" x="285" y="79">ApiServerSource</text><text class="t-mono" x="285" y="95">Namespace と Application</text><rect class="nd nd-comp" x="470" y="60" width="175" height="44" rx="6"/><text class="t-ink" x="480" y="79">PingSource（毎分）</text><rect class="nd nd-comp" x="470" y="140" width="175" height="54" rx="6"/><text class="t-ink" x="480" y="159">観測 Service</text><text class="t-mono" x="480" y="175">判定・突き合わせ</text><rect class="nd nd-state" x="470" y="225" width="175" height="50" rx="6"/><text class="t-ink" x="480" y="244">uid 一覧</text><text class="t-mono" x="480" y="260">ConfigMap</text><rect class="nd nd-state" x="275" y="300" width="180" height="60" rx="6"/><text class="t-ink" x="285" y="319">Broker（入口 1 つ）</text><text class="t-mono" x="285" y="335">永続化した土台</text><rect class="nd nd-comp" x="275" y="170" width="180" height="54" rx="6"/><text class="t-ink" x="285" y="189">EventTransform</text><text class="t-mono" x="285" y="205">id = uid:deleted</text><rect class="nd nd-comp" x="695" y="300" width="280" height="60" rx="6"/><text class="t-ink" x="705" y="319">Trigger（宛先ごと）</text><text class="t-mono" x="705" y="335">delivery: retry / DLQ</text><rect class="nd nd-ext" x="695" y="400" width="280" height="54" rx="6"/><text class="t-ink" x="705" y="419">宛先（Slack / 社内 API）</text><text class="t-mono" x="705" y="435">id で重複を消す</text><path class="ln ln-http" d="M125,114 L125,150" marker-end="url(#a-http)"/><rect class="lbl-bg" x="109" y="121" width="32" height="15" rx="3"/><text class="t-mono" x="125" y="132" text-anchor="middle">削除</text><path class="ln ln-watch" d="M275,87 L250,87 L250,180 L225,180" marker-end="url(#a-watch)"/><path class="ln ln-watch" d="M275,97 L250,100 L250,330 L225,330" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="228" y="264" width="44" height="15" rx="3"/><text class="t-mono" x="250" y="275" text-anchor="middle">watch</text><path class="ln ln-ce" d="M558,104 L558,140" marker-end="url(#a-ce)"/><path class="ln ln-patch" d="M558,194 L558,225" marker-end="url(#a-patch)"/><path class="ln ln-ce" d="M275,87 L265,87 L265,330 L275,330" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M365,300 L365,224" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="339" y="251" width="51" height="15" rx="3"/><text class="t-mono" x="365" y="262" text-anchor="middle">delete</text><path class="ln ln-ce" d="M455,316 L460,315 L460,167 L470,167" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="418" y="280" width="80" height="15" rx="3"/><text class="t-mono" x="458" y="291" text-anchor="middle">add/update</text><path class="ln ln-ce" d="M557,194 L555,345 L455,337" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="486" y="334" width="138" height="15" rx="3"/><text class="t-mono" x="555" y="345" text-anchor="middle">deployed / deleted</text><path class="ln ln-ce" d="M455,330 L695,330" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M835,360 L835,400" marker-end="url(#a-ce)"/><path class="ln ln-watch" d="M20,510 L48,510" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="514">watch</text><path class="ln ln-http" d="M112.0,510 L140.0,510" marker-end="url(#a-http)"/><text class="t-mono" x="146.0" y="514">HTTP</text><path class="ln ln-ce" d="M196.8,510 L224.8,510" marker-end="url(#a-ce)"/><text class="t-mono" x="230.8" y="514">CloudEvent</text><path class="ln ln-patch" d="M324.8,510 L352.8,510" marker-end="url(#a-patch)"/><text class="t-mono" x="358.8" y="514">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="601.5999999999999" y="502" width="16" height="12" rx="2"/><text class="t-mono" x="623.5999999999999" y="514">状態を持つ場所</text></svg></div>
 <footer>
   正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
   の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。

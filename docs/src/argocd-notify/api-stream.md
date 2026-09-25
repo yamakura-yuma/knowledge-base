@@ -2,38 +2,29 @@
 
 > Argo CD の API server が公開している `/api/v1/stream/applications` を、常駐クライアントが購読する。API server の broadcaster が informer のイベントを中継するので DELETED も届く。**ただし、消費者の受け取りが遅れているとイベントを捨てる。切断していた間のイベントも取り戻せない。**
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 500" role="img" aria-label="グラレコ：API stream は 2 ms で届くが、受け取りが詰まると捨て、切れている間の分は戻らない">
-<path class="hl" d="M40,52 L480,48"/>
-<text class="th" x="40" y="58">速いけど、あふれたら捨てる</text>
-<text class="ts" x="600" y="56">Argo CD API stream</text>
-<g filter="url(#wob)">
-  <!-- argocd-server（蛇口） -->
-  <rect class="wb-b fb" x="60" y="160" width="160" height="110" rx="10"/>
-  <path class="wb-b" d="M220,200 L330,200 L330,250"/>
-  <path class="wb-b thin" d="M300,250 l60,0"/>
-  <!-- 稲妻 2ms -->
-  <path class="wb-b" d="M260,150 l-16,26 l18,0 l-14,26"/>
-  <!-- バケツ（クライアント） -->
-  <path class="wk fw" d="M280,320 l110,0 l-14,110 l-82,0 z"/>
-  <path class="wb-b thin" d="M330,262 l0,10 M330,284 l0,10 M330,306 l0,10"/>
-  <path class="wr" d="M390,330 q20,10 10,30 M398,356 q14,20 4,40"/>
-  <circle class="wr fr" cx="420" cy="410" r="7"/><circle class="wr fr" cx="440" cy="440" r="6"/>
-  <!-- 切れたケーブル -->
-  <path class="wk" d="M560,260 C620,240 650,280 690,262"/>
-  <path class="wk" d="M740,262 C780,246 820,286 900,262"/>
-  <path class="wr" d="M704,250 l20,24 M724,250 l-20,24"/>
-  <rect class="wk fw" x="520" y="240" width="40" height="40" rx="6"/>
-  <rect class="wk fw" x="900" y="236" width="60" height="52" rx="6"/>
-</g>
-<text class="tb" x="80" y="220">argocd-server</text>
-<text class="ts tb" x="276" y="142">2 ms</text>
-<text class="ts" x="290" y="460">自前のクライアント</text>
-<text class="ts tr" x="452" y="400">drop</text>
-<text class="ts tr" x="600" y="320">切れていた間の DELETED は戻らない</text>
-<text class="ts" x="560" y="420">retry・HA・重複除去は全部自前</text>
+<p class="eli5">Argo CD の本体（argocd-server）は、アプリの変化を流し続ける蛇口を持っています。自分のプログラムでその水を受ければ、消えた瞬間を 2 ミリ秒で知れます。けれども受け皿があふれると、あふれた分は黙って捨てられます。ホースが外れていた間に流れた分も戻りません。再送も、プログラムを二台にしたときの重複の整理も、すべて自分で書くことになります。</p>
+
+<figure class="dd">
+<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-api-title dd-api-desc">
+<title id="dd-api-title">API stream：受け取りが遅れると、途中で捨てられる</title>
+<desc id="dd-api-desc">argocd-server は Application の変化を購読者の受け皿に流す。受け皿がいっぱいなら捨て、つながっていない間の変化は後から届かない。</desc>
+<defs><marker id="dd-api-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-api-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-api-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
+<path class="dd-line" d="M236,120 L300,120" marker-end="url(#dd-api-ar)"/>
+<path class="dd-line" d="M496,120 L560,120" marker-end="url(#dd-api-ar)"/>
+<path class="dd-line dd-red dd-dash" d="M398,148 L398,196" marker-end="url(#dd-api-arr)"/>
+<rect class="dd-node" x="40" y="92" width="196" height="56" rx="6"/>
+<text class="dd-name" x="138" y="116" text-anchor="middle">argocd-server</text>
+<text class="dd-sub" x="138" y="134" text-anchor="middle">変化を流す</text>
+<rect class="dd-store" x="304" y="92" width="192" height="56" rx="6"/>
+<text class="dd-name" x="400" y="116" text-anchor="middle">受け皿</text>
+<text class="dd-sub" x="400" y="134" text-anchor="middle">いっぱいなら捨てる</text>
+<rect class="dd-ext" x="564" y="92" width="196" height="56" rx="6"/>
+<text class="dd-name" x="662" y="116" text-anchor="middle">自前のプログラム</text>
+<text class="dd-sub" x="662" y="134" text-anchor="middle">再送・重複も自前</text>
+<text class="dd-name dd-red-t" x="304" y="212" text-anchor="start">捨てた分・切れていた間の分は戻らない</text>
 </svg>
-</div>
+</figure>
 
 
 

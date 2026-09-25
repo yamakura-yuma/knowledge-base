@@ -2,45 +2,56 @@
 
 > kind 上で行った run1〜run19 の記録。各 run の数字は、scratchpad に保存したログ（`runs/`）から取り直した。ログが保存されていない数字は、その旨を書いた。
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 580" role="img" aria-label="グラレコ：run1 から run19 までの地図。赤い旗は問題が見つかった地点、青い丸は確かめられた地点、灰色の雲は未確認">
-<path class="hl" d="M40,52 L420,48"/>
-<text class="th" x="40" y="58">19 回の実測の地図</text>
-<text class="ts" x="600" y="56">実測の報告書（run1〜run19）</text>
-<g filter="url(#wob)">
-  <path class="wk dash" d="M70,150 C200,120 260,200 380,180 C500,160 540,110 660,140 C800,176 900,150 930,230 C960,320 800,330 700,320 C560,306 520,380 400,380 C280,380 200,330 110,380 C60,410 80,480 180,490 C300,500 420,470 540,490 C660,510 760,480 900,500"/>
-  <!-- 旗: 問題が見つかった地点 -->
-  <path class="wr" d="M200,146 l0,-50 M200,96 l34,10 l-34,12"/>
-  <path class="wr" d="M398,176 l0,-50 M398,126 l34,10 l-34,12"/>
-  <path class="wr" d="M700,318 l0,-50 M700,268 l34,10 l-34,12"/>
-  <path class="wr" d="M900,498 l0,-50 M900,448 l34,10 l-34,12"/>
-  <!-- 丸: 確かめられた地点 -->
-  <circle class="wb-b fb" cx="560" cy="126" r="14"/>
-  <circle class="wb-b fb" cx="880" cy="170" r="14"/>
-  <circle class="wb-b fb" cx="480" cy="360" r="14"/>
-  <circle class="wb-b fb" cx="260" cy="366" r="14"/>
-  <circle class="wb-b fb" cx="130" cy="376" r="14"/>
-  <circle class="wb-b fb" cx="400" cy="480" r="14"/>
-  <circle class="wb-b fb" cx="640" cy="500" r="14"/>
-  <!-- 雲: 未確認 -->
-  <path class="wk thin" d="M740,380 q14,-20 36,-8 q14,-16 34,-2 q22,0 18,22 q10,18 -12,24 q-10,18 -34,8 q-20,12 -34,-6 q-20,-4 -8,-38 z"/>
-</g>
-<text class="ts" x="54" y="140">スタート</text>
-<text class="ts tr" x="150" y="84">run3 on-deleted は早い</text>
-<text class="ts tr" x="400" y="110">run5 watch は見逃す</text>
-<text class="ts" x="570" y="104">run8 retry・DLQ</text>
-<text class="ts" x="812" y="140">run9 越境</text>
-<text class="ts tr" x="740" y="264">run9 偽装できる</text>
-<text class="ts" x="440" y="406">run13 同じ id</text>
-<text class="ts" x="210" y="410">run15 ns 観測</text>
-<text class="ts" x="80" y="416">run16</text>
-<text class="ts" x="340" y="522">run18 自前 informer</text>
-<text class="ts" x="600" y="540">run17</text>
-<text class="ts tr" x="640" y="440">run19 戻すと id が衝突</text>
-<text class="ts" x="756" y="410">410 Gone？</text>
-<text class="ts" x="60" y="560">赤い旗＝問題が見つかった　青い丸＝確かめた　雲＝未確認</text>
+<p class="eli5">この報告書は、実験ノートです。一台の小さなクラスタ（kind）に Argo CD と各方式を入れ、アプリを作ったり消したりしながら、知らせがいつ・何通届くかを受け手の Pod の時計で記録しました。見張り役の Pod をわざと止めてみる、宛先がエラーを返すようにしてみる、といった意地悪な条件も試しています。全部で 18 本の実験（run）があり、それぞれ目的・手順・結果・解釈の順に書いてあります。</p>
+
+<figure class="dd">
+<svg viewBox="0 70 960 150" role="img" aria-labelledby="dd-rep-env-title dd-rep-env-desc">
+<title id="dd-rep-env-title">検証環境：1 台のクラスタに全部を入れて、受け手の時刻で比べた</title>
+<desc id="dd-rep-env-desc">kind の 1 ノードに Argo CD・Knative・Argo Events などを入れ、全方式の送信を 1 つの受け手が受けて時刻を記録した。</desc>
+<defs><marker id="dd-rep-env-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-env-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-env-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="70" width="960" height="150"/>
+<path class="dd-line" d="M236,120 L300,120" marker-end="url(#dd-rep-env-ar)"/>
+<path class="dd-line" d="M496,120 L560,120" marker-end="url(#dd-rep-env-ar)"/>
+<rect class="dd-node" x="40" y="92" width="196" height="56" rx="6"/>
+<text class="dd-name" x="138" y="116" text-anchor="middle">Argo CD</text>
+<text class="dd-sub" x="138" y="134" text-anchor="middle">テスト用アプリ</text>
+<rect class="dd-store" x="304" y="84" width="192" height="72" rx="6"/>
+<text class="dd-name" x="400" y="116" text-anchor="middle">各方式</text>
+<text class="dd-sub" x="400" y="134" text-anchor="middle">Knative・Argo Events など</text>
+<rect class="dd-focal" x="564" y="92" width="196" height="56" rx="6"/>
+<text class="dd-name" x="662" y="116" text-anchor="middle">受け手の Pod</text>
+<text class="dd-sub" x="662" y="134" text-anchor="middle">受信時刻を記録</text>
+<text class="dd-aside" x="40" y="190" text-anchor="start">kind 1 ノード / Kubernetes 1.33 / Broker は保管しない種類</text>
 </svg>
-</div>
+</figure>
+
+<figure class="dd">
+<svg viewBox="0 36 960 100" role="img" aria-labelledby="dd-rep-map-title dd-rep-map-desc">
+<title id="dd-rep-map-title">主な run と、わかったこと</title>
+<desc id="dd-rep-map-desc">run3 で開始と完了の違い、run5 で停止中の取りこぼし、run8 で再送、run13 で重複の除去、run15 で Namespace の観測、run19 でデプロイ完了の観測を確かめた。</desc>
+<defs><marker id="dd-rep-map-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-map-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-map-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="36" width="960" height="100"/>
+<line class="dd-base" x1="60" y1="80" x2="920" y2="80"/>
+<circle class="dd-dot-red" cx="100" cy="80" r="6"/>
+<text class="dd-name" x="100" y="58" text-anchor="middle">run3</text>
+<text class="dd-sub" x="100" y="108" text-anchor="middle">開始と完了は別</text>
+<circle class="dd-dot-red" cx="260" cy="80" r="6"/>
+<text class="dd-name" x="260" y="58" text-anchor="middle">run5</text>
+<text class="dd-sub" x="260" y="108" text-anchor="middle">止まると見逃す</text>
+<circle class="dd-dot" cx="420" cy="80" r="4"/>
+<text class="dd-name" x="420" y="58" text-anchor="middle">run8</text>
+<text class="dd-sub" x="420" y="108" text-anchor="middle">再送と DLQ</text>
+<circle class="dd-dot" cx="580" cy="80" r="4"/>
+<text class="dd-name" x="580" y="58" text-anchor="middle">run13</text>
+<text class="dd-sub" x="580" y="108" text-anchor="middle">同じ id で 1 通</text>
+<circle class="dd-dot" cx="740" cy="80" r="4"/>
+<text class="dd-name" x="740" y="58" text-anchor="middle">run15</text>
+<text class="dd-sub" x="740" y="108" text-anchor="middle">Namespace を観測</text>
+<circle class="dd-dot" cx="900" cy="80" r="4"/>
+<text class="dd-name" x="900" y="58" text-anchor="middle">run19</text>
+<text class="dd-sub" x="900" y="108" text-anchor="middle">デプロイも観測</text>
+</svg>
+</figure>
 
 
 
@@ -62,100 +73,6 @@
 
 ## 2. 結論
 
-<div class="dgm gr">
-<div class="cap">図 1 グラレコ: 実測でわかったこと</div>
-<svg class="fig" viewBox="0 0 1000 760" role="img" aria-label="グラフィックレコーディング">
-  <defs>
-    <marker id="gr-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker>
-  </defs>
-  <!-- タイトル帯 -->
-  <path class="gr-hl" d="M40,52 C260,40 620,58 960,46 L962,78 C640,90 300,72 38,84 Z"/>
-  <text class="gr-title" x="500" y="74" text-anchor="middle">Argo CD の「できた！」「消えた！」を外に知らせるには？</text>
-
-  <!-- 1. 問い: Application くん -->
-  <g transform="translate(40,120)">
-    <rect class="gr-body" x="0" y="20" width="110" height="90" rx="14"/>
-    <circle class="gr-dot" cx="35" cy="55" r="5"/><circle class="gr-dot" cx="75" cy="55" r="5"/>
-    <path class="gr-line" d="M35,80 Q55,95 75,80"/>
-    <text class="gr-s" x="55" y="130" text-anchor="middle">Application</text>
-    <path class="gr-bubble" d="M130,0 h230 a12,12 0 0 1 12,12 v70 a12,12 0 0 1 -12,12 h-200 l-26,22 l4,-22 h-8 a12,12 0 0 1 -12,-12 v-70 a12,12 0 0 1 12,-12 z"/>
-    <text class="gr-m" x="148" y="30">デプロイできた！</text>
-    <text class="gr-m" x="148" y="54">Namespace 消えた！…を</text>
-    <text class="gr-m" x="148" y="78">Slack や社内 API に伝えたい</text>
-  </g>
-
-  <!-- 2. 落とし穴 -->
-  <g transform="translate(470,110)">
-    <path class="gr-warn" d="M0,150 L60,40 L120,150 Z"/>
-    <text class="gr-big gr-red" x="60" y="132" text-anchor="middle">!</text>
-    <text class="gr-h gr-red" x="140" y="40">落とし穴 ①</text>
-    <text class="gr-m" x="140" y="64"><tspan class="gr-code">on-deleted</tspan> は「消え始め」で鳴る</text>
-    <text class="gr-s" x="140" y="86">削除要求から 0.06 秒、まだ何も消えていない</text>
-    <text class="gr-h gr-red" x="140" y="118">落とし穴 ②</text>
-    <text class="gr-m" x="140" y="142">watch は止まっている間の DELETE を見逃す</text>
-    <text class="gr-s" x="140" y="164">Knative / Argo Events / API stream 共通</text>
-  </g>
-
-  <path class="gr-sep" d="M30,300 C300,292 700,308 970,298"/>
-
-  <!-- 3. 鍵: finalizer = 消えない約束 -->
-  <g transform="translate(40,330)">
-    <text class="gr-h" x="0" y="0">ひらめき：触らずに、外から見張る</text>
-    <!-- 錠前 -->
-    <rect class="gr-lock" x="10" y="40" width="80" height="64" rx="8"/>
-    <path class="gr-line2" d="M26,40 v-14 a24,24 0 0 1 48,0 v14"/>
-    <circle class="gr-dot" cx="50" cy="70" r="7"/>
-    <text class="gr-m" x="110" y="52">基盤の Job にも Namespace にも手を入れない</text>
-    <text class="gr-m" x="110" y="76">watch で即時、突き合わせで取りこぼしを拾う</text>
-    <text class="gr-s" x="110" y="100">→ 同じ id（uid:deleted）で届くので、受け手が重複を消す</text>
-    <!-- 付箋: Metacontroller -->
-    <g transform="translate(470,20) rotate(-3)">
-      <rect class="gr-note" x="0" y="0" width="256" height="96" rx="4"/>
-      <text class="gr-h" x="14" y="28">finalizer は付けない</text>
-      <text class="gr-s" x="14" y="52">付けると基盤の Job が通知を待つ</text>
-      <text class="gr-s" x="14" y="72">＝密結合。権限も強くなる</text>
-    </g>
-    <g transform="translate(750,26) rotate(2)">
-      <rect class="gr-note2" x="0" y="0" width="200" height="90" rx="4"/>
-      <text class="gr-h" x="14" y="28">入口は Broker 1 つ</text>
-      <text class="gr-s" x="14" y="52">Trigger はアプリ側に置く</text>
-      <text class="gr-s" x="14" y="72">Kafka / RabbitMQ / NATS</text>
-    </g>
-  </g>
-
-  <path class="gr-sep" d="M30,470 C300,478 700,462 970,472"/>
-
-  <!-- 4. おすすめの流れ -->
-  <text class="gr-h" x="40" y="505">おすすめの流れ</text>
-  <g transform="translate(40,525)">
-    <ellipse class="gr-pill" cx="95" cy="40" rx="95" ry="36"/>
-    <text class="gr-m" x="95" y="36" text-anchor="middle">デプロイ完了</text>
-    <text class="gr-s" x="95" y="56" text-anchor="middle">Application を観測</text>
-    <ellipse class="gr-pill" cx="95" cy="135" rx="95" ry="36"/>
-    <text class="gr-m" x="95" y="131" text-anchor="middle">削除完了</text>
-    <text class="gr-s" x="95" y="151" text-anchor="middle">ApiServerSource＋突き合わせ</text>
-    <path class="gr-arrow" d="M195,45 C290,40 330,80 400,85" marker-end="url(#gr-ar)"/>
-    <path class="gr-arrow" d="M195,130 C290,135 330,100 400,95" marker-end="url(#gr-ar)"/>
-    <rect class="gr-env" x="410" y="55" width="190" height="70" rx="10"/>
-    <path class="gr-line" d="M410,58 L505,100 L600,58"/>
-    <text class="gr-s" x="505" y="146" text-anchor="middle">Broker（永続化）→ Trigger</text>
-    <text class="gr-s" x="505" y="164" text-anchor="middle">ID = uid で重複を除く</text>
-    <path class="gr-arrow" d="M605,90 C680,70 720,40 780,40" marker-end="url(#gr-ar)"/>
-    <path class="gr-arrow" d="M605,95 C680,110 720,140 780,140" marker-end="url(#gr-ar)"/>
-    <text class="gr-m" x="790" y="45">Slack</text>
-    <text class="gr-m" x="790" y="145">社内 API</text>
-  </g>
-
-  <!-- 5. 役割分担 -->
-  <g transform="translate(40,700)">
-    <circle class="gr-head" cx="14" cy="8" r="10"/><path class="gr-line2" d="M14,18 v22 M0,28 h28"/>
-    <text class="gr-m" x="40" y="22"><tspan class="gr-b">基盤チーム</tspan>：Knative と観測部品を守る</text>
-    <circle class="gr-head gr-head2" cx="534" cy="8" r="10"/><path class="gr-line2" d="M534,18 v22 M520,28 h28"/>
-    <text class="gr-m" x="560" y="22"><tspan class="gr-b">利用者</tspan>：Trigger と受け手を持つ</text>
-  </g>
-</svg>
-</div>
-
 - **削除開始と削除完了は別物（Q1）。** Notifications の `on-deleted` は削除要求から 0.05 秒で発火し、管理リソースは 3.45 秒、Application は 6.80 秒で消えた（run3）。
 - **watch 系は、止まっている間の削除を取りこぼす（Q2）。** 突き合わせ（uid 一覧）と finalizer だけが、復旧後に拾った（run4・run5・run12・run13・run15）。
 - **Broker に入ったあとの配送は強い（Q3）。** 宛先が 500 を返し続けても、retry のあと DLQ に入り、削除は止まらなかった（run16）。
@@ -166,7 +83,7 @@
 
 ```diagram
 title: 検証環境
-caption: 図 2 検証環境（kind 1 ノード）。どの namespace で何が動き、どこで時刻を取ったか
+caption: 図 1 検証環境（kind 1 ノード）。どの namespace で何が動き、どこで時刻を取ったか
 height: 560
 zones:
   - {label: "kind ノード（Kubernetes v1.33.1、kind v0.29.0）", kind: plain, box: [10, 30, 980, 490]}
@@ -253,7 +170,7 @@ edges:
 時刻は実測（run3・run6）の値。削除側は `kubectl delete` を 0 秒とし、`resources-finalizer.argocd.argoproj.io` 付きで PostDelete hook を 1 つ持つ Application を消した。
 
 <div class="dgm">
-<div class="cap">図 3 デプロイ側のタイムライン（run3、0 秒 = Application を作成）</div>
+<div class="cap">図 2 デプロイ側のタイムライン（run3、0 秒 = Application を作成）</div>
 <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="デプロイのタイムライン">
   <rect class="band" x="240" y="24" width="198" height="18"/>
   <text class="t-mono" x="246" y="37">Sync / Progressing</text>
@@ -276,7 +193,7 @@ edges:
 </div>
 
 <div class="dgm">
-<div class="cap">図 4 削除側のタイムライン（run3、0 秒 = kubectl delete）</div>
+<div class="cap">図 3 削除側のタイムライン（run3、0 秒 = kubectl delete）</div>
 <svg class="fig" viewBox="0 0 1000 300" role="img" aria-label="削除のタイムライン">
   <rect class="band" x="245" y="24" width="355" height="18"/>
   <text class="t-mono" x="251" y="37">管理リソースを削除（resources-finalizer）</text>

@@ -4,53 +4,35 @@
 >
 > Application に自分の finalizer を付けておき、**残っている finalizer が自分だけ**になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：finalizer の札が 1 枚でも残っている限り Application は消えない。自分の札だけになったら送り、送れたら外す。止まると全チームの削除が待たされる">
-<path class="hl" d="M40,52 L560,48"/>
-<text class="th" x="40" y="58">札が残る限り、消えない</text>
-<text class="ts" x="600" y="56">finalizer（Metacontroller）</text>
-<g filter="url(#wob)">
-  <!-- Application と札 -->
-  <rect class="wb-b fb" x="80" y="120" width="220" height="150" rx="12"/>
-  <path class="wk" d="M300,150 L360,150 M300,190 L360,190 M300,230 L360,230"/>
-  <path class="wk fw" d="M360,138 l70,0 l14,12 l-14,12 l-70,0 z"/>
-  <path class="wk fw" d="M360,178 l70,0 l14,12 l-14,12 l-70,0 z"/>
-  <path class="wb-b fb" d="M360,218 l70,0 l14,12 l-14,12 l-70,0 z"/>
-  <path class="wk" d="M450,150 C500,140 510,120 540,112" marker-end="url(#ak)"/>
-  <path class="wk" d="M450,190 C500,190 520,170 540,160" marker-end="url(#ak)"/>
-  <!-- 送ってから外す -->
-  <circle class="wb-b fw" cx="640" cy="200" r="18"/>
-  <path class="wb-b" d="M640,218 L640,270 M640,236 L610,250 M640,236 L676,226 M640,270 L622,306 M640,270 L660,306"/>
-  <path class="wb-b" d="M680,214 l30,0 l0,20 l-30,0 z M680,214 l15,11 l15,-11"/>
-  <path class="wb-b" d="M714,222 C780,200 820,196 870,200" marker-end="url(#ab)"/>
-  <circle class="wb-b" cx="905" cy="202" r="24"/>
-  <path class="wb-b" d="M893,202 l8,10 l16,-18"/>
-  <path class="wb-b dash" d="M620,250 C560,260 500,250 452,236" marker-end="url(#ab)"/>
-  <!-- 止まると待たされる -->
-  <circle class="wk fw" cx="120" cy="420" r="18"/>
-  <path class="wk" d="M102,440 l36,0 l0,40 l-36,0 z"/>
-  <rect class="wk fw" x="220" y="410" width="80" height="60" rx="8"/>
-  <rect class="wk fw" x="320" y="410" width="80" height="60" rx="8"/>
-  <rect class="wk fw" x="420" y="410" width="80" height="60" rx="8"/>
-  <rect class="wk fw" x="520" y="410" width="80" height="60" rx="8"/>
-  <path class="wr" d="M200,500 L620,500" />
-  <circle class="wr fw" cx="680" cy="440" r="30"/>
-  <path class="wr" d="M680,440 L680,420 M680,440 L694,448"/>
-</g>
-<text class="tb" x="112" y="200">Application</text>
-<text class="ts" x="456" y="136">argocd</text>
-<text class="ts" x="456" y="184">argocd</text>
-<text class="ts tb" x="366" y="264">自分の札</text>
-<text class="ts" x="552" y="104">先に外れる</text>
-<text class="ts tb" x="720" y="190">送る</text>
-<text class="ts tb" x="506" y="290">送れたら外す</text>
-<text class="ts" x="690" y="340">Metacontroller が呼び直す</text>
-<text class="ts" x="84" y="392">zzz</text>
-<text class="ts tr" x="228" y="530">止まると、全チームの削除が待つ</text>
-<text class="ts" x="740" y="440">権限も強い</text>
-<text class="ts" x="740" y="464">（applications に書く）</text>
+<p class="eli5">Kubernetes のオブジェクトには「まだ捨てないで」という札（finalizer）を付けられます。札が一枚でも残っていれば、削除を頼んでもオブジェクトは消えずに待ちます。この方法では、アプリの登録（Application）に自分の札を付けておき、Argo CD の札が外れて自分の札だけになったら知らせを送り、送れたら自分の札を外します。だから止まっていても取りこぼしません。その代わり、札を外す係が止まると、全チームの削除が待たされます。</p>
+
+<figure class="dd">
+<svg viewBox="0 40 960 230" role="img" aria-labelledby="dd-fin-title dd-fin-desc">
+<title id="dd-fin-title">finalizer の札が外れる順番</title>
+<desc id="dd-fin-desc">削除が始まると Argo CD の札が順に外れ、自分の札だけが残ったところで通知を送り、送れたら札を外して Application が消える。送れなければ待ち続ける。</desc>
+<defs><marker id="dd-fin-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-fin-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-fin-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="40" width="960" height="230"/>
+<path class="dd-line" d="M196,120 L236,120" marker-end="url(#dd-fin-ar)"/>
+<path class="dd-line" d="M420,120 L460,120" marker-end="url(#dd-fin-ar)"/>
+<path class="dd-line dd-acc" d="M640,120 L680,120" marker-end="url(#dd-fin-ara)"/>
+<path class="dd-line dd-red dd-dash" d="M550,148 L550,188 Q550,196 558,196 L592,196 Q600,196 600,188 L600,152" marker-end="url(#dd-fin-arr)"/>
+<rect class="dd-store" x="40" y="92" width="156" height="56" rx="6"/>
+<text class="dd-name" x="118" y="116" text-anchor="middle">削除を依頼</text>
+<text class="dd-sub" x="118" y="134" text-anchor="middle">札が 4 枚</text>
+<rect class="dd-node" x="240" y="92" width="180" height="56" rx="6"/>
+<text class="dd-name" x="330" y="116" text-anchor="middle">Argo CD の札が外れる</text>
+<text class="dd-sub" x="330" y="134" text-anchor="middle">Pod などを片づけ</text>
+<rect class="dd-focal" x="464" y="92" width="176" height="56" rx="6"/>
+<text class="dd-name" x="552" y="116" text-anchor="middle">自分の札だけ</text>
+<text class="dd-sub" x="552" y="134" text-anchor="middle">ここで通知を送る</text>
+<rect class="dd-ext" x="684" y="92" width="156" height="56" rx="6"/>
+<text class="dd-name" x="762" y="116" text-anchor="middle">札を外す</text>
+<text class="dd-sub" x="762" y="134" text-anchor="middle">Application が消える</text>
+<rect class="dd-mask" x="520" y="200" width="110" height="16" rx="2"/>
+<text class="dd-lbl dd-red-t" x="575" y="212" text-anchor="middle">送れなければ待つ</text>
+<text class="dd-name dd-red-t" x="240" y="212" text-anchor="start">止まると、全チームの削除が待たされる</text>
 </svg>
-</div>
+</figure>
 
 
 

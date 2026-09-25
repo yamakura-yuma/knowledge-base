@@ -17,7 +17,7 @@
   @media (prefers-color-scheme: dark) {
     :root {
       --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
-      --ink-3:#807e78; --line:#33333a;
+      --ink-3:#95938c; --line:#33333a;
       --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
       --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
     }
@@ -54,7 +54,7 @@
   .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
   .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
          padding:16px 18px; margin:18px 0; }
-  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
   .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
   .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
            background:var(--surface); text-decoration:none; }
@@ -68,8 +68,8 @@
   .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
   .fig text { fill:var(--ink-2); font-size:12px; }
   .fig .t-ink { fill:var(--ink); font-weight:600; }
-  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
-  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
   .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
   .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
   .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
@@ -98,55 +98,6 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
-  .gr .fig text { font-size:13px; fill:var(--ink); }
-  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
-  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
-  .gr .gr-m { font-size:14px; fill:var(--ink); }
-  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
-  .gr .gr-b { font-weight:700; }
-  .gr .gr-big { font-size:64px; font-weight:800; }
-  .gr .gr-red { fill:var(--hot); }
-  .gr .gr-code { font-family:var(--mono); }
-  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
-  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-dot { fill:var(--ink); }
-  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
-  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
-  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
-  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
-  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
-  .gr .gr-ink { fill:var(--ink); }
-  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
-
-  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
-  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
-  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
-  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
-
-  /* ホワイトボードのグラレコ。背景は明暗どちらのテーマでも白、マーカーは黒・青・赤の 3 色 */
-  .grwb { margin:22px 0 26px; }
-  .grwb svg { display:block; width:100%; height:auto; }
-  .grwb .wbg { fill:#fdfdfb; stroke:#cfcfc8; stroke-width:2; }
-  .grwb text { font-family:'WB Yomogi','Klee One','Yomogi','Hiragino Maru Gothic ProN',sans-serif;
-               fill:#23232a; font-size:19px; }
-  .grwb .th { font-size:28px; }
-  .grwb .ts { font-size:15px; fill:#4a4a52; }
-  .grwb .tb { fill:#1d56c2; } .grwb .tr { fill:#d0342c; }
-  .grwb .wk, .grwb .wb-b, .grwb .wr { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
-  .grwb .wk { stroke:#23232a; } .grwb .wb-b { stroke:#1d56c2; } .grwb .wr { stroke:#d0342c; }
-  .grwb .thin { stroke-width:2; } .grwb .dash { stroke-dasharray:7 7; }
-  .grwb .hl { fill:none; stroke:#ffe14d; stroke-width:16; stroke-linecap:round; opacity:.7; }
-  .grwb .fb { fill:#e6eefc; } .grwb .fr { fill:#fde6e3; } .grwb .fk { fill:#23232a; } .grwb .fw { fill:#fdfdfb; }
-
   /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
      図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
@@ -164,7 +115,10 @@
   .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-drop { stroke:var(--line); stroke-width:1; }
   .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); }
+  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
+  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
+  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
+  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
   .dd text { fill:var(--ink); }
   .dd .dd-name { font-size:14px; font-weight:600; }
@@ -178,7 +132,7 @@
   table.mx td, table.mx th { text-align:center; }
   table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
   table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
-  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
                       margin-top:2px; font-family:var(--mono); }
   .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
                        font-family:var(--mono); font-size:12px; font-weight:600; }
@@ -195,55 +149,59 @@
   <p class="sub">application-controller が、アプリのマニフェストに入っている hook（Job）を、sync の後や削除の途中で作って実行する。Job の中から送信先へ HTTP で送る。<strong>PostDelete が捉えるのは、管理リソースは消えたが Application はまだ残っている時点。</strong></p>
 </header>
 <nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="on">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
-<p class="eli5">引っ越し業者が「荷物を全部運び出しました」と電話をくれるのは、部屋の鍵を返す前です。電話を受けた時点では、部屋の契約はまだ残っています。しかも業者は電話がつながるまで鍵を返さないので、あなたの電話が壊れていると、契約がいつまでも終わりません。このページの方法（片づけの最後に、アプリ自身の小さな作業から知らせを送る）は、これと同じ形をしています。</p>
+<p class="eli5">引っ越し業者は、荷物を全部運び出すと「終わりました」と電話をくれますが、それは部屋の鍵を返す前です。Argo CD の PostDelete hook も同じ形で、アプリの Pod や ConfigMap を消し終えたあと、アプリ自身の Job（一回だけ動いて終わる Pod）が知らせを送ります。ところがその時点で、アプリの登録（Application）はまだ残っています。しかも Job が失敗すると Argo CD は片づけを終えないので、宛先が落ちていると削除そのものが止まります。</p>
 
 <figure class="dd">
 <svg viewBox="0 32 960 232" role="img" aria-labelledby="dd-hooks-title dd-hooks-desc">
 <title id="dd-hooks-title">PostDelete hook が送る時点と、Application が消える時点</title>
-<desc id="dd-hooks-desc">削除を依頼してから 3.45 秒で管理リソースが消え、4.29 秒に hook が通知を送り、Application が消えるのは 6.80 秒。通知は Application が消える 2.5 秒前に届く（run3 の実測）。</desc>
-<defs>
-<marker id="dd-hooks-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker>
-</defs>
-<rect class="dd-paper" width="100%" height="100%"/>
-<!-- Application lifetime band (x = 60 + 120 * seconds) -->
-<rect class="dd-store" x="60" y="48" width="816" height="28" rx="4"/>
-<text class="dd-name" x="76" y="67">Application はまだある</text>
-<!-- baseline and ticks -->
+<desc id="dd-hooks-desc">削除を依頼してから 3.45 秒で管理リソースが消え、4.29 秒に hook の Job が通知を送り、Application が消えるのは 6.80 秒（run3 の実測）。</desc>
+<defs><marker id="dd-hooks-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-hooks-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-hooks-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="32" width="960" height="232"/>
 <line class="dd-base" x1="60" y1="164" x2="920" y2="164" marker-end="url(#dd-hooks-ar)"/>
-<g class="dd-tick">
-<line x1="60" y1="160" x2="60" y2="168"/><line x1="180" y1="160" x2="180" y2="168"/><line x1="300" y1="160" x2="300" y2="168"/><line x1="420" y1="160" x2="420" y2="168"/><line x1="540" y1="160" x2="540" y2="168"/><line x1="660" y1="160" x2="660" y2="168"/><line x1="780" y1="160" x2="780" y2="168"/><line x1="900" y1="160" x2="900" y2="168"/>
-</g>
-<g class="dd-lbl">
-<text x="60" y="244" text-anchor="middle">0 秒</text><text x="180" y="244" text-anchor="middle">1</text><text x="300" y="244" text-anchor="middle">2</text><text x="420" y="244" text-anchor="middle">3</text><text x="540" y="244" text-anchor="middle">4</text><text x="660" y="244" text-anchor="middle">5</text><text x="780" y="244" text-anchor="middle">6</text><text x="900" y="244" text-anchor="middle">7</text>
-</g>
-<!-- 2.5 s gap -->
-<path class="dd-line dd-acc" d="M575,100 L575,92 L876,92 L876,100"/>
-<rect class="dd-mask" x="684" y="80" width="84" height="14" rx="2"/>
-<text class="dd-lbl dd-acc-t" x="726" y="90" text-anchor="middle">あと 2.5 秒</text>
-<!-- event drops -->
+<line class="dd-tick" x1="60" y1="160" x2="60" y2="168"/>
+<line class="dd-tick" x1="180" y1="160" x2="180" y2="168"/>
+<line class="dd-tick" x1="300" y1="160" x2="300" y2="168"/>
+<line class="dd-tick" x1="420" y1="160" x2="420" y2="168"/>
+<line class="dd-tick" x1="540" y1="160" x2="540" y2="168"/>
+<line class="dd-tick" x1="660" y1="160" x2="660" y2="168"/>
+<line class="dd-tick" x1="780" y1="160" x2="780" y2="168"/>
+<line class="dd-tick" x1="900" y1="160" x2="900" y2="168"/>
+<path class="dd-line dd-acc" d="M574.8,100 L574.8,92 Q574.8,92 574.8,92 L876.0,92 Q876.0,92 876.0,92 L876.0,100"/>
 <line class="dd-drop" x1="60" y1="164" x2="60" y2="128"/>
-<line class="dd-drop" x1="474" y1="164" x2="474" y2="200"/>
-<line class="dd-drop" x1="575" y1="164" x2="575" y2="100"/>
-<line class="dd-drop" x1="876" y1="164" x2="876" y2="200"/>
+<line class="dd-drop" x1="474.0" y1="164" x2="474.0" y2="200"/>
+<line class="dd-drop" x1="876.0" y1="164" x2="876.0" y2="200"/>
+<line class="dd-drop" x1="574.8" y1="164" x2="574.8" y2="100"/>
+<rect class="dd-store" x="60" y="48" width="816.0" height="28" rx="4"/>
+<text class="dd-name" x="76" y="67" text-anchor="start">Application はまだある</text>
+<text class="dd-lbl" x="60" y="244" text-anchor="middle">0 秒</text>
+<text class="dd-lbl" x="180" y="244" text-anchor="middle">1</text>
+<text class="dd-lbl" x="300" y="244" text-anchor="middle">2</text>
+<text class="dd-lbl" x="420" y="244" text-anchor="middle">3</text>
+<text class="dd-lbl" x="540" y="244" text-anchor="middle">4</text>
+<text class="dd-lbl" x="660" y="244" text-anchor="middle">5</text>
+<text class="dd-lbl" x="780" y="244" text-anchor="middle">6</text>
+<text class="dd-lbl" x="900" y="244" text-anchor="middle">7</text>
+<rect class="dd-mask" x="670.4" y="78" width="110" height="16" rx="2"/>
+<text class="dd-lbl dd-acc-t" x="725.4" y="90" text-anchor="middle">あと 2.5 秒</text>
 <circle class="dd-dot" cx="60" cy="164" r="4"/>
-<circle class="dd-dot" cx="474" cy="164" r="4"/>
-<circle class="dd-dot-acc" cx="575" cy="164" r="6"/>
-<circle class="dd-dot" cx="876" cy="164" r="4"/>
-<text class="dd-sub" x="68" y="124">削除を依頼</text>
-<text class="dd-sub" x="466" y="216" text-anchor="end">管理リソースが消える（3.45 秒）</text>
-<text class="dd-name dd-acc-t" x="587" y="128">hook が通知を送る（4.29 秒）</text>
-<text class="dd-sub" x="868" y="216" text-anchor="end">Application が消える（6.80 秒）</text>
+<circle class="dd-dot" cx="474.0" cy="164" r="4"/>
+<circle class="dd-dot" cx="876.0" cy="164" r="4"/>
+<circle class="dd-dot-acc" cx="574.8" cy="164" r="6"/>
+<text class="dd-sub" x="68" y="124" text-anchor="start">削除を依頼</text>
+<text class="dd-sub" x="466.0" y="216" text-anchor="end">Pod・ConfigMap が消える（3.45 秒）</text>
+<text class="dd-name dd-acc-t" x="586.8" y="128" text-anchor="start">hook の Job が通知（4.29 秒）</text>
+<text class="dd-sub" x="868.0" y="216" text-anchor="end">Application が消える（6.80 秒）</text>
 </svg>
 </figure>
 
 <h2>アーキテクチャ</h2>
-<div class="dgm"><div class="cap">hook はアプリのデプロイ先 namespace で、アプリの一部として動く</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="PostSync / PostDelete のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-app" x="360" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="370" y="46">デプロイ先 namespace（demo）</text><rect class="zone zone-ext" x="710" y="30" width="280" height="330" rx="8"/><text class="t-zone" x="720" y="46">外部</text><rect class="nd nd-app" x="25" y="60" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><text class="t-mono" x="35" y="95">finalizers:</text><text class="t-mono" x="35" y="111">resources-finalizer…</text><text class="t-mono" x="35" y="127">post-delete-finalizer…</text><rect class="nd nd-comp" x="25" y="200" width="300" height="70" rx="6"/><text class="t-ink" x="35" y="219">application-controller</text><text class="" x="35" y="235">hook を作る・待つ・消す</text><text class="t-mono" x="35" y="251">StatefulSet（シャード）</text><rect class="nd nd-comp" x="375" y="60" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="79">管理リソース</text><text class="t-mono" x="385" y="95">Deployment / ConfigMap …</text><rect class="nd nd-comp" x="375" y="150" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="169">Job: notify-postsync</text><text class="t-mono" x="385" y="185">hook: PostSync</text><rect class="nd nd-comp" x="375" y="240" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="259">Job: notify-postdelete</text><text class="t-mono" x="385" y="275">hook: PostDelete</text><rect class="nd nd-state" x="375" y="305" width="300" height="44" rx="6"/><text class="t-ink" x="385" y="324">Secret（送信先の資格情報）</text><text class="t-mono" x="385" y="340">アプリごとに置く</text><rect class="nd nd-ext" x="725" y="150" width="250" height="54" rx="6"/><text class="t-ink" x="735" y="169">任意の HTTP</text><text class="t-mono" x="735" y="185">Job の中で curl など</text><path class="ln ln-patch" d="M175,200 L175,146" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="124" y="162" width="102" height="15" rx="3"/><text class="t-mono" x="175" y="173" text-anchor="middle">finalizer を外す</text><path class="ln ln-http" d="M216,200 L350,87 L375,87" marker-end="url(#a-http)"/><rect class="lbl-bg" x="308" y="72" width="84" height="15" rx="3"/><text class="t-mono" x="350" y="83" text-anchor="middle">apply/delete</text><path class="ln ln-http" d="M325,210 L375,202" marker-end="url(#a-http)"/><path class="ln ln-http" d="M325,249 L375,253" marker-end="url(#a-http)"/><path class="ln ln-http" d="M675,177 L725,177" marker-end="url(#a-http)"/><rect class="lbl-bg" x="683" y="166" width="33" height="15" rx="3"/><text class="t-mono" x="700" y="177" text-anchor="middle">HTTP</text><path class="ln ln-http" d="M622,240 L752,204" marker-end="url(#a-http)"/><path class="ln ln-http" d="M20,390 L48,390" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="394">HTTP</text><path class="ln ln-patch" d="M101.2,390 L129.2,390" marker-end="url(#a-patch)"/><text class="t-mono" x="135.2" y="394">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="350.4" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="372.4" y="394">状態を持つ場所</text></svg></div>
+<div class="dgm"><div class="cap">hook はアプリのデプロイ先 namespace で、アプリの一部として動く</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="PostSync / PostDelete のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-app" x="360" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="370" y="46">デプロイ先 namespace（demo）</text><rect class="zone zone-ext" x="710" y="30" width="280" height="330" rx="8"/><text class="t-zone" x="720" y="46">外部</text><rect class="nd nd-app" x="25" y="60" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><text class="t-mono" x="35" y="95">finalizers:</text><text class="t-mono" x="35" y="111">resources-finalizer…</text><text class="t-mono" x="35" y="127">post-delete-finalizer…</text><rect class="nd nd-comp" x="25" y="200" width="300" height="70" rx="6"/><text class="t-ink" x="35" y="219">application-controller</text><text class="" x="35" y="235">hook を作る・待つ・消す</text><text class="t-mono" x="35" y="251">StatefulSet（シャード）</text><rect class="nd nd-comp" x="375" y="60" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="79">管理リソース</text><text class="t-mono" x="385" y="95">Deployment / ConfigMap …</text><rect class="nd nd-comp" x="375" y="150" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="169">Job: notify-postsync</text><text class="t-mono" x="385" y="185">hook: PostSync</text><rect class="nd nd-comp" x="375" y="240" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="259">Job: notify-postdelete</text><text class="t-mono" x="385" y="275">hook: PostDelete</text><rect class="nd nd-state" x="375" y="305" width="300" height="44" rx="6"/><text class="t-ink" x="385" y="324">Secret（送信先の資格情報）</text><text class="t-mono" x="385" y="340">アプリごとに置く</text><rect class="nd nd-ext" x="725" y="150" width="250" height="54" rx="6"/><text class="t-ink" x="735" y="169">任意の HTTP</text><text class="t-mono" x="735" y="185">Job の中で curl など</text><path class="ln ln-patch" d="M175,200 L175,146" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="117" y="162" width="116" height="15" rx="3"/><text class="t-mono" x="175" y="173" text-anchor="middle">finalizer を外す</text><path class="ln ln-http" d="M216,200 L350,87 L375,87" marker-end="url(#a-http)"/><rect class="lbl-bg" x="303" y="72" width="94" height="15" rx="3"/><text class="t-mono" x="350" y="83" text-anchor="middle">apply/delete</text><path class="ln ln-http" d="M325,210 L375,202" marker-end="url(#a-http)"/><path class="ln ln-http" d="M325,249 L375,253" marker-end="url(#a-http)"/><path class="ln ln-http" d="M675,177 L725,177" marker-end="url(#a-http)"/><rect class="lbl-bg" x="682" y="166" width="37" height="15" rx="3"/><text class="t-mono" x="700" y="177" text-anchor="middle">HTTP</text><path class="ln ln-http" d="M622,240 L752,204" marker-end="url(#a-http)"/><path class="ln ln-http" d="M20,390 L48,390" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="394">HTTP</text><path class="ln ln-patch" d="M104.8,390 L132.8,390" marker-end="url(#a-patch)"/><text class="t-mono" x="138.8" y="394">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="381.59999999999997" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="403.59999999999997" y="394">状態を持つ場所</text></svg></div>
 <ul>
 <li><strong>状態を持つ場所は Application の finalizer。</strong> PostDelete hook があると、Argo CD は <code>post-delete-finalizer.argocd.argoproj.io</code> と <code>…/cleanup</code> を自動で付ける（<code>controller/appcontroller.go</code> の <code>SetPostDeleteFinalizer</code>）。hook が Healthy になるまで、この finalizer は外れない</li>
 <li>PostDelete は v2.10 から使える（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/user-guide/sync-waves.md">sync-waves.md</a>）</li>
 </ul>
 <h2>権限分離</h2>
-<div class="dgm"><div class="cap">Platform は AppProject で Job の作成を許すだけ。送信と資格情報は App 側に閉じる</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="PostSync / PostDelete の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">App 側（デプロイ先 namespace）</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">application-controller</text><text class="t-mono" x="35" y="95">デプロイ先に Job を作る権限（Argo CD 既定）</text><rect class="nd nd-crd" x="25" y="150" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="169">AppProject</text><text class="t-mono" x="35" y="185">namespaceResourceWhitelist に batch/Job</text><rect class="nd nd-crd" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">アプリのマニフェスト（Git）</text><text class="t-mono" x="535" y="95">hook の Job を App チームが書く</text><rect class="nd nd-comp" x="525" y="150" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="169">Job の Pod</text><text class="t-mono" x="535" y="185">namespace の ServiceAccount で動く</text><rect class="nd nd-state" x="525" y="225" width="450" height="50" rx="6"/><text class="t-ink" x="535" y="244">Secret</text><text class="t-mono" x="535" y="260">送信先の資格情報（アプリの数だけ置く）</text><path class="ln ln-rbac" d="M400,150 L600,114" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="468" y="121" width="65" height="15" rx="3"/><text class="t-mono" x="500" y="132" text-anchor="middle">Job を許可</text><path class="ln ln-http" d="M400,114 L600,150" marker-end="url(#a-http)"/><path class="ln ln-http" d="M20,320 L48,320" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="324">HTTP</text><path class="ln ln-rbac" d="M101.2,320 L129.2,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="135.2" y="324">権限付与</text><rect class="nd nd-state" x="199.2" y="312" width="16" height="12" rx="2"/><text class="t-mono" x="221.2" y="324">状態を持つ場所</text></svg></div>
+<div class="dgm"><div class="cap">Platform は AppProject で Job の作成を許すだけ。送信と資格情報は App 側に閉じる</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="PostSync / PostDelete の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">App 側（デプロイ先 namespace）</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">application-controller</text><text class="t-mono" x="35" y="95">デプロイ先に Job を作る権限（Argo CD 既定）</text><rect class="nd nd-crd" x="25" y="150" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="169">AppProject</text><text class="t-mono" x="35" y="185">namespaceResourceWhitelist に batch/Job</text><rect class="nd nd-crd" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">アプリのマニフェスト（Git）</text><text class="t-mono" x="535" y="95">hook の Job を App チームが書く</text><rect class="nd nd-comp" x="525" y="150" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="169">Job の Pod</text><text class="t-mono" x="535" y="185">namespace の ServiceAccount で動く</text><rect class="nd nd-state" x="525" y="225" width="450" height="50" rx="6"/><text class="t-ink" x="535" y="244">Secret</text><text class="t-mono" x="535" y="260">送信先の資格情報（アプリの数だけ置く）</text><path class="ln ln-rbac" d="M400,150 L600,114" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="464" y="121" width="73" height="15" rx="3"/><text class="t-mono" x="500" y="132" text-anchor="middle">Job を許可</text><path class="ln ln-http" d="M400,114 L600,150" marker-end="url(#a-http)"/><path class="ln ln-http" d="M20,320 L48,320" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="324">HTTP</text><path class="ln ln-rbac" d="M104.8,320 L132.8,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="138.8" y="324">権限付与</text><rect class="nd nd-state" x="208.8" y="312" width="16" height="12" rx="2"/><text class="t-mono" x="230.8" y="324">状態を持つ場所</text></svg></div>
 <ul>
 <li><strong>Platform の役割は小さい。</strong> AppProject が Job の作成を許していれば済む（AppProject の <code>namespaceResourceWhitelist</code> / <code>Blacklist</code>、<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/user-guide/projects.md">projects.md</a>）</li>
 <li><strong>越境:</strong> Job はデプロイ先 namespace で、その namespace の ServiceAccount を使って動く。他チームの Application を見る経路は無い。ただし通知の本文は Job が自分で組むので、Job を書けるチームなら、他のアプリ名を名乗る通知を送れてしまう。受け手が送り元を検証する必要がある</li>

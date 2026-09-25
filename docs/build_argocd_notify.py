@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyyaml", "markdown", "fonttools", "brotli"]
+# dependencies = ["pyyaml", "markdown"]
 # ///
 """docs/src/argocd-notify/*.md から docs/site/argocd-notify/ 以下の HTML を組む。
 
@@ -16,9 +16,7 @@ md の中の ```diagram ブロック（YAML）は、ビルド時に SVG へ描�
 
 from __future__ import annotations
 
-import base64
 import html
-import io
 import pathlib
 import re
 import sys
@@ -58,7 +56,7 @@ CSS = """
   @media (prefers-color-scheme: dark) {
     :root {
       --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
-      --ink-3:#807e78; --line:#33333a;
+      --ink-3:#95938c; --line:#33333a;
       --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
       --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
     }
@@ -95,7 +93,7 @@ CSS = """
   .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
   .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
          padding:16px 18px; margin:18px 0; }
-  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
   .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
   .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
            background:var(--surface); text-decoration:none; }
@@ -109,8 +107,8 @@ CSS = """
   .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
   .fig text { fill:var(--ink-2); font-size:12px; }
   .fig .t-ink { fill:var(--ink); font-weight:600; }
-  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
-  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
   .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
   .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
   .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
@@ -139,55 +137,6 @@ CSS = """
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
-  .gr .fig text { font-size:13px; fill:var(--ink); }
-  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
-  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
-  .gr .gr-m { font-size:14px; fill:var(--ink); }
-  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
-  .gr .gr-b { font-weight:700; }
-  .gr .gr-big { font-size:64px; font-weight:800; }
-  .gr .gr-red { fill:var(--hot); }
-  .gr .gr-code { font-family:var(--mono); }
-  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
-  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-dot { fill:var(--ink); }
-  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
-  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
-  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
-  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
-  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
-  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
-  .gr .gr-ink { fill:var(--ink); }
-  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
-  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
-
-  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
-  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
-  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
-  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
-  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
-
-  /* ホワイトボードのグラレコ。背景は明暗どちらのテーマでも白、マーカーは黒・青・赤の 3 色 */
-  .grwb { margin:22px 0 26px; }
-  .grwb svg { display:block; width:100%; height:auto; }
-  .grwb .wbg { fill:#fdfdfb; stroke:#cfcfc8; stroke-width:2; }
-  .grwb text { font-family:'WB Yomogi','Klee One','Yomogi','Hiragino Maru Gothic ProN',sans-serif;
-               fill:#23232a; font-size:19px; }
-  .grwb .th { font-size:28px; }
-  .grwb .ts { font-size:15px; fill:#4a4a52; }
-  .grwb .tb { fill:#1d56c2; } .grwb .tr { fill:#d0342c; }
-  .grwb .wk, .grwb .wb-b, .grwb .wr { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
-  .grwb .wk { stroke:#23232a; } .grwb .wb-b { stroke:#1d56c2; } .grwb .wr { stroke:#d0342c; }
-  .grwb .thin { stroke-width:2; } .grwb .dash { stroke-dasharray:7 7; }
-  .grwb .hl { fill:none; stroke:#ffe14d; stroke-width:16; stroke-linecap:round; opacity:.7; }
-  .grwb .fb { fill:#e6eefc; } .grwb .fr { fill:#fde6e3; } .grwb .fk { fill:#23232a; } .grwb .fw { fill:#fdfdfb; }
-
   /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
      図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
@@ -205,7 +154,10 @@ CSS = """
   .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-drop { stroke:var(--line); stroke-width:1; }
   .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); }
+  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
+  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
+  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
+  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
   .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
   .dd text { fill:var(--ink); }
   .dd .dd-name { font-size:14px; font-weight:600; }
@@ -219,7 +171,7 @@ CSS = """
   table.mx td, table.mx th { text-align:center; }
   table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
   table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
-  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
                       margin-top:2px; font-family:var(--mono); }
   .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
                        font-family:var(--mono); font-size:12px; font-weight:600; }
@@ -291,7 +243,7 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
         out.append(f'<rect class="nd nd-{n.get("kind", "comp")}" x="{x}" y="{y}" width="{w}" '
                    f'height="{h}" rx="6"/>')
         lines = [("t-ink", 12, n["label"])] + [("", 11.5, s) for s in n.get("lines", [])] \
-            + [("t-mono", 10.5, s) for s in n.get("mono", [])]
+            + [("t-mono", 11, s) for s in n.get("mono", [])]
         ty = y + 19
         for cls, size, text in lines:
             out.append(f'<text class="{cls}" x="{x + 10}" y="{ty}">{esc(text)}</text>')
@@ -322,7 +274,7 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
             else:
                 mx, my = pts[i]
             dx, dy = e.get("dx", 0), e.get("dy", 0)
-            lw = _w(e["label"], 10.5) + 8
+            lw = _w(e["label"], 12) + 8
             out.append(f'<rect class="lbl-bg" x="{mx + dx - lw / 2:.0f}" y="{my + dy - 11:.0f}" '
                        f'width="{lw:.0f}" height="15" rx="3"/>')
             out.append(f'<text class="t-mono" x="{mx + dx:.0f}" y="{my + dy:.0f}" '
@@ -340,7 +292,7 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
             out.append(f'<path class="ln ln-{k}" d="M{lx},{H - 10} L{lx + 28},{H - 10}" '
                        f'marker-end="url(#a-{k})"/>')
             out.append(f'<text class="t-mono" x="{lx + 34}" y="{H - 6}">{esc(lab)}</text>')
-            lx += 34 + _w(lab, 10.5) + 22
+            lx += 34 + _w(lab, 12) + 22
         if any(n.get("kind") == "state" for n in spec.get("nodes", [])):
             out.append(f'<rect class="nd nd-state" x="{lx}" y="{H - 18}" width="16" height="12" rx="2"/>')
             out.append(f'<text class="t-mono" x="{lx + 22}" y="{H - 6}">状態を持つ場所</text>')
@@ -348,45 +300,6 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
     cap = spec.get("caption")
     cap_html = f'<div class="cap">{esc(cap)}</div>' if cap else ""
     return f'<div class="dgm">{cap_html}{"".join(out)}</div>'
-
-
-WB_DEFS = """<defs>
-<filter id="wob" x="-5%" y="-5%" width="110%" height="110%">
-<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
-<feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G"/>
-</filter>
-<marker id="ak" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wk"/></marker>
-<marker id="ab" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wb-b"/></marker>
-<marker id="ar" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wr"/></marker>
-</defs><rect class="wbg" x="0" y="0" width="100%" height="100%" rx="14"/>"""
-
-FONT_POOL = SRC / "fonts" / "yomogi-pool.woff2"
-
-
-def whiteboard_font(body: str, warnings: list[str], where: str) -> str:
-    """ホワイトボード図で使う字だけをフォントから抜き出し、@font-face として返す。"""
-    from fontTools import subset
-    chars = set()
-    for svg in re.findall(r'<svg class="wb".*?</svg>', body, re.S):
-        for t in re.findall(r"<text[^>]*>(.*?)</text>", svg, re.S):
-            chars |= set(html.unescape(re.sub(r"<[^>]+>", "", t)))
-    if not chars:
-        return ""
-    opt = subset.Options()
-    opt.flavor = "woff2"
-    opt.layout_features = ["*"]
-    font = subset.load_font(str(FONT_POOL), opt)
-    cmap = font.getBestCmap()
-    missing = sorted(c for c in chars if ord(c) not in cmap and not c.isspace())
-    if missing:
-        warnings.append(f"{where}: 手書きフォントに無い字（代替フォントで出る）: {''.join(missing)}")
-    sub = subset.Subsetter(opt)
-    sub.populate(text="".join(sorted(chars)))
-    sub.subset(font)
-    buf = io.BytesIO()
-    subset.save_font(font, buf, opt)
-    b64 = base64.b64encode(buf.getvalue()).decode()
-    return f"@font-face {{ font-family:'WB Yomogi'; src:url(data:font/woff2;base64,{b64}) format('woff2'); }}"
 
 
 def render_diagrams(text: str, warnings: list[str], where: str) -> str:
@@ -439,8 +352,6 @@ def page(stem: str, label: str, warnings: list[str]) -> str:
     body_md = render_diagrams(body_md, warnings, src.name)
     conv = md_lib.Markdown(extensions=["tables", "fenced_code", "attr_list", "md_in_html"])
     body = grade_cells(conv.convert(body_md))
-    body = re.sub(r'(<svg class="wb"[^>]*>)', lambda m: m.group(1) + WB_DEFS, body)
-    font_css = whiteboard_font(body, warnings, src.name)
     sub_html = md_lib.markdown(sub).removeprefix("<p>").removesuffix("</p>")
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -448,7 +359,7 @@ def page(stem: str, label: str, warnings: list[str]) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
-<style>{CSS}{font_css}</style>
+<style>{CSS}</style>
 </head>
 <body>
 <div class="wrap">

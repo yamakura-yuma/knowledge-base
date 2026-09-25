@@ -2,45 +2,30 @@
 
 > 評価マトリクス（概要ページ）の軸の出典と、◎○△× の基準。方式の選定基準と、既存の推奨・事例の調査結果もここに置く。
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 520" role="img" aria-label="グラレコ：11 本の物差しで測る。耐障害性は検知と配送の 2 層に分け、変更のたびに基盤を触る方式は大きく減点する">
-<path class="hl" d="M40,52 L460,48"/>
-<text class="th" x="40" y="58">11 本の物差しで測る</text>
-<text class="ts" x="600" y="56">評価軸と採点基準</text>
-<g filter="url(#wob)">
-  <!-- 物差し -->
-  <rect class="wk fw" x="60" y="110" width="880" height="60" rx="6"/>
-  <path class="wk thin" d="M140,110 l0,26 M220,110 l0,18 M300,110 l0,26 M380,110 l0,18 M460,110 l0,26 M540,110 l0,18 M620,110 l0,26 M700,110 l0,18 M780,110 l0,26 M860,110 l0,18"/>
-  <!-- 2 層 -->
-  <rect class="wb-b fb" x="60" y="230" width="380" height="60" rx="8"/>
-  <rect class="wb-b fw" x="60" y="300" width="380" height="60" rx="8"/>
-  <path class="wk" d="M40,236 q-18,60 0,120"/>
-  <!-- 減点ハンコ -->
-  <circle class="wr fr" cx="700" cy="310" r="80"/>
-  <circle class="wr" cx="700" cy="310" r="64"/>
-  <path class="wk" d="M600,420 l40,-40 l14,14 l-40,40 z M654,394 l20,-20"/>
-  <!-- 出典の本 -->
-  <path class="wk fw" d="M60,420 l80,0 l0,70 l-80,0 z M150,420 l80,0 l0,70 l-80,0 z M240,420 l80,0 l0,70 l-80,0 z"/>
-</g>
-<text class="ts" x="90" y="160">検知</text>
-<text class="ts" x="170" y="160">配送</text>
-<text class="ts" x="250" y="160">保証</text>
-<text class="ts" x="330" y="160">可用性</text>
-<text class="ts" x="420" y="160">疎結合</text>
-<text class="ts" x="520" y="160">…</text>
-<text class="ts" x="760" y="160">レイテンシ</text>
-<text class="tb" x="80" y="268">検知層：止まった間を拾えるか</text>
-<text x="80" y="338">配送層：retry・DLQ・永続化</text>
-<text class="ts" x="30" y="212">耐障害性は 2 つに分ける</text>
-<text class="tr" x="672" y="304">基盤を</text>
-<text class="tr" x="646" y="330">触ったら</text>
-<text class="tr" x="672" y="354">減点</text>
-<text class="ts" x="66" y="460">ISO</text>
-<text class="ts" x="160" y="460">Azure</text>
-<text class="ts" x="248" y="460">micro</text>
-<text class="ts" x="340" y="470">出典のある軸だけ</text>
+<p class="eli5">方式を比べるとき、「壊れにくさ」を一つの点数にすると大事な違いが消えます。そこで二つに分けました。一つは見張り役の強さで、見張りの Pod が再起動していた間に消えた Namespace を、あとから拾えるか。もう一つは配達の強さで、宛先が留守のときに手紙を保管して配り直せるか。ほかにも「通知を変えるたびに基盤チームの設定を触るか」など、全部で 11 本の物差しを使います。</p>
+
+<figure class="dd">
+<svg viewBox="0 40 960 230" role="img" aria-labelledby="dd-crit-title dd-crit-desc">
+<title id="dd-crit-title">耐障害性は 2 層に分けて測る</title>
+<desc id="dd-crit-desc">検知層（止まっていた間の変化を拾えるか）と配送層（送れなかったものを再送・保管できるか）を別の物差しで測る。推奨構成は両方を満たす。</desc>
+<defs><marker id="dd-crit-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
+<rect class="dd-paper" x="0" y="40" width="960" height="230"/>
+<line class="dd-base" x1="120" y1="240" x2="900" y2="240"/>
+<line class="dd-base" x1="120" y1="240" x2="120" y2="50"/>
+<text class="dd-sub" x="510" y="270" text-anchor="middle">配送層：再送・DLQ・保管</text>
+<text class="dd-sub" x="120" y="44" text-anchor="start">検知層：止まった間を拾えるか</text>
+<rect class="dd-ext" x="170" y="176" width="180" height="48" rx="6"/>
+<text class="dd-name" x="260" y="205" text-anchor="middle">on-deleted</text>
+<rect class="dd-node" x="610" y="176" width="180" height="48" rx="6"/>
+<text class="dd-name" x="700" y="205" text-anchor="middle">Knative 単体</text>
+<rect class="dd-node" x="170" y="66" width="180" height="48" rx="6"/>
+<text class="dd-name" x="260" y="95" text-anchor="middle">finalizer（直接送る）</text>
+<rect class="dd-focal" x="610" y="66" width="180" height="48" rx="6"/>
+<text class="dd-name" x="700" y="95" text-anchor="middle">推奨構成</text>
+<text class="dd-lbl" x="900" y="256" text-anchor="end">強い →</text>
+<text class="dd-lbl" x="112" y="64" text-anchor="end">強い ↑</text>
 </svg>
-</div>
+</figure>
 
 
 
