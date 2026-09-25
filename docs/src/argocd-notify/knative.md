@@ -2,6 +2,52 @@
 
 > ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。**検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。** 6 方式の中で配送層が最も強い。
 
+## Knative が保証する範囲
+
+**Knative の保証は、Broker に入ったあとの配送まで。** 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを**作る**部分は別物で、取りこぼしはこちらで起きる。
+
+- **Kubernetes API は、状態の置き場所であって、再生できるイベントログではない。** watch が届くのは、つながっている相手だけ。古い resourceVersion からの再開には期限があり、切れると 410 Gone になって list からやり直しになる。
+- **これに対して、再生できる入力ならやり直せる。** たとえば KafkaSource は consumer offset から読み直せる。`initialOffset` で `earliest` を選ぶこともできる（[KafkaSource のドキュメント](https://github.com/knative/docs/blob/main/docs/versioned/eventing/sources/kafka-source/README.md)）。
+- **ApiServerSource の配送保証**（at-least-once かどうか）は、Knative のドキュメントにも issue にも、明記は見つからなかった。
+
+## なぜ取りこぼすか
+
+```diagram
+title: 取りこぼしの仕組み
+caption: 通常の informer と ApiServerSource の違い。再 list で差分が出たとき、削除イベントを合成できるかどうか
+height: 330
+zones:
+  - {label: "通常の informer（client-go の DeltaFIFO）", kind: plain, box: [10, 30, 480, 260]}
+  - {label: "ApiServerSource の adapter", kind: plain, box: [510, 30, 480, 260]}
+nodes:
+  - {id: l1, label: "再 list", mono: ["410 Gone や再接続のあと"], box: [25, 60, 200, 54]}
+  - {id: c1, kind: state, label: "手元のキャッシュ", mono: ["前回の一覧"], box: [260, 60, 215, 54]}
+  - {id: d1, kind: ext, label: "Replace が差分をとる", mono: ["消えたもの → DeletedFinalStateUnknown"], box: [25, 170, 450, 60]}
+  - {id: l2, label: "再 list", mono: ["410 Gone や再起動のあと"], box: [525, 60, 200, 54]}
+  - {id: c2, kind: bad, label: "キャッシュ無し", mono: ["素通しの Store"], box: [760, 60, 215, 54]}
+  - {id: d2, kind: bad, label: "Replace も Resync も何もしない", mono: ["delegate.go:126-133 → 削除は作られない"], box: [525, 170, 450, 60]}
+edges:
+  - {from: l1, to: d1, kind: http}
+  - {from: c1, to: d1, kind: http}
+  - {from: l2, to: d2, kind: bad}
+  - {from: c2, to: d2, kind: bad}
+```
+
+- **通常の informer**（client-go v0.35.7 の `tools/cache/delta_fifo.go`）は、`Replace` のときに手元のキャッシュと新しい一覧を比べる。消えたものについては、`DeletedFinalStateUnknown` の削除イベントを合成する（`queueActionLocked(Deleted, DeletedFinalStateUnknown{...})`）。
+- **ApiServerSource の `resourceDelegate`** は、キャッシュを持たない素通しの Store で、`Replace` と `Resync` が何もしない（[delegate.go](https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/adapter/apiserver/delegate.go) の 126〜133 行）。そのため、再 list で差分が出ても、削除イベントは作られない。
+
+取りこぼしが起きる場面は 3 つに分けられる。
+
+| 場面 | 取りこぼすか | 根拠 |
+|---|---|---|
+| (a) adapter の再起動・ロールアウト・退避 | **取りこぼす**。その間に消えたものは、起動時の list に出てこない | run5・run13-B・run15-B |
+| (b) watch の resourceVersion が古くなり、410 Gone で再 list になる | **取りこぼしうる**（adapter が生きていても）。reflector は `isExpiredError` で再 list に入り、delegate は差分を出さない | client-go の `reflector.go`（`isExpiredError`・`relistResourceVersion`）。実測はしていない |
+| (c) 短い切断で、resourceVersion から再開できる | **失わない**。watch は再開した地点からイベントを受け直す | reflector の通常の動き |
+
+**自前の informer でも同じことが起きる。** `DeletedFinalStateUnknown` が出るのは、同じプロセスの中で再 list したときだけ。プロセスを再起動するとキャッシュは空から始まるので、止まっていた間の削除は届かなかった（run18、client-go v0.35.7 で書いた 39 行の watcher）。
+
+**複数レプリカでも補えない。** adapter は `MakeReceiveAdapter` が 1 レプリカで作る。Deployment を 2 にすると、ApiServerSource の controller に戻されずに 2 台で動いたが、2 台とも送った（同じ削除が 2 通、run15 の追試）。リーダー選出は無い（receive adapter の `main.go` は `WithHAEnabled` を呼んでいない）。台数を増やせば、どちらか 1 台が生きていれば届く確率は上がる。ただし重複が増えるので、決定的な id で消す前提になる。
+
 ## アーキテクチャ
 
 ```diagram
@@ -75,6 +121,26 @@ edges:
 
 - `team-a` に `edit` と `knative-*-namespaced-admin` を与えた ServiceAccount で、`argocd` を見る ApiServerSource を作った。作成はできたが、`SufficientPermissions=False`（"cannot get, list, watch resource applications … in Namespace argocd"）で、Ready にならなかった。自分に RoleBinding を足そうにも、`argocd` への `create rolebindings` は no だった。**他チームの Application は覗けない。**
 - 一方で、`team-a` の Pod から Platform の Broker の ingress へ、`Ce-Type: dev.knative.apiserver.resource.delete` の**偽のイベントを POST でき、Platform の受け手まで届いた。** 既定では Broker が送り手を検証しないため。EventPolicy で送り手を制限できるが、それには `authentication-oidc` の有効化が前提になる（[authorization.md](https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/authorization.md)）。この対策は実測していない。受け手でも、`Ce-Source` が API server であることなどを検証する。
+
+## 導入・運用の労力
+
+### 基盤側の作業
+
+| 作業 | 頻度 |
+|---|---|
+| Knative Eventing 本体（CRD 17・ワークロード 5・ClusterRole 36）と Broker の実装・その土台の導入（kind で数えた値は概要ページ） | 初回 |
+| 1 マイナーずつのアップグレード（本体は過去 1 年で 16 リリース・5 マイナー） | 継続 |
+| ApiServerSource の ServiceAccount に、対象の get/list/watch を与える | 対象を増やすたび |
+| 取りこぼしの安全網（突き合わせ Service と PingSource）の運用 | 継続 |
+| EventPolicy（OIDC）で送り手を制限する | 任意 |
+
+### 利用者側の作業
+
+| 作業 |
+|---|
+| 自分の namespace に Trigger（と Broker）を置き、delivery の retry・DLQ を決める |
+| 受け手を用意し、`id` で重複を消す |
+| DLQ に落ちたイベントを処理する |
 
 ## 評価
 

@@ -160,6 +160,38 @@
 <li><strong>越境:</strong> stream が返すのは、トークンの主体が閲覧を許された Application だけ（<code>sendIfPermitted</code>）。Argo CD の RBAC で project ごとに絞れば、他チームの Application は見えない。この絞り込みは実測していない（実測は admin のトークンで行った）</li>
 <li><strong>資格情報:</strong> 長寿命の apiKey トークンをクライアント側の Secret に持つことになる。漏れたときの影響範囲は、RBAC で絞った範囲になる</li>
 </ul>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Argo CD のアカウントと apiKey の発行、RBAC</td>
+<td>初回と更新</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>常駐クライアントを書いて運用する（retry・重複除去・HA をすべて自前）</td>
+</tr>
+<tr>
+<td>トークンを Secret に置いて更新する</td>
+</tr>
+</tbody>
+</table>
 <h2>評価</h2>
 <p><strong>削除完了の検知: ○。</strong> <code>DELETED</code> が、オブジェクトの消滅から 2 ms で届いた（run3）。</p>
 <p><strong>検知層の耐障害性: ×。</strong> 切断していた間の削除は、再接続したときの一覧に出てこない。</p>

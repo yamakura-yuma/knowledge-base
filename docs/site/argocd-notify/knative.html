@@ -148,6 +148,48 @@
   <p class="sub">ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。<strong>検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。</strong> 6 方式の中で配送層が最も強い。</p>
 </header>
 <nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="on">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<h2>Knative が保証する範囲</h2>
+<p><strong>Knative の保証は、Broker に入ったあとの配送まで。</strong> 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを<strong>作る</strong>部分は別物で、取りこぼしはこちらで起きる。</p>
+<ul>
+<li><strong>Kubernetes API は、状態の置き場所であって、再生できるイベントログではない。</strong> watch が届くのは、つながっている相手だけ。古い resourceVersion からの再開には期限があり、切れると 410 Gone になって list からやり直しになる。</li>
+<li><strong>これに対して、再生できる入力ならやり直せる。</strong> たとえば KafkaSource は consumer offset から読み直せる。<code>initialOffset</code> で <code>earliest</code> を選ぶこともできる（<a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/sources/kafka-source/README.md">KafkaSource のドキュメント</a>）。</li>
+<li><strong>ApiServerSource の配送保証</strong>（at-least-once かどうか）は、Knative のドキュメントにも issue にも、明記は見つからなかった。</li>
+</ul>
+<h2>なぜ取りこぼすか</h2>
+<div class="dgm"><div class="cap">通常の informer と ApiServerSource の違い。再 list で差分が出たとき、削除イベントを合成できるかどうか</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="取りこぼしの仕組み"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-plain" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">通常の informer（client-go の DeltaFIFO）</text><rect class="zone zone-plain" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">ApiServerSource の adapter</text><rect class="nd nd-comp" x="25" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="35" y="79">再 list</text><text class="t-mono" x="35" y="95">410 Gone や再接続のあと</text><rect class="nd nd-state" x="260" y="60" width="215" height="54" rx="6"/><text class="t-ink" x="270" y="79">手元のキャッシュ</text><text class="t-mono" x="270" y="95">前回の一覧</text><rect class="nd nd-ext" x="25" y="170" width="450" height="60" rx="6"/><text class="t-ink" x="35" y="189">Replace が差分をとる</text><text class="t-mono" x="35" y="205">消えたもの → DeletedFinalStateUnknown</text><rect class="nd nd-comp" x="525" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="535" y="79">再 list</text><text class="t-mono" x="535" y="95">410 Gone や再起動のあと</text><rect class="nd nd-bad" x="760" y="60" width="215" height="54" rx="6"/><text class="t-ink" x="770" y="79">キャッシュ無し</text><text class="t-mono" x="770" y="95">素通しの Store</text><rect class="nd nd-bad" x="525" y="170" width="450" height="60" rx="6"/><text class="t-ink" x="535" y="189">Replace も Resync も何もしない</text><text class="t-mono" x="535" y="205">delegate.go:126-133 → 削除は作られない</text><path class="ln ln-http" d="M155,114 L217,170" marker-end="url(#a-http)"/><path class="ln ln-http" d="M339,114 L281,170" marker-end="url(#a-http)"/><path class="ln ln-bad" d="M655,114 L717,170" marker-end="url(#a-bad)"/><path class="ln ln-bad" d="M839,114 L781,170" marker-end="url(#a-bad)"/><path class="ln ln-http" d="M20,320 L48,320" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="324">HTTP</text><rect class="nd nd-state" x="101.2" y="312" width="16" height="12" rx="2"/><text class="t-mono" x="123.2" y="324">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>通常の informer</strong>（client-go v0.35.7 の <code>tools/cache/delta_fifo.go</code>）は、<code>Replace</code> のときに手元のキャッシュと新しい一覧を比べる。消えたものについては、<code>DeletedFinalStateUnknown</code> の削除イベントを合成する（<code>queueActionLocked(Deleted, DeletedFinalStateUnknown{...})</code>）。</li>
+<li><strong>ApiServerSource の <code>resourceDelegate</code></strong> は、キャッシュを持たない素通しの Store で、<code>Replace</code> と <code>Resync</code> が何もしない（<a href="https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/adapter/apiserver/delegate.go">delegate.go</a> の 126〜133 行）。そのため、再 list で差分が出ても、削除イベントは作られない。</li>
+</ul>
+<p>取りこぼしが起きる場面は 3 つに分けられる。</p>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>取りこぼすか</th>
+<th>根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(a) adapter の再起動・ロールアウト・退避</td>
+<td><strong>取りこぼす</strong>。その間に消えたものは、起動時の list に出てこない</td>
+<td>run5・run13-B・run15-B</td>
+</tr>
+<tr>
+<td>(b) watch の resourceVersion が古くなり、410 Gone で再 list になる</td>
+<td><strong>取りこぼしうる</strong>（adapter が生きていても）。reflector は <code>isExpiredError</code> で再 list に入り、delegate は差分を出さない</td>
+<td>client-go の <code>reflector.go</code>（<code>isExpiredError</code>・<code>relistResourceVersion</code>）。実測はしていない</td>
+</tr>
+<tr>
+<td>(c) 短い切断で、resourceVersion から再開できる</td>
+<td><strong>失わない</strong>。watch は再開した地点からイベントを受け直す</td>
+<td>reflector の通常の動き</td>
+</tr>
+</tbody>
+</table>
+<p><strong>自前の informer でも同じことが起きる。</strong> <code>DeletedFinalStateUnknown</code> が出るのは、同じプロセスの中で再 list したときだけ。プロセスを再起動するとキャッシュは空から始まるので、止まっていた間の削除は届かなかった（run18、client-go v0.35.7 で書いた 39 行の watcher）。</p>
+<p><strong>複数レプリカでも補えない。</strong> adapter は <code>MakeReceiveAdapter</code> が 1 レプリカで作る。Deployment を 2 にすると、ApiServerSource の controller に戻されずに 2 台で動いたが、2 台とも送った（同じ削除が 2 通、run15 の追試）。リーダー選出は無い（receive adapter の <code>main.go</code> は <code>WithHAEnabled</code> を呼んでいない）。台数を増やせば、どちらか 1 台が生きていれば届く確率は上がる。ただし重複が増えるので、決定的な id で消す前提になる。</p>
 <h2>アーキテクチャ</h2>
 <div class="dgm"><div class="cap">検知層（adapter）と配送層（Broker / Trigger）で、状態の持ち方が違う</div><svg class="fig" viewBox="0 0 1000 470" role="img" aria-label="Knative Eventing のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="230" height="150" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="10" y="200" width="470" height="230" rx="8"/><text class="t-zone" x="20" y="216">knative-eventing namespace（Platform）</text><rect class="zone zone-app" x="260" y="30" width="480" height="150" rx="8"/><text class="t-zone" x="270" y="46">notify / App の namespace</text><rect class="zone zone-ext" x="760" y="30" width="230" height="400" rx="8"/><text class="t-zone" x="770" y="46">受け手</text><rect class="nd nd-app" x="25" y="60" width="200" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-crd" x="275" y="60" width="220" height="66" rx="6"/><text class="t-ink" x="285" y="79">ApiServerSource</text><text class="t-mono" x="285" y="95">mode: Resource</text><text class="t-mono" x="285" y="111">serviceAccountName</text><rect class="nd nd-comp" x="510" y="60" width="215" height="70" rx="6"/><text class="t-ink" x="520" y="79">receive adapter</text><text class="" x="520" y="95">Deployment 1 レプリカ</text><text class="t-mono" x="520" y="111">reflector・状態は持たない</text><rect class="nd nd-comp" x="25" y="230" width="215" height="70" rx="6"/><text class="t-ink" x="35" y="249">eventing-controller</text><text class="t-mono" x="35" y="265">adapter を作る</text><text class="t-mono" x="35" y="281">SubjectAccessReview で権限確認</text><rect class="nd nd-comp" x="255" y="230" width="210" height="54" rx="6"/><text class="t-ink" x="265" y="249">broker-ingress</text><text class="t-mono" x="265" y="265">水平スケール可</text><rect class="nd nd-state" x="255" y="305" width="210" height="70" rx="6"/><text class="t-ink" x="265" y="324">Broker / Channel の実装</text><text class="" x="265" y="340">InMemory: 永続化なし</text><text class="t-mono" x="265" y="356">Kafka / RabbitMQ / NATS</text><rect class="nd nd-comp" x="25" y="330" width="215" height="54" rx="6"/><text class="t-ink" x="35" y="349">broker-filter</text><text class="t-mono" x="35" y="365">Trigger の filter と delivery</text><rect class="nd nd-ext" x="775" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="785" y="79">受け手 Service</text><text class="t-mono" x="785" y="95">空の 2xx を返す</text><rect class="nd nd-ext" x="775" y="330" width="200" height="54" rx="6"/><text class="t-ink" x="785" y="349">deadLetterSink</text><text class="t-mono" x="785" y="365">knativeerror* 属性付き</text><path class="ln ln-watch" d="M534,130 L510,140 L240,140 L125,104 L125,104" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="160" y="129" width="40" height="15" rx="3"/><text class="t-mono" x="180" y="140" text-anchor="middle">watch</text><path class="ln ln-http" d="M240,265 L600,265 L614,130" marker-end="url(#a-http)"/><rect class="lbl-bg" x="436" y="248" width="109" height="15" rx="3"/><text class="t-mono" x="490" y="259" text-anchor="middle">Deployment を作る</text><path class="ln ln-ce" d="M598,130 L560,200 L360,200 L360,230" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="454" y="189" width="71" height="15" rx="3"/><text class="t-mono" x="490" y="200" text-anchor="middle">CloudEvent</text><path class="ln ln-ce" d="M360,284 L360,305" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M255,348 L240,349" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M240,364 L745,395 L745,87 L775,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="698" y="230" width="94" height="15" rx="3"/><text class="t-mono" x="745" y="241" text-anchor="middle">retry・backoff</text><path class="ln ln-ce" d="M187,384 L240,410 L745,410 L745,357 L775,357" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="720" y="399" width="50" height="15" rx="3"/><text class="t-mono" x="745" y="410" text-anchor="middle">上限超過</text><path class="ln ln-watch" d="M20,460 L48,460" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="464">watch</text><path class="ln ln-http" d="M107.5,460 L135.5,460" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="464">HTTP</text><path class="ln ln-ce" d="M188.7,460 L216.7,460" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="464">CloudEvent</text><rect class="nd nd-state" x="307.7" y="452" width="16" height="12" rx="2"/><text class="t-mono" x="329.7" y="464">状態を持つ場所</text></svg></div>
 <ul>
@@ -195,6 +237,57 @@
 <li><code>team-a</code> に <code>edit</code> と <code>knative-*-namespaced-admin</code> を与えた ServiceAccount で、<code>argocd</code> を見る ApiServerSource を作った。作成はできたが、<code>SufficientPermissions=False</code>（"cannot get, list, watch resource applications … in Namespace argocd"）で、Ready にならなかった。自分に RoleBinding を足そうにも、<code>argocd</code> への <code>create rolebindings</code> は no だった。<strong>他チームの Application は覗けない。</strong></li>
 <li>一方で、<code>team-a</code> の Pod から Platform の Broker の ingress へ、<code>Ce-Type: dev.knative.apiserver.resource.delete</code> の<strong>偽のイベントを POST でき、Platform の受け手まで届いた。</strong> 既定では Broker が送り手を検証しないため。EventPolicy で送り手を制限できるが、それには <code>authentication-oidc</code> の有効化が前提になる（<a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/authorization.md">authorization.md</a>）。この対策は実測していない。受け手でも、<code>Ce-Source</code> が API server であることなどを検証する。</li>
 </ul>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Knative Eventing 本体（CRD 17・ワークロード 5・ClusterRole 36）と Broker の実装・その土台の導入（kind で数えた値は概要ページ）</td>
+<td>初回</td>
+</tr>
+<tr>
+<td>1 マイナーずつのアップグレード（本体は過去 1 年で 16 リリース・5 マイナー）</td>
+<td>継続</td>
+</tr>
+<tr>
+<td>ApiServerSource の ServiceAccount に、対象の get/list/watch を与える</td>
+<td>対象を増やすたび</td>
+</tr>
+<tr>
+<td>取りこぼしの安全網（突き合わせ Service と PingSource）の運用</td>
+<td>継続</td>
+</tr>
+<tr>
+<td>EventPolicy（OIDC）で送り手を制限する</td>
+<td>任意</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自分の namespace に Trigger（と Broker）を置き、delivery の retry・DLQ を決める</td>
+</tr>
+<tr>
+<td>受け手を用意し、<code>id</code> で重複を消す</td>
+</tr>
+<tr>
+<td>DLQ に落ちたイベントを処理する</td>
+</tr>
+</tbody>
+</table>
 <h2>評価</h2>
 <p><strong>削除完了の検知: ○。</strong> <code>dev.knative.apiserver.resource.delete</code> が、オブジェクトの消滅から 5 ms で届いた（run3）。本文は消える直前の Application で、<code>deletionTimestamp</code> と最後に残った finalizer が入っている。デプロイ完了は、更新のたびに <code>resource.update</code> が届くだけ（作成 1 回で 14 件）。Synced かつ Healthy かの判定は、受け手が本文を見て行う。Trigger のフィルタは CloudEvents の属性で分けるもので、本文の <code>status</code> では絞れない。</p>
 <p><strong>検知層の耐障害性: ×。</strong> adapter を止めている間に消えた Application の delete は、復旧後も届かなかった（run5）。理由は上のとおりで、状態を持たず、初期 list と前回の状態を突き合わせないため。</p>

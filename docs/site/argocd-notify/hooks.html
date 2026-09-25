@@ -161,6 +161,45 @@
 <li><strong>越境:</strong> Job はデプロイ先 namespace で、その namespace の ServiceAccount を使って動く。他チームの Application を見る経路は無い。ただし通知の本文は Job が自分で組むので、Job を書けるチームなら、他のアプリ名を名乗る通知を送れてしまう。受け手が送り元を検証する必要がある</li>
 <li><strong>資格情報:</strong> 送信先の資格情報は、アプリの数だけ各 namespace に置く</li>
 </ul>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AppProject で Job の作成を許す</td>
+<td>初回だけ</td>
+</tr>
+<tr>
+<td>削除が PostDelete hook で詰まったときの手当て（hook を消す）</td>
+<td>障害のたび</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全アプリのマニフェストに hook の Job を書く</td>
+</tr>
+<tr>
+<td>送信先の資格情報を各 namespace に置いて更新する</td>
+</tr>
+<tr>
+<td>受け手を用意する</td>
+</tr>
+</tbody>
+</table>
 <h2>評価</h2>
 <p><strong>削除完了の検知: △。</strong> ドキュメントは「全リソースが消えた後に実行し、hook が Healthy になるまで待ってから Application を消す」としている。実測では、管理リソースが消えた 0.8 秒後に Job が送信し、その 2.5 秒後に Application が消えた（run3）。hook が失敗すると、Application は <code>DeletionError</code> の状態で残る。つまり「送った」とは言えても、「消えた」とは言えない。</p>
 <p><strong>デプロイ完了: 取れる。</strong> PostSync は Healthy になった後に実行された（Healthy の 1.3 秒後）。ただし sync のたびに実行され、重複を除く仕組みは無い。</p>

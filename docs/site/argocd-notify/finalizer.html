@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>⑤ finalizer 方式（Metacontroller）</title>
+<title>⑤ finalizer 方式（Metacontroller / 自作）</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -144,10 +144,13 @@
 <body>
 <div class="wrap">
 <header>
-  <h1>⑤ finalizer 方式（Metacontroller）</h1>
-  <p class="sub">Application に自分の finalizer を付けておき、<strong>残っている finalizer が自分だけ</strong>になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。</p>
+  <h1>⑤ finalizer 方式（Metacontroller / 自作）</h1>
+  <p class="sub"><strong>位置づけ:</strong> Namespace を基盤の Job が消す前提では、推奨構成（概要ページ）に置き換わる。この方式は、削除完了を Application の消滅で定義する場合の代替として残す。</p>
 </header>
 <nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="on">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<blockquote>
+<p>Application に自分の finalizer を付けておき、<strong>残っている finalizer が自分だけ</strong>になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。</p>
+</blockquote>
 <h2>アーキテクチャ</h2>
 <div class="dgm"><div class="cap">状態は Application の finalizer 自身が持つ。Metacontroller が付け外しと再試行を受け持ち、hook は状態を持たない</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="finalizer 方式のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="360" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="370" y="46">metacontroller / notify namespace</text><rect class="zone zone-ext" x="710" y="30" width="280" height="330" rx="8"/><text class="t-zone" x="720" y="46">送信先</text><rect class="nd nd-app" x="25" y="60" width="300" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-state" x="25" y="130" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="149">metadata.finalizers</text><text class="t-mono" x="35" y="165">resources-finalizer.argocd…</text><text class="t-mono" x="35" y="181">post-delete-finalizer.argocd…</text><text class="t-mono" x="35" y="197">metacontroller.io/decorator…</text><rect class="nd nd-comp" x="25" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="35" y="269">application-controller</text><text class="t-mono" x="35" y="285">argocd の finalizer を順に外す</text><rect class="nd nd-comp" x="375" y="60" width="300" height="70" rx="6"/><text class="t-ink" x="385" y="79">Metacontroller</text><text class="" x="385" y="95">DecoratorController</text><text class="t-mono" x="385" y="111">付け外し・resync・再試行</text><rect class="nd nd-crd" x="375" y="160" width="300" height="66" rx="6"/><text class="t-ink" x="385" y="179">DecoratorController（CR）</text><text class="t-mono" x="385" y="195">resources: applications</text><text class="t-mono" x="385" y="211">hooks: sync / finalize</text><rect class="nd nd-comp" x="375" y="255" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="274">finalize hook（Webhook）</text><text class="t-mono" x="385" y="290">状態なし・約 30 行・2 レプリカ</text><rect class="nd nd-ext" x="725" y="255" width="250" height="54" rx="6"/><text class="t-ink" x="735" y="274">送信先 / Broker</text><text class="t-mono" x="735" y="290">CloudEvent（Ce-Id = uid）</text><path class="ln ln-watch" d="M375,89 L325,88" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="330" y="78" width="40" height="15" rx="3"/><text class="t-mono" x="350" y="88" text-anchor="middle">watch</text><path class="ln ln-patch" d="M443,130 L350,170 L325,170" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="310" y="155" width="79" height="15" rx="3"/><text class="t-mono" x="350" y="166" text-anchor="middle">付ける / 外す</text><path class="ln ln-patch" d="M175,250 L175,216" marker-end="url(#a-patch)"/><path class="ln ln-watch" d="M525,130 L525,160" marker-end="url(#a-watch)"/><path class="ln ln-http" d="M675,95 L690,95 L690,240 L525,240 L525,255" marker-end="url(#a-http)"/><rect class="lbl-bg" x="647" y="229" width="86" height="15" rx="3"/><text class="t-mono" x="690" y="240" text-anchor="middle">finalize 要求</text><path class="ln ln-ce" d="M675,282 L725,282" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="686" y="271" width="29" height="15" rx="3"/><text class="t-mono" x="700" y="282" text-anchor="middle">送信</text><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M107.5,390 L135.5,390" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="394">HTTP</text><path class="ln ln-ce" d="M188.7,390 L216.7,390" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="394">CloudEvent</text><path class="ln ln-patch" d="M307.7,390 L335.7,390" marker-end="url(#a-patch)"/><text class="t-mono" x="341.7" y="394">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="556.9" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="578.9" y="394">状態を持つ場所</text></svg></div>
 <p><strong>流れ:</strong></p>
@@ -158,44 +161,227 @@
 <li><code>finalized: true</code> を受け取ると、Metacontroller が finalizer を外し、Application が消える。</li>
 </ol>
 <p><strong>hook の中身</strong> は、試作で約 30 行だった。受け取った JSON の <code>object.metadata.finalizers</code> を見て、送るかどうかを決めるだけ。状態は持たない。</p>
-<h2>自作（controller-runtime）と比べる</h2>
+<h2>導入・運用の労力</h2>
+<p><strong>この部品は Application に書き込むので、基盤側の持ち物になる。</strong> 利用者側に置いてはいけない。</p>
+<p><strong>試作の行数は、本番の量ではない。</strong> 実測した試作の規模は次のとおり。</p>
 <table>
 <thead>
 <tr>
-<th>観点</th>
-<th>Metacontroller ＋ hook</th>
-<th>controller-runtime で自作</th>
+<th>試作</th>
+<th style="text-align: right;">行数</th>
+<th>持っていないもの</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>削除完了を取る確実さ</td>
-<td>同じ（どちらも finalizer が根拠）</td>
-<td>同じ</td>
+<td>Metacontroller の finalize hook（Python）</td>
+<td style="text-align: right;">29</td>
+<td>テスト、コンテナイメージ、CI</td>
 </tr>
 <tr>
-<td>自分で書くもの</td>
-<td>状態を持たない Webhook 1 つ</td>
-<td>watch・finalizer の付け外し・再試行・リーダー選出の設定・テスト</td>
+<td>そのマニフェスト（DecoratorController・Deployment・Service）</td>
+<td style="text-align: right;">31</td>
+<td>—</td>
 </tr>
 <tr>
-<td>再試行</td>
-<td>Metacontroller が、hook が <code>finalized: true</code> を返すまで呼び直す</td>
-<td>自分で <code>RequeueAfter</code> などを書く</td>
+<td>自作 controller の試作（Python、1 秒ごとに全件を list）</td>
+<td style="text-align: right;">32</td>
+<td>watch、リーダー選出、送信失敗時のバックオフ、メトリクス、テスト、コンテナイメージ、CI</td>
 </tr>
 <tr>
-<td>権限</td>
-<td>Metacontroller の ClusterRole は、既定で全リソースへの全 verb（<code>*</code>）。Helm の <code>clusterRole.rules</code> で絞る</td>
-<td>必要な分だけ（applications の get/list/watch/patch）</td>
-</tr>
-<tr>
-<td>保守</td>
-<td>Metacontroller のアップグレードに追従する（1,009 star、v4.17.2、2026-08-13）</td>
-<td>自分のコードと、controller-runtime の追従</td>
+<td>そのマニフェスト（SA・Role・RoleBinding・Deployment）</td>
+<td style="text-align: right;">33</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<p><strong>自作の利点は、権限を最小にできることだけ。</strong> Metacontroller でも、ClusterRole を絞れば同じところまで寄せられる。検知の確実さと配送保証は、どちらで作っても変わらない。自作にする理由は薄い。</p>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>Metacontroller ＋ hook</th>
+<th>自作（controller-runtime）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本体の導入</td>
+<td>Metacontroller 本体。CRD は 3 種で、CompositeController と DecoratorController はクラスタスコープ、ControllerRevision は namespace スコープ。StatefulSet 1 つ</td>
+<td>自分のコントローラの Deployment。CRD は無い</td>
+</tr>
+<tr>
+<td>権限を絞る</td>
+<td>既定の ClusterRole は <code>*/*/*</code>。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（run11）。namespaces を外すと list が Forbidden になり、試行錯誤が要った</td>
+<td>必要な分だけを最初から書く（applications の get/list/watch/update/patch、leases、events）</td>
+</tr>
+<tr>
+<td>HA</td>
+<td><code>--leader-election</code> を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（run11）</td>
+<td>Manager の <code>LeaderElection: true</code> で 2 レプリカ</td>
+</tr>
+<tr>
+<td>アップグレードへの追従</td>
+<td>Metacontroller は過去 1 年で 21 リリース、マイナーは 6 つ</td>
+<td>controller-runtime は過去 1 年で 12 リリース、マイナーは 4 つ。追従のたびに再ビルドと再テストが要る</td>
+</tr>
+<tr>
+<td>hook の運用</td>
+<td>hook の Deployment と Service（2 レプリカ）。コンテナイメージとその CI</td>
+<td>コントローラ自体のイメージと CI</td>
+</tr>
+<tr>
+<td>finalizer が残って削除が止まったとき（runbook）</td>
+<td>① 削除中のまま一定時間残っている Application を検知する（<code>deletionTimestamp</code> があり、残りの finalizer が自分だけのもの）② hook と送信先の状態を確かめる ③ 送信を諦める判断をしたら、<code>kubectl patch app &lt;name&gt; --type json -p '[{"op":"remove","path":"/metadata/finalizers/&lt;i&gt;"}]'</code> で自分の finalizer を外し、通知を送らなかったことを記録する</td>
+<td>同じ</td>
+</tr>
+<tr>
+<td>アンインストール</td>
+<td>先に全 Application から自分の finalizer を外す。外さずに本体を消すと、以後の削除がすべて止まる</td>
+<td>同じ</td>
+</tr>
+<tr>
+<td>作成時の finalizer</td>
+<td>止まっている間に作られて消えた Application を取りこぼさないよう、Kyverno の mutate などで作成時に付ける（任意、実測していない）</td>
+<td>同じ</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<p>受け手を用意すること（CloudEvent を受け、<code>id</code> で重複を消す）だけ。Application にも Argo CD の設定にも触らない。Broker を挟む場合は、自分の namespace に Trigger を置く。</p>
+<h3>自作の規模の見積もり（見積もり）</h3>
+<p>controller-runtime で本番に出す場合の規模を見積もった。<strong>実装して数えた値ではなく、見積もり。</strong></p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th style="text-align: right;">見積もり（行）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reconciler（finalizer の付け外し、送信、エラーで再キュー）</td>
+<td style="text-align: right;">120〜180</td>
+</tr>
+<tr>
+<td>main（Manager、leader election、メトリクス、ヘルスチェック）</td>
+<td style="text-align: right;">60〜90</td>
+</tr>
+<tr>
+<td>CloudEvent の送信（属性、traceparent、タイムアウト）</td>
+<td style="text-align: right;">40〜60</td>
+</tr>
+<tr>
+<td>テスト（envtest で、付ける・外す・失敗・競合）</td>
+<td style="text-align: right;">200〜350</td>
+</tr>
+<tr>
+<td>マニフェスト（RBAC・Deployment・PDB・ServiceMonitor）</td>
+<td style="text-align: right;">100〜150</td>
+</tr>
+<tr>
+<td>Dockerfile と CI</td>
+<td style="text-align: right;">40〜80</td>
+</tr>
+<tr>
+<td>合計</td>
+<td style="text-align: right;">約 560〜900</td>
+</tr>
+</tbody>
+</table>
+<h3>結論（労力を数えたうえで）</h3>
+<p>前の版の「自作にする理由は薄い」は、基盤側の負荷を数えずに出した結論だった。数えると、次のように分かれる。</p>
+<ul>
+<li><strong>Metacontroller:</strong> 自分で書くコードは少ない（hook 29 行）。その代わり、汎用の強い ClusterRole を持つ部品を 1 つ抱える。絞る作業と、21 リリース/年への追従が要る。</li>
+<li><strong>自作:</strong> 権限は最小にできる。その代わり、見積もりで 560〜900 行のコードと、テスト・イメージ・CI の保守を抱える。</li>
+</ul>
+<p><strong>どちらが軽いかは、基盤チームがすでに何を運用しているかで決まる。</strong> Go のコントローラを CI 込みで運用している組織なら、自作の限界費用は小さい。そうでなければ Metacontroller のほうが軽い。一方、<strong>検知の確実さと配送保証は、どちらでも同じ。</strong></p>
+<h2>実装仕様（自作する場合）</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>仕様</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reconciler の分岐</td>
+<td>① 削除中でなければ、自分の finalizer を付ける ② 削除中で、残りの finalizer が自分だけなら、Broker ingress に CloudEvent を POST する ③ 2xx なら、楽観ロック（resourceVersion 付きの update）で finalizer を外す ④ 失敗したら error を返し、workqueue の指数バックオフに任せる ⑤ それ以外（Argo CD の finalizer が残っている）は何もしない</td>
+</tr>
+<tr>
+<td>作成直後の競合</td>
+<td>作成直後に削除されると、finalizer を付ける前に消えうる。防ぐなら Kyverno の mutate で作成時に付ける</td>
+</tr>
+<tr>
+<td>RBAC</td>
+<td>applications の get/list/watch/update/patch、coordination.k8s.io の leases、events の create/patch</td>
+</tr>
+<tr>
+<td>HA</td>
+<td>leader election を有効にして 2 レプリカ</td>
+</tr>
+<tr>
+<td>CloudEvent</td>
+<td><code>id = &lt;uid&gt;:deleted</code>、<code>type = com.example.argocd.app.deleted</code>、<code>source = argocd/applications</code>、<code>subject = &lt;name&gt;</code>、拡張属性に <code>project</code>。<code>traceparent</code> を付ける</td>
+</tr>
+<tr>
+<td>宛先障害の切り離し</td>
+<td>Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（run16 で、アプリ側の宛先を常に 500 にしても、削除は完了した）</td>
+</tr>
+<tr>
+<td>運用</td>
+<td>削除中のまま残った Application のアラート、finalizer を手で外す手順、アンインストール前の一括除去（上の表）</td>
+</tr>
+</tbody>
+</table>
+<h3>PingSource による突き合わせとの比較</h3>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>finalizer（自作 / Metacontroller）</th>
+<th>PingSource による突き合わせ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>権限</td>
+<td>applications への書き込み（patch/update）</td>
+<td>get/list だけ（Namespace なら namespaces の get/list/watch）</td>
+</tr>
+<tr>
+<td>削除を止めるか</td>
+<td>止める（止まると全チームの削除が止まる）</td>
+<td>止めない</td>
+</tr>
+<tr>
+<td>停止中の削除</td>
+<td>拾う（Application が待つ）</td>
+<td>拾う（uid 一覧と比べる）</td>
+</tr>
+<tr>
+<td>遅延</td>
+<td>ms 単位</td>
+<td>最大で周期 1 回分（最短 1 分）</td>
+</tr>
+<tr>
+<td>1 周期のうちの作成と削除</td>
+<td>拾う（作成時に finalizer が付いていれば）</td>
+<td>ADD を記録しないと取りこぼす</td>
+</tr>
+<tr>
+<td>状態</td>
+<td>Application の finalizer</td>
+<td>uid 一覧（ConfigMap か受け手の DB）</td>
+</tr>
+<tr>
+<td>実測</td>
+<td>run4・run10・run11</td>
+<td>run12・run13・run15</td>
+</tr>
+</tbody>
+</table>
 <h2>権限分離</h2>
 <div class="dgm"><div class="cap">Application に書き込むので、基盤側が持つ部品になる。利用者は送信先で受けるだけ</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="finalizer 方式の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">基盤側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">利用者側</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">Metacontroller（基盤が運用）</text><text class="t-mono" x="35" y="95">ClusterRole は既定で */*/*。絞ること</text><rect class="nd nd-crd" x="25" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="159">DecoratorController と hook</text><text class="t-mono" x="35" y="175">クラスタスコープの CR</text><rect class="nd nd-crd" x="25" y="220" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="239">admission（任意）</text><text class="t-mono" x="35" y="255">作成時に finalizer を足す（Kyverno など）</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">受け手</text><text class="t-mono" x="535" y="95">uid で冪等に受ける</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">受け手の Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は利用者が持つ</text><path class="ln ln-rbac" d="M250,140 L250,114" marker-end="url(#a-rbac)"/><path class="ln ln-ce" d="M475,87 L525,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="459" y="76" width="82" height="15" rx="3"/><text class="t-mono" x="500" y="87" text-anchor="middle">hook から送信</text><path class="ln ln-ce" d="M20,320 L48,320" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="324">CloudEvent</text><path class="ln ln-rbac" d="M139.0,320 L167.0,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="173.0" y="324">権限付与</text></svg></div>
 <ul>

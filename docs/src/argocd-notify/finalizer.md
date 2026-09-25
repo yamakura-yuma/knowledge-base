@@ -1,5 +1,7 @@
-# ⑤ finalizer 方式（Metacontroller）
+# ⑤ finalizer 方式（Metacontroller / 自作）
 
+> **位置づけ:** Namespace を基盤の Job が消す前提では、推奨構成（概要ページ）に置き換わる。この方式は、削除完了を Application の消滅で定義する場合の代替として残す。
+>
 > Application に自分の finalizer を付けておき、**残っている finalizer が自分だけ**になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。
 
 ## アーキテクチャ
@@ -38,17 +40,82 @@ edges:
 
 **hook の中身** は、試作で約 30 行だった。受け取った JSON の `object.metadata.finalizers` を見て、送るかどうかを決めるだけ。状態は持たない。
 
-## 自作（controller-runtime）と比べる
+## 導入・運用の労力
 
-| 観点 | Metacontroller ＋ hook | controller-runtime で自作 |
+**この部品は Application に書き込むので、基盤側の持ち物になる。** 利用者側に置いてはいけない。
+
+**試作の行数は、本番の量ではない。** 実測した試作の規模は次のとおり。
+
+| 試作 | 行数 | 持っていないもの |
+|---|---:|---|
+| Metacontroller の finalize hook（Python） | 29 | テスト、コンテナイメージ、CI |
+| そのマニフェスト（DecoratorController・Deployment・Service） | 31 | — |
+| 自作 controller の試作（Python、1 秒ごとに全件を list） | 32 | watch、リーダー選出、送信失敗時のバックオフ、メトリクス、テスト、コンテナイメージ、CI |
+| そのマニフェスト（SA・Role・RoleBinding・Deployment） | 33 | — |
+
+### 基盤側の作業
+
+| 作業 | Metacontroller ＋ hook | 自作（controller-runtime） |
 |---|---|---|
-| 削除完了を取る確実さ | 同じ（どちらも finalizer が根拠） | 同じ |
-| 自分で書くもの | 状態を持たない Webhook 1 つ | watch・finalizer の付け外し・再試行・リーダー選出の設定・テスト |
-| 再試行 | Metacontroller が、hook が `finalized: true` を返すまで呼び直す | 自分で `RequeueAfter` などを書く |
-| 権限 | Metacontroller の ClusterRole は、既定で全リソースへの全 verb（`*`）。Helm の `clusterRole.rules` で絞る | 必要な分だけ（applications の get/list/watch/patch） |
-| 保守 | Metacontroller のアップグレードに追従する（1,009 star、v4.17.2、2026-08-13） | 自分のコードと、controller-runtime の追従 |
+| 本体の導入 | Metacontroller 本体。CRD は 3 種で、CompositeController と DecoratorController はクラスタスコープ、ControllerRevision は namespace スコープ。StatefulSet 1 つ | 自分のコントローラの Deployment。CRD は無い |
+| 権限を絞る | 既定の ClusterRole は `*/*/*`。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（run11）。namespaces を外すと list が Forbidden になり、試行錯誤が要った | 必要な分だけを最初から書く（applications の get/list/watch/update/patch、leases、events） |
+| HA | `--leader-election` を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（run11） | Manager の `LeaderElection: true` で 2 レプリカ |
+| アップグレードへの追従 | Metacontroller は過去 1 年で 21 リリース、マイナーは 6 つ | controller-runtime は過去 1 年で 12 リリース、マイナーは 4 つ。追従のたびに再ビルドと再テストが要る |
+| hook の運用 | hook の Deployment と Service（2 レプリカ）。コンテナイメージとその CI | コントローラ自体のイメージと CI |
+| finalizer が残って削除が止まったとき（runbook） | ① 削除中のまま一定時間残っている Application を検知する（`deletionTimestamp` があり、残りの finalizer が自分だけのもの）② hook と送信先の状態を確かめる ③ 送信を諦める判断をしたら、`kubectl patch app <name> --type json -p '[{"op":"remove","path":"/metadata/finalizers/<i>"}]'` で自分の finalizer を外し、通知を送らなかったことを記録する | 同じ |
+| アンインストール | 先に全 Application から自分の finalizer を外す。外さずに本体を消すと、以後の削除がすべて止まる | 同じ |
+| 作成時の finalizer | 止まっている間に作られて消えた Application を取りこぼさないよう、Kyverno の mutate などで作成時に付ける（任意、実測していない） | 同じ |
 
-**自作の利点は、権限を最小にできることだけ。** Metacontroller でも、ClusterRole を絞れば同じところまで寄せられる。検知の確実さと配送保証は、どちらで作っても変わらない。自作にする理由は薄い。
+### 利用者側の作業
+
+受け手を用意すること（CloudEvent を受け、`id` で重複を消す）だけ。Application にも Argo CD の設定にも触らない。Broker を挟む場合は、自分の namespace に Trigger を置く。
+
+### 自作の規模の見積もり（見積もり）
+
+controller-runtime で本番に出す場合の規模を見積もった。**実装して数えた値ではなく、見積もり。**
+
+| 部分 | 見積もり（行） |
+|---|---:|
+| Reconciler（finalizer の付け外し、送信、エラーで再キュー） | 120〜180 |
+| main（Manager、leader election、メトリクス、ヘルスチェック） | 60〜90 |
+| CloudEvent の送信（属性、traceparent、タイムアウト） | 40〜60 |
+| テスト（envtest で、付ける・外す・失敗・競合） | 200〜350 |
+| マニフェスト（RBAC・Deployment・PDB・ServiceMonitor） | 100〜150 |
+| Dockerfile と CI | 40〜80 |
+| 合計 | 約 560〜900 |
+
+### 結論（労力を数えたうえで）
+
+前の版の「自作にする理由は薄い」は、基盤側の負荷を数えずに出した結論だった。数えると、次のように分かれる。
+
+- **Metacontroller:** 自分で書くコードは少ない（hook 29 行）。その代わり、汎用の強い ClusterRole を持つ部品を 1 つ抱える。絞る作業と、21 リリース/年への追従が要る。
+- **自作:** 権限は最小にできる。その代わり、見積もりで 560〜900 行のコードと、テスト・イメージ・CI の保守を抱える。
+
+**どちらが軽いかは、基盤チームがすでに何を運用しているかで決まる。** Go のコントローラを CI 込みで運用している組織なら、自作の限界費用は小さい。そうでなければ Metacontroller のほうが軽い。一方、**検知の確実さと配送保証は、どちらでも同じ。**
+
+## 実装仕様（自作する場合）
+
+| 項目 | 仕様 |
+|---|---|
+| Reconciler の分岐 | ① 削除中でなければ、自分の finalizer を付ける ② 削除中で、残りの finalizer が自分だけなら、Broker ingress に CloudEvent を POST する ③ 2xx なら、楽観ロック（resourceVersion 付きの update）で finalizer を外す ④ 失敗したら error を返し、workqueue の指数バックオフに任せる ⑤ それ以外（Argo CD の finalizer が残っている）は何もしない |
+| 作成直後の競合 | 作成直後に削除されると、finalizer を付ける前に消えうる。防ぐなら Kyverno の mutate で作成時に付ける |
+| RBAC | applications の get/list/watch/update/patch、coordination.k8s.io の leases、events の create/patch |
+| HA | leader election を有効にして 2 レプリカ |
+| CloudEvent | `id = <uid>:deleted`、`type = com.example.argocd.app.deleted`、`source = argocd/applications`、`subject = <name>`、拡張属性に `project`。`traceparent` を付ける |
+| 宛先障害の切り離し | Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（run16 で、アプリ側の宛先を常に 500 にしても、削除は完了した） |
+| 運用 | 削除中のまま残った Application のアラート、finalizer を手で外す手順、アンインストール前の一括除去（上の表） |
+
+### PingSource による突き合わせとの比較
+
+| 観点 | finalizer（自作 / Metacontroller） | PingSource による突き合わせ |
+|---|---|---|
+| 権限 | applications への書き込み（patch/update） | get/list だけ（Namespace なら namespaces の get/list/watch） |
+| 削除を止めるか | 止める（止まると全チームの削除が止まる） | 止めない |
+| 停止中の削除 | 拾う（Application が待つ） | 拾う（uid 一覧と比べる） |
+| 遅延 | ms 単位 | 最大で周期 1 回分（最短 1 分） |
+| 1 周期のうちの作成と削除 | 拾う（作成時に finalizer が付いていれば） | ADD を記録しないと取りこぼす |
+| 状態 | Application の finalizer | uid 一覧（ConfigMap か受け手の DB） |
+| 実測 | run4・run10・run11 | run12・run13・run15 |
 
 ## 権限分離
 

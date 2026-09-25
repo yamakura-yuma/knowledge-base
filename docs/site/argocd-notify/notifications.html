@@ -193,6 +193,50 @@
 </tbody>
 </table>
 <p><strong>越境:</strong> Application を <code>argocd</code> namespace に置く従来の構成では、App 側が購読を足すのに <code>argocd</code> namespace の applications への <code>patch</code> が要る。run9 では、<code>team-a</code> に <code>edit</code> を持つ ServiceAccount でも、この権限は無かった。apps-in-any-namespace と self-service を使えば、App 側は自分の namespace だけで購読と送信先を完結でき、他チームの Application には触れない。controller の Role は applications への <code>update</code> と <code>patch</code> を持つので、Platform はこれを信頼する前提になる。</p>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Argo CD（Notifications 同梱）のアップグレード追従</td>
+<td>既存の運用に含まれる</td>
+</tr>
+<tr>
+<td><code>argocd-notifications-cm</code> の trigger・template・送信先の管理</td>
+<td>送信先を増やすたびに編集</td>
+</tr>
+<tr>
+<td>self-service を有効にする場合、<code>argocd-cmd-params-cm</code> と AppProject の <code>sourceNamespaces</code></td>
+<td>初回だけ</td>
+</tr>
+<tr>
+<td>送信失敗の監視（<code>argocd_notifications_deliveries_total{succeeded="false"}</code>）</td>
+<td>失敗すると再送されないので必須</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>subscribe annotation を付ける（self-service なら自分の namespace の cm と Secret も）</td>
+</tr>
+<tr>
+<td>受け手を用意する</td>
+</tr>
+</tbody>
+</table>
 <h2>評価</h2>
 <p><strong>削除完了の検知: ×。</strong> カタログの <code>on-deleted</code> は <code>when: app.metadata.deletionTimestamp != nil</code> で、説明文は "Application is deleted." となっている（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/notifications_catalog/triggers/on-deleted.yaml">on-deleted.yaml</a>）。実測では、削除要求の 0.06 秒後、<code>resources-finalizer.argocd.argoproj.io</code> を含む finalizer がまだ 3 つ残っている時点で届いた。</p>
 <p>条件を <code>deletionTimestamp != nil and app.status.health.status == 'Missing'</code> にしたカスタム trigger は、管理リソースが消えた直後に発火した（run6）。Notifications で取れるのはここが最も遅い時点で、オブジェクトの消滅は取れない。</p>

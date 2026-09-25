@@ -65,6 +65,22 @@ EventSource の Pod そのものは、kind のノードで inotify の上限に�
 
 **偽装:** 同じ namespace の EventBus に書き込めるのは、同じ namespace の部品に限られる（EventBus は namespace ごとに作る）。チームごとに EventBus を分ければ、他チームへの偽装の経路は無い。これは文献と構成から読んだもので、実測はしていない。
 
+## 導入・運用の労力
+
+### 基盤側の作業
+
+| 作業 | 頻度 |
+|---|---|
+| Argo Events 本体（CRD・controller-manager）の導入と追従 | 継続 |
+| EventSource の ServiceAccount に、対象の list/watch を与える | 対象を増やすたび |
+
+### 利用者側の作業
+
+| 作業 |
+|---|
+| 自分の namespace に EventBus・EventSource・Sensor を置く（`atLeastOnce` と `policy.status.allow` を必ず指定） |
+| Sensor が参照する Secret と受け手を用意する |
+
 ## 評価
 
 **削除完了の検知: ○。** オブジェクトの消滅から 7 ms で DELETE が届いた（run3）。
