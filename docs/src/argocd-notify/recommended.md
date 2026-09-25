@@ -6,9 +6,21 @@
 
 ## 推奨構成のアーキテクチャ
 
+この調査の主張は次のとおり。基盤側と利用者側では、管理するリソースが違う。従来の方式では、通知の設定に要る主なリソース（`argocd-notifications-cm` など）が基盤側にあるので、利用者からは設定しにくい。推奨構成は、利用者が自分の namespace のリソースだけで通知を設定できるようにする。
+
+図は見方ごとに 4 枚に分けた。
+
+| 図 | 見方 |
+|---|---|
+| 図 1 | データの流れ |
+| 図 2 | 責任範囲（どちらが何を管理するか） |
+| 図 3・図 4 | 利用者が通知を足すときの Before / After |
+
+### データの流れ
+
 ```diagram
-title: 推奨構成のアーキテクチャ
-caption: 図 1 推奨構成（概要ページの図 1 と同じ構成）。基盤側の既存部品には手を入れず、通知基盤が観測して Broker に送る。宛先への配送は利用者側が持つ
+title: 推奨構成のデータの流れ
+caption: 図 1 データの流れ（概要ページの図 1 と同じ構成）。基盤側の既存部品には手を入れず、通知基盤が観測して Broker に送る。宛先への配送は利用者側が持つ
 height: 640
 zones:
   - {label: "基盤側：既存の部品（通知のために変更しない）", kind: plain, box: [10, 30, 300, 560]}
@@ -49,6 +61,136 @@ notes:
   - [345, 538, "削除完了: Namespace の delete → EventTransform → id = uid:deleted"]
   - [345, 556, "安全網: PingSource → 観測 Service が list と uid 一覧を比べて同じ id で送る"]
 ```
+
+### 責任範囲（SoW）
+
+```diagram
+title: 責任範囲
+caption: 図 2 責任範囲。太い破線の左が基盤側、右が利用者側。リソースを管理する側に置いた（推奨構成）
+height: 620
+dividers:
+  - {line: [640, 30, 640, 590], labels: [[230, 24, "基盤側（Platform チーム）が管理"], [700, 24, "利用者側（App チーム）が管理"]]}
+zones:
+  - {label: "クラスタスコープ", kind: platform, box: [10, 40, 300, 260]}
+  - {label: "argocd namespace", kind: platform, box: [320, 40, 300, 260]}
+  - {label: "obs namespace（通知基盤）", kind: platform, box: [10, 315, 610, 270]}
+  - {label: "アプリの namespace（例 team-a）", kind: app, box: [660, 40, 330, 545]}
+nodes:
+  - {id: crd, kind: crd, label: "CRD", mono: ["Argo CD・Knative Eventing"], box: [25, 70, 270, 44]}
+  - {id: cr, kind: crd, label: "ClusterRole / RoleBinding", mono: ["namespaces・applications の読み取り"], box: [25, 125, 270, 44]}
+  - {id: ns, kind: app, label: "Namespace（ラベル付き）", mono: ["作成・削除は基盤"], box: [25, 180, 270, 44]}
+  - {id: job, label: "Namespace 削除の Job", box: [25, 235, 270, 44]}
+  - {id: app, kind: app, label: "Application", mono: ["spec と status"], box: [335, 70, 270, 44]}
+  - {id: proj, kind: crd, label: "AppProject", box: [335, 125, 270, 44]}
+  - {id: ncm, kind: crd, label: "argocd-notifications-cm", mono: ["推奨構成では使わない"], box: [335, 180, 270, 44]}
+  - {id: nsec, kind: crd, label: "argocd-notifications-secret", mono: ["推奨構成では使わない"], box: [335, 235, 270, 44]}
+  - {id: src, label: "ApiServerSource", box: [25, 345, 280, 44]}
+  - {id: obs, label: "観測 Service", mono: ["判定と突き合わせ"], box: [25, 400, 280, 44]}
+  - {id: ping, label: "PingSource", box: [25, 455, 280, 44]}
+  - {id: brk, kind: state, label: "Broker（入口）", box: [335, 345, 270, 44]}
+  - {id: tf, label: "EventTransform", mono: ["id を決める"], box: [335, 400, 270, 44]}
+  - {id: inv, kind: state, label: "uid 一覧（ConfigMap）", box: [335, 455, 270, 44]}
+  - {id: fwd, label: "転送 Trigger（チームごとに 1 本）", mono: ["チームの登録時に基盤が置く"], box: [25, 515, 580, 44]}
+  - {id: abrk, kind: state, label: "Broker（アプリ用）", box: [675, 70, 300, 44]}
+  - {id: tr, kind: crd, label: "Trigger（宛先ごと）", mono: ["filter（type・subject）"], box: [675, 125, 300, 44]}
+  - {id: dl, kind: crd, label: "delivery", mono: ["retry・backoff・DLQ"], box: [675, 180, 300, 44]}
+  - {id: et, kind: crd, label: "EventTransform（任意）", mono: ["宛先ごとの本文の整形"], box: [675, 235, 300, 44]}
+  - {id: rcv, kind: ext, label: "受け手 Service", mono: ["id で重複を消す"], box: [675, 290, 300, 44]}
+  - {id: sec, kind: state, label: "Secret", mono: ["Slack の webhook など"], box: [675, 345, 300, 44]}
+  - {id: dq, kind: ext, label: "DLQ の受け口", box: [675, 400, 300, 44]}
+edges:
+  - {from: fwd, to: abrk, kind: ce, via: [[640, 537], [640, 92]], label: "転送", dx: 0, dy: 200}
+```
+
+| リソース | 管理する側 | 置き場所 | 利用者が通知の設定で触るか |
+|---|---|---|---|
+| CRD（Argo CD・Knative）、ClusterRole | 基盤 | クラスタスコープ | 触らない |
+| Namespace と、それを消す Job | 基盤 | クラスタスコープ | 触らない |
+| Application、AppProject | 基盤 | argocd | 触らない |
+| `argocd-notifications-cm`、`argocd-notifications-secret` | 基盤 | argocd | 触らない（推奨構成では使わない） |
+| ApiServerSource、観測 Service、PingSource、EventTransform、Broker（入口）、uid 一覧 | 基盤（通知基盤） | obs | 触らない |
+| 転送 Trigger | 基盤 | obs | 触らない（チームを登録するとき、基盤が 1 本置く） |
+| Broker（アプリ用）、Trigger、delivery、EventTransform、受け手、Secret、DLQ | 利用者 | アプリの namespace | ここだけを触る |
+
+### Before / After：利用者が Slack 通知を足すとき
+
+```diagram
+title: Before
+caption: 図 3 Before（Notifications で通知を足す場合）。赤い破線は、利用者が基盤側のリソースに手を入れる必要がある箇所（依頼か、権限の付与が要る）
+height: 470
+dividers:
+  - {line: [640, 30, 640, 345], labels: [[250, 24, "基盤側"], [760, 24, "利用者側"]]}
+zones:
+  - {label: "argocd namespace（基盤が管理）", kind: platform, box: [10, 40, 610, 300]}
+  - {label: "アプリの namespace", kind: app, box: [660, 40, 330, 300]}
+nodes:
+  - {id: cm, kind: bad, label: "argocd-notifications-cm", mono: ["service・template・trigger を追記"], box: [25, 70, 280, 54]}
+  - {id: sec, kind: bad, label: "argocd-notifications-secret", mono: ["Slack のトークンを追記"], box: [25, 150, 280, 54]}
+  - {id: app, kind: bad, label: "Application", mono: ["subscribe annotation を追記"], box: [25, 230, 280, 54]}
+  - {id: flag, kind: bad, label: "argocd-cmd-params-cm", mono: ["self-service を有効にする（初回）"], box: [325, 70, 280, 54]}
+  - {id: proj, kind: bad, label: "AppProject", mono: ["sourceNamespaces に追加（初回）"], box: [325, 150, 280, 54]}
+  - {id: ncc, label: "notifications-controller", mono: ["argocd の設定を読んで送る"], box: [325, 230, 280, 54]}
+  - {id: user, kind: app, label: "利用者（App チーム）", mono: ["Slack に通知したい"], box: [675, 70, 300, 54]}
+  - {id: none, label: "自分の namespace に", lines: ["通知の設定の置き場が無い"], mono: ["（self-service を有効にするまで）"], box: [675, 150, 300, 70]}
+edges:
+  - {from: user, to: cm, kind: bad, via: [[640, 137], [165, 137]], label: "編集が要る", dx: 120, dy: 0}
+  - {from: user, to: flag, kind: bad, via: [[640, 137], [465, 137]]}
+  - {from: user, to: sec, kind: bad, via: [[640, 217], [165, 217]]}
+  - {from: user, to: proj, kind: bad, via: [[640, 217], [465, 217]]}
+  - {from: user, to: app, kind: bad, via: [[640, 297], [165, 297]]}
+notes:
+  - [20, 368, "詰まる点 1: 宛先・条件・本文の変更のたびに、argocd namespace の ConfigMap を基盤に編集してもらう"]
+  - [20, 386, "詰まる点 2: 送信先の資格情報を、基盤の Secret に預けることになる"]
+  - [20, 404, "詰まる点 3: self-service を使うには、基盤側の設定（フラグと AppProject）が先に要る"]
+  - [20, 422, "詰まる点 4: Application の annotation を足すには、argocd の applications への patch 権限が要る（run9 では付与されていなかった）"]
+```
+
+```diagram
+title: After
+caption: 図 4 After（推奨構成）。利用者は自分の namespace のリソースだけを作る。基盤側は、通知の追加・変更では何も変えない
+height: 470
+dividers:
+  - {line: [640, 30, 640, 345], labels: [[250, 24, "基盤側（変更なし）"], [760, 24, "利用者側"]]}
+zones:
+  - {label: "argocd namespace", kind: platform, box: [10, 40, 300, 300]}
+  - {label: "obs namespace（通知基盤）", kind: platform, box: [320, 40, 300, 300]}
+  - {label: "アプリの namespace", kind: app, box: [660, 40, 330, 300]}
+nodes:
+  - {id: cm, kind: crd, label: "argocd-notifications-cm", mono: ["触らない"], box: [25, 70, 270, 44]}
+  - {id: app, kind: app, label: "Application", mono: ["annotation も不要"], box: [25, 135, 270, 44]}
+  - {id: proj, kind: crd, label: "AppProject・RBAC", mono: ["触らない"], box: [25, 200, 270, 44]}
+  - {id: src, label: "ApiServerSource・観測 Service", mono: ["全チーム共通"], box: [335, 70, 270, 44]}
+  - {id: brk, kind: state, label: "Broker（入口）", box: [335, 135, 270, 44]}
+  - {id: fwd, label: "転送 Trigger", mono: ["チームの登録時に 1 本だけ"], box: [335, 200, 270, 44]}
+  - {id: user, kind: app, label: "利用者（App チーム）", mono: ["自分の namespace だけを触る"], box: [675, 60, 300, 44]}
+  - {id: abrk, kind: state, label: "Broker", box: [675, 125, 140, 44]}
+  - {id: tr, kind: crd, label: "Trigger", mono: ["filter・DLQ"], box: [835, 125, 140, 44]}
+  - {id: rcv, kind: ext, label: "受け手", mono: ["Slack へ送る"], box: [675, 200, 140, 44]}
+  - {id: sec, kind: state, label: "Secret", mono: ["Slack の資格情報"], box: [835, 200, 140, 44]}
+edges:
+  - {from: src, to: brk, kind: ce}
+  - {from: brk, to: fwd, kind: ce}
+  - {from: fwd, to: abrk, kind: ce, via: [[640, 222], [640, 147]], label: "転送", dx: 0, dy: -40}
+  - {from: abrk, to: tr, kind: ce}
+  - {from: tr, to: rcv, kind: ce}
+  - {from: sec, to: rcv, kind: rbac}
+notes:
+  - [20, 368, "宛先の追加: 自分の namespace に Trigger・受け手・Secret を足す"]
+  - [20, 386, "条件の変更: Trigger の filter（type・subject などの属性）を変える"]
+  - [20, 404, "本文の変更: 自分の namespace の EventTransform か受け手で整形する"]
+  - [20, 422, "基盤に頼むのは、チームを初めて登録するときの転送 Trigger 1 本だけ"]
+```
+
+| 作業 | Before（Notifications） | After（推奨構成） |
+|---|---|---|
+| 宛先を足す | 基盤の `argocd-notifications-cm`（service）と `-secret` を編集。Application に subscribe annotation を付ける | 自分の namespace に Trigger・受け手・Secret を足す |
+| 条件を変える | 基盤の `argocd-notifications-cm`（trigger）を編集 | 自分の Trigger の filter を変える |
+| 本文を変える | 基盤の `argocd-notifications-cm`（template）を編集 | 自分の EventTransform か受け手を変える |
+| 資格情報の置き場所 | 基盤の Secret（self-service なら自分の namespace） | 自分の namespace の Secret |
+| 基盤に頼むこと | 上のすべて（self-service なら、初回のフラグと AppProject） | チームの登録時に転送 Trigger を 1 本 |
+
+**利用者の範囲外に残るもの:** 「デプロイ完了とは何か」という判定そのもの（観測 Service の条件）は、通知基盤（obs）の持ち物で、全チームに共通する。利用者が変えられるのは、届いたイベントのうち何を受けるか（filter）と、どう整形するかまで。判定を変えるときは、基盤の通知基盤を変えることになる。ただし Argo CD の設定には触れない。
+
 
 
 ### 経路を 1 本にしたい場合
