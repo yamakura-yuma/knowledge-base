@@ -1,4 +1,4 @@
-# どういう形式のハーネスがよいか（見立て）
+# Thin Harness, Fat Skills — どういう形式のハーネスがよいか（見立て）
 
 > これは調べた事実ではなく**意見**。今後の AI エージェントによるコーディングを前提に、ハーネスの形式を選んだ見立てを書いた。事実として書いた部分（機能・引用）は、パターン・カタログと同じく公式ドキュメントか README で裏を取ってある。取れないものは「ユーザーの観察」と書き分けた。
 
@@ -6,8 +6,23 @@
 
 ## 結論（意見）
 
-**ループは自分で書かない。「検証」「境界」「知識」の 3 つに投資する、薄くて持ち運べる層がよい。**
+**Thin Harness, Fat Skills。ループは自分で書かず薄く保ち、「検証」「境界」「知識」の 3 つに投資する。この 3 つを、持ち運べる形で置く。**
 一言で言えば、エージェントを**どう動かすか**ではなく、エージェントの成果を**どう信じるか**に投資するハーネスである。
+
+「Thin Harness, Fat Skills」は Garry Tan の言葉で、ユーザーが見つけた記事で知った。以下は、この見立てとの対応である。
+
+| Garry Tan の主張（事実：原文の引用） | この見立てでの対応（意見） |
+| --- | --- |
+| ハーネスはモデルをループで回し、ファイルを読み書きし、文脈を管理し、安全を守るプログラム。そこは薄く保つ（"That's the “thin.”"） | ループは Claude Code や Codex CLI のものを借り、自分では書かない |
+| 判断・手順・ドメイン知識は Markdown のスキルに書く。価値の 9 割はここにある（"This is where 90% of the value lives."） | **知識**に投資する。SKILL.md の形で書けば、エージェントを乗り換えても残る |
+| 実行は決定的な道具に押し下げる。そこに信頼が宿る（"Deterministic is where trust lives."） | **検証**と**境界**に投資する。テスト・`make ci`・フック・サンドボックスは、どれも同じ入力に同じ結果を返す |
+
+出典：
+
+- 一次資料：Garry Tan「Thin Harness, Fat Skills」（2026-04、[garrytan/gbrain の docs/ethos/THIN_HARNESS_FAT_SKILLS.md](https://github.com/garrytan/gbrain/blob/master/docs/ethos/THIN_HARNESS_FAT_SKILLS.md)）。"I call it **thin harness, fat skills**." "Push intelligence UP into skills. Push execution DOWN into deterministic tooling. Keep the harness THIN."
+- 紹介記事：[「Thin Harness, Fat Skills」とは？（Fyve、2026-04-13）](https://fyve.co.jp/claude-code/articles/thin-harness-fat-skills-guide)。「ハーネス（CLAUDE.md・settings.json等の設定層）は最小限に抑え、知識と手順はすべてSkillsに集約する」
+- 言葉の主：記事は「元GoogleのSteve Yeggeが提唱した」と書く。しかし一次資料で Yegge が引かれているのは生産性の数字（"10x to 100x"）だけで、名付けたのは Tan 自身である（"I call it"）。このページは一次資料に従った
+- 用語の違い：Tan の「ハーネス」はモデルを回すプログラムのことで、このカタログの 4 層で言えば主にループ層にあたる。記事の「ハーネス」は CLAUDE.md や settings.json などの設定層を指す。カタログの「ハーネス層」（ツール・権限・フック・索引）とは範囲が違う
 
 | | 時間が経つと価値が減るもの | 価値が残る・増えるもの |
 | --- | --- | --- |

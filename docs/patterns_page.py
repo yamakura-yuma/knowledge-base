@@ -502,7 +502,7 @@ def fig_form() -> str:
         t.append(f'<text x="{x + 60}" y="{300}" class="wb-t" font-size="15">のループ＝借りる</text>')
     # 上: 薄い自作の層。3 本柱
     g.append(f'<path d="{wobble_rect(60, 70, 500, 120, 9)}" class="wb-note"/>')
-    t.append('<text x="80" y="58" class="wb-t" font-size="22">自分で持つのは 薄い層 だけ</text>')
+    t.append('<text x="80" y="58" class="wb-t" font-size="22">Thin Harness, <tspan class="wb-tr">Fat Skills</tspan></text>')
     for i, (lab, ic) in enumerate([("検証", "loop"), ("境界", "harness"), ("知識", "prompt")]):
         x = 110 + i * 160
         g.append(_icon(ic, x, 118))
@@ -537,10 +537,12 @@ def form_summary(src: pathlib.Path, cat: dict, warnings: list[str]) -> str:
     concl = next((v for k, v in secs.items() if k.startswith("結論")), "").split("\n\n")[0]
     comp = next((v for k, v in secs.items() if k.startswith("形式の比較")), "")
     table = "\n".join(l for l in comp.splitlines() if l.startswith("|"))
-    return (f'<h2>どういう形式のハーネスがよいか <span class="opinion">意見</span></h2>'
+    return (f'<h2>Thin Harness, Fat Skills — どういう形式のハーネスがよいか <span class="opinion">意見</span></h2>'
             f'<div class="finding">{_md(concl)}</div>'
             f'<div class="tablewrap">{_md(table)}</div>'
-            f'<p><a href="harness-form.html">理由・自作ハーネスへの当てはめ・図を読む →</a></p>')
+            f'<p><small>言葉は Garry Tan「<a href="https://github.com/garrytan/gbrain/blob/master/docs/ethos/THIN_HARNESS_FAT_SKILLS.md">Thin Harness, Fat Skills</a>」から'
+            f'（紹介記事は <a href="https://fyve.co.jp/claude-code/articles/thin-harness-fat-skills-guide">Fyve</a>）。</small></p>'
+            f'<p><a href="harness-form.html">理由・原典との対応・自作ハーネスへの当てはめ・図を読む →</a></p>')
 
 
 def render_form(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
