@@ -143,14 +143,35 @@
   .grwb .tb { fill:#1d56c2; } .grwb .tr { fill:#d0342c; }
   .grwb .wk, .grwb .wb-b, .grwb .wr { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
   .grwb .wk { stroke:#23232a; } .grwb .wb-b { stroke:#1d56c2; } .grwb .wr { stroke:#d0342c; }
-  /* 太ペン（draw-page-grareco スキルの画風） */
-  .grwb .pen, .grwb .pen-b, .grwb .pen-r { fill:none; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
-  .grwb .pen { stroke:#1f1f24; } .grwb .pen-b { stroke:#1d56c2; } .grwb .pen-r { stroke:#d0342c; }
-  .grwb .fill { fill:#fdfdfb; }
-  .grwb .ah { stroke-width:2.2; }
   .grwb .thin { stroke-width:2; } .grwb .dash { stroke-dasharray:7 7; }
   .grwb .hl { fill:none; stroke:#ffe14d; stroke-width:16; stroke-linecap:round; opacity:.7; }
   .grwb .fb { fill:#e6eefc; } .grwb .fr { fill:#fde6e3; } .grwb .fk { fill:#23232a; } .grwb .fw { fill:#fdfdfb; }
+
+  /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
+     図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
+  .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
+  figure.dd { margin:10px 0 26px; }
+  figure.dd svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .dd .dd-paper { fill:var(--bg); }
+  .dd .dd-mask { fill:var(--bg); }
+  .dd .dd-node { fill:var(--surface); stroke:var(--ink); stroke-width:1; }
+  .dd .dd-store { fill:color-mix(in srgb, var(--ink) 5%, var(--bg)); stroke:var(--ink-2); stroke-width:1; }
+  .dd .dd-ext { fill:color-mix(in srgb, var(--ink) 3%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .dd .dd-focal { fill:color-mix(in srgb, var(--l1) 9%, var(--bg)); stroke:var(--l1); stroke-width:1.5; }
+  .dd .dd-line { stroke:var(--ink-2); stroke-width:1.2; fill:none; }
+  .dd .dd-line.dd-acc { stroke:var(--l1); stroke-width:1.6; }
+  .dd .dd-base { stroke:var(--ink-3); stroke-width:1; }
+  .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
+  .dd .dd-drop { stroke:var(--line); stroke-width:1; }
+  .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
+  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); }
+  .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
+  .dd text { fill:var(--ink); }
+  .dd .dd-name { font-size:14px; font-weight:600; }
+  .dd .dd-sub, .dd .dd-lbl, .dd .dd-lbl text { font-size:12.5px; fill:var(--ink-2); }
+  .dd .dd-eyebrow { font-size:12.5px; fill:var(--ink-2); letter-spacing:.04em; }
+  .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
+  .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
 
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
@@ -182,9 +203,6 @@
 </filter>
 <marker id="ak" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wk"/></marker>
 <marker id="ab" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wb-b"/></marker>
-<marker id="pk" viewBox="0 0 12 12" refX="7" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1.5,1.5 L9.5,6 L1.5,10.5" class="pen ah"/></marker>
-<marker id="pb" viewBox="0 0 12 12" refX="7" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1.5,1.5 L9.5,6 L1.5,10.5" class="pen-b ah"/></marker>
-<marker id="pr" viewBox="0 0 12 12" refX="7" refY="6" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1.5,1.5 L9.5,6 L1.5,10.5" class="pen-r ah"/></marker>
 <marker id="ar" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wr"/></marker>
 </defs><rect class="wbg" x="0" y="0" width="100%" height="100%" rx="14"/>
 <path class="hl" d="M40,52 L460,48"/>

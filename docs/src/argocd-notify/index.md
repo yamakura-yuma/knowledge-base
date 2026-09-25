@@ -2,31 +2,52 @@
 
 > Argo CD の `Application` について、デプロイ完了（Synced かつ Healthy）と削除完了（finalizer の処理が終わってオブジェクトと管理リソースが実際に消えた時点）を検知し、外部へ送る 6 つの方式を比べる。根拠は kind 上の Argo CD v3.5.3 での実測と、各プロジェクトのソース・公式ドキュメント。方式ごとの詳細は各ページに分けた。
 
-## グラレコ {#grareco}
+## このページを一言で {#grareco}
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 540" role="img" aria-label="グラレコ：消えたら、外から見て知らせる。基盤の箱には手を入れず、目で見張り、消えたことを壁の向こうの利用者へ手紙で届ける">
-<path class="hl" d="M48,62 C220,56 420,64 620,58"/>
-<text class="th" x="50" y="68">消えたら、外から見て知らせる</text>
-<g filter="url(#wob)">
-  <path class="pen dash" d="M80,236 C84,200 90,188 118,190 C170,186 196,192 212,196 C220,236 214,300 208,332 C170,336 120,334 86,330 C82,300 80,270 80,236"/>
-  <path class="pen" d="M296,258 C330,210 390,206 430,256 C392,306 334,306 296,258"/>
-  <path class="pen" d="M356,248 C366,244 372,256 362,264 C350,266 346,252 356,248"/>
-  <path class="pen-b" d="M292,258 C262,256 244,254 226,256" marker-end="url(#pb)"/>
-  <path class="pen" d="M580,110 C586,220 574,340 584,470"/>
-  <path class="pen-b" d="M436,258 C444,256 448,254 450,252" marker-end="url(#pb)"/>
-  <path class="pen" d="M454,244 C470,236 506,236 520,240 C522,254 520,268 516,280 C494,284 472,282 456,278 C452,266 452,254 454,244 M456,246 C478,262 500,262 518,244"/>
-  <path class="pen-b" d="M530,258 C590,230 660,232 716,250" marker-end="url(#pb)"/>
-  <path class="pen" d="M790,226 C808,222 818,238 812,250 C802,262 784,256 782,244 C780,234 784,228 790,226 M798,262 C800,300 798,320 796,348 M796,284 C780,292 766,300 752,302 M798,284 C816,290 830,296 842,304 M796,348 C786,370 778,386 772,404 M798,348 C808,370 818,386 826,404"/>
-</g>
-<text x="98" y="268">Namespace</text>
-<text class="tb" x="300" y="336">watch</text>
-<text x="404" y="440">基盤</text>
-<text x="700" y="440">利用者</text>
-<text x="80" y="370">消えていく</text>
-<text class="tr" x="60" y="490">on-deleted は消え始めで鳴る。完了を見る</text>
+<p class="eli5">部屋を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。管理会社の掲示板は「片づけを始めました」の時点で知らせを出してしまい、掲示の中身を変えるにも管理会社に頼むしかありません。そこで、管理会社の仕組みには触らず、建物の外に見張り役を置きます。見張り役は部屋が空になったのを確かめてから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
+
+<figure class="dd">
+<svg viewBox="0 36 960 216" role="img" aria-labelledby="dd-index-title dd-index-desc">
+<title id="dd-index-title">推奨構成：外から見張って、消えたことを 1 通で届ける</title>
+<desc id="dd-index-desc">基盤チームが持つ Namespace が消えると、外に置いた見張り役がそれを確かめて Broker に 1 通送り、利用者が自分の側に置いた Trigger を通って宛先に届く。</desc>
+<defs>
+<marker id="dd-index-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker>
+<marker id="dd-index-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker>
+</defs>
+<rect class="dd-paper" width="100%" height="100%"/>
+<!-- boundary -->
+<line class="dd-bound" x1="636" y1="44" x2="636" y2="240"/>
+<text class="dd-eyebrow" x="40" y="56">基盤チームが持つ（触らない）</text>
+<text class="dd-eyebrow" x="660" y="56">あなたが持つ</text>
+<!-- arrows first -->
+<line class="dd-line" x1="184" y1="152" x2="228" y2="152" marker-end="url(#dd-index-ar)"/>
+<line class="dd-line dd-acc" x1="384" y1="152" x2="436" y2="152" marker-end="url(#dd-index-ara)"/>
+<line class="dd-line" x1="580" y1="152" x2="676" y2="152" marker-end="url(#dd-index-ar)"/>
+<line class="dd-line" x1="796" y1="152" x2="836" y2="152" marker-end="url(#dd-index-ar)"/>
+<rect class="dd-mask" x="382" y="126" width="56" height="14" rx="2"/>
+<text class="dd-lbl" x="410" y="136" text-anchor="middle">1 通</text>
+<rect class="dd-mask" x="596" y="126" width="64" height="14" rx="2"/>
+<text class="dd-lbl" x="628" y="136" text-anchor="middle">転送</text>
+<!-- nodes -->
+<rect class="dd-store" x="40" y="124" width="144" height="56" rx="6"/>
+<text class="dd-name" x="112" y="150" text-anchor="middle">Namespace</text>
+<text class="dd-sub" x="112" y="168" text-anchor="middle">基盤の Job が消す</text>
+<rect class="dd-focal" x="232" y="112" width="152" height="80" rx="6"/>
+<text class="dd-name" x="308" y="144" text-anchor="middle">見張り役</text>
+<text class="dd-sub" x="308" y="162" text-anchor="middle">消えたのを確かめる</text>
+<text class="dd-sub" x="308" y="178" text-anchor="middle">1 分ごとに照合</text>
+<rect class="dd-store" x="440" y="124" width="140" height="56" rx="6"/>
+<text class="dd-name" x="510" y="150" text-anchor="middle">Broker</text>
+<text class="dd-sub" x="510" y="168" text-anchor="middle">入口は 1 つ</text>
+<rect class="dd-node" x="680" y="124" width="116" height="56" rx="6"/>
+<text class="dd-name" x="738" y="150" text-anchor="middle">Trigger</text>
+<text class="dd-sub" x="738" y="168" text-anchor="middle">再送・DLQ</text>
+<rect class="dd-ext" x="840" y="124" width="96" height="56" rx="6"/>
+<text class="dd-name" x="888" y="150" text-anchor="middle">宛先</text>
+<text class="dd-sub" x="888" y="168" text-anchor="middle">Slack など</text>
+<text class="dd-aside" x="232" y="228">Argo CD の設定にも Job にも手を入れない</text>
 </svg>
-</div>
+</figure>
 
 ---
 

@@ -2,27 +2,46 @@
 
 > application-controller が、アプリのマニフェストに入っている hook（Job）を、sync の後や削除の途中で作って実行する。Job の中から送信先へ HTTP で送る。**PostDelete が捉えるのは、管理リソースは消えたが Application はまだ残っている時点。**
 
-<div class="grwb">
-<svg class="wb" viewBox="0 0 1000 520" role="img" aria-label="グラレコ：hook が送ったとき、Application はまだある。管理リソースが消えたあとで Job が手紙を送り、Application が消えるのはその 2.5 秒後。宛先が落ちると削除が止まる">
-<path class="hl" d="M48,62 C220,56 460,64 690,58"/>
-<text class="th" x="50" y="68">送ったとき、まだ消えていない</text>
-<g filter="url(#wob)">
-  <path class="pen" d="M70,420 C300,414 600,424 930,416" marker-end="url(#pk)"/>
-  <path class="pen" d="M110,300 C300,294 600,302 820,298 C826,330 822,352 820,370 C600,376 300,372 110,370 C106,350 106,320 110,300"/>
-  <path class="pen" d="M860,318 C876,300 900,302 908,318 C926,322 928,344 912,352 C906,370 878,368 870,354 C852,350 850,326 860,318"/>
-  <path class="pen" d="M470,138 C488,132 500,148 494,160 C484,172 466,166 464,154 C462,146 464,140 470,138 M480,172 C482,200 480,220 478,244 M480,194 C498,186 512,184 526,182 M478,244 C470,262 464,274 458,288 M480,244 C488,262 494,274 500,288"/>
-  <path class="pen-b" d="M540,168 C560,164 580,164 600,166 C602,180 600,192 598,204 C578,206 558,206 540,204 C538,192 538,180 540,168 M542,170 C560,186 582,186 598,168"/>
-  <path class="pen-b" d="M612,184 C680,160 740,156 800,164" marker-end="url(#pb)"/>
-  <path class="pen-r" d="M600,420 C700,414 780,420 846,418"/>
+<p class="eli5">引っ越し業者が「荷物を全部運び出しました」と電話をくれるのは、部屋の鍵を返す前です。電話を受けた時点では、部屋の契約はまだ残っています。しかも業者は電話がつながるまで鍵を返さないので、あなたの電話が壊れていると、契約がいつまでも終わりません。このページの方法（片づけの最後に、アプリ自身の小さな作業から知らせを送る）は、これと同じ形をしています。</p>
+
+<figure class="dd">
+<svg viewBox="0 32 960 232" role="img" aria-labelledby="dd-hooks-title dd-hooks-desc">
+<title id="dd-hooks-title">PostDelete hook が送る時点と、Application が消える時点</title>
+<desc id="dd-hooks-desc">削除を依頼してから 3.45 秒で管理リソースが消え、4.29 秒に hook が通知を送り、Application が消えるのは 6.80 秒。通知は Application が消える 2.5 秒前に届く（run3 の実測）。</desc>
+<defs>
+<marker id="dd-hooks-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker>
+</defs>
+<rect class="dd-paper" width="100%" height="100%"/>
+<!-- Application lifetime band (x = 60 + 120 * seconds) -->
+<rect class="dd-store" x="60" y="48" width="816" height="28" rx="4"/>
+<text class="dd-name" x="76" y="67">Application はまだある</text>
+<!-- baseline and ticks -->
+<line class="dd-base" x1="60" y1="164" x2="920" y2="164" marker-end="url(#dd-hooks-ar)"/>
+<g class="dd-tick">
+<line x1="60" y1="160" x2="60" y2="168"/><line x1="180" y1="160" x2="180" y2="168"/><line x1="300" y1="160" x2="300" y2="168"/><line x1="420" y1="160" x2="420" y2="168"/><line x1="540" y1="160" x2="540" y2="168"/><line x1="660" y1="160" x2="660" y2="168"/><line x1="780" y1="160" x2="780" y2="168"/><line x1="900" y1="160" x2="900" y2="168"/>
 </g>
-<text x="140" y="344">Application、まだある</text>
-<text x="400" y="118">hook の Job</text>
-<text x="830" y="160">通知</text>
-<text x="870" y="298">消滅</text>
-<text class="tr" x="640" y="468">あと 2.5 秒</text>
-<text class="tr" x="60" y="490">宛先が落ちると、削除が止まる</text>
+<g class="dd-lbl">
+<text x="60" y="244" text-anchor="middle">0 秒</text><text x="180" y="244" text-anchor="middle">1</text><text x="300" y="244" text-anchor="middle">2</text><text x="420" y="244" text-anchor="middle">3</text><text x="540" y="244" text-anchor="middle">4</text><text x="660" y="244" text-anchor="middle">5</text><text x="780" y="244" text-anchor="middle">6</text><text x="900" y="244" text-anchor="middle">7</text>
+</g>
+<!-- 2.5 s gap -->
+<path class="dd-line dd-acc" d="M575,100 L575,92 L876,92 L876,100"/>
+<rect class="dd-mask" x="684" y="80" width="84" height="14" rx="2"/>
+<text class="dd-lbl dd-acc-t" x="726" y="90" text-anchor="middle">あと 2.5 秒</text>
+<!-- event drops -->
+<line class="dd-drop" x1="60" y1="164" x2="60" y2="128"/>
+<line class="dd-drop" x1="474" y1="164" x2="474" y2="200"/>
+<line class="dd-drop" x1="575" y1="164" x2="575" y2="100"/>
+<line class="dd-drop" x1="876" y1="164" x2="876" y2="200"/>
+<circle class="dd-dot" cx="60" cy="164" r="4"/>
+<circle class="dd-dot" cx="474" cy="164" r="4"/>
+<circle class="dd-dot-acc" cx="575" cy="164" r="6"/>
+<circle class="dd-dot" cx="876" cy="164" r="4"/>
+<text class="dd-sub" x="68" y="124">削除を依頼</text>
+<text class="dd-sub" x="466" y="216" text-anchor="end">管理リソースが消える（3.45 秒）</text>
+<text class="dd-name dd-acc-t" x="587" y="128">hook が通知を送る（4.29 秒）</text>
+<text class="dd-sub" x="868" y="216" text-anchor="end">Application が消える（6.80 秒）</text>
 </svg>
-</div>
+</figure>
 
 
 
