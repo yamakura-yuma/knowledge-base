@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>⑤ 自前 finalizer コントローラ</title>
+<title>⑤ finalizer 方式（Metacontroller）</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -98,6 +98,34 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
+  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
+  .gr .fig text { font-size:13px; fill:var(--ink); }
+  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
+  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
+  .gr .gr-m { font-size:14px; fill:var(--ink); }
+  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
+  .gr .gr-b { font-weight:700; }
+  .gr .gr-big { font-size:64px; font-weight:800; }
+  .gr .gr-red { fill:var(--hot); }
+  .gr .gr-code { font-family:var(--mono); }
+  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
+  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-dot { fill:var(--ink); }
+  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
+  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
+  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
+  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
+  .gr .gr-ink { fill:var(--ink); }
+  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -116,34 +144,76 @@
 <body>
 <div class="wrap">
 <header>
-  <h1>⑤ 自前 finalizer コントローラ</h1>
-  <p class="sub">Application に自分の finalizer（例 <code>notify.example.com/deletion</code>）を付けておく。<code>deletionTimestamp</code> が立ち、<strong>残っている finalizer が自分だけ</strong>になったら送信し、送信に成功してから finalizer を外す。<strong>削除完了を保証して送れるのは、6 方式の中でこれだけ。</strong> 代わりに、止まっている間は削除も止まる。</p>
+  <h1>⑤ finalizer 方式（Metacontroller）</h1>
+  <p class="sub">Application に自分の finalizer を付けておき、<strong>残っている finalizer が自分だけ</strong>になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。</p>
 </header>
 <nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="on">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
 <h2>アーキテクチャ</h2>
-<div class="dgm"><div class="cap">状態は Application の finalizer 自身が持つ。コントローラは状態を持たず、毎回全件を見直す</div><svg class="fig" viewBox="0 0 1000 380" role="img" aria-label="自前 finalizer コントローラのアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="310" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="360" y="30" width="330" height="310" rx="8"/><text class="t-zone" x="370" y="46">notify namespace（Platform）</text><rect class="zone zone-ext" x="710" y="30" width="280" height="310" rx="8"/><text class="t-zone" x="720" y="46">外部 / Broker</text><rect class="nd nd-app" x="25" y="60" width="300" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-state" x="25" y="130" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="149">metadata.finalizers</text><text class="t-mono" x="35" y="165">resources-finalizer.argocd…</text><text class="t-mono" x="35" y="181">post-delete-finalizer.argocd…</text><text class="t-mono" x="35" y="197">notify.example.com/deletion</text><rect class="nd nd-comp" x="25" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="35" y="269">application-controller</text><text class="t-mono" x="35" y="285">argocd の finalizer を順に外す</text><rect class="nd nd-comp" x="375" y="60" width="300" height="86" rx="6"/><text class="t-ink" x="385" y="79">notify-finalizer</text><text class="" x="385" y="95">作成時に付ける</text><text class="t-mono" x="385" y="111">残りが自分だけ → 送信 → 外す</text><text class="t-mono" x="385" y="127">controller-runtime・Lease</text><rect class="nd nd-state" x="375" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="269">Lease</text><text class="t-mono" x="385" y="285">リーダー選出</text><rect class="nd nd-ext" x="725" y="60" width="250" height="70" rx="6"/><text class="t-ink" x="735" y="79">Broker / 任意の HTTP</text><text class="t-mono" x="735" y="95">Idempotency-Key: uid</text><path class="ln ln-watch" d="M375,94 L325,91" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="330" y="82" width="40" height="15" rx="3"/><text class="t-mono" x="350" y="92" text-anchor="middle">watch</text><path class="ln ln-patch" d="M413,146 L350,170 L325,170" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="310" y="155" width="79" height="15" rx="3"/><text class="t-mono" x="350" y="166" text-anchor="middle">付ける / 外す</text><path class="ln ln-patch" d="M175,250 L175,216" marker-end="url(#a-patch)"/><path class="ln ln-ce" d="M675,99 L725,98" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="686" y="88" width="29" height="15" rx="3"/><text class="t-mono" x="700" y="99" text-anchor="middle">送信</text><path class="ln ln-patch" d="M525,146 L525,250" marker-end="url(#a-patch)"/><path class="ln ln-watch" d="M20,370 L48,370" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="374">watch</text><path class="ln ln-ce" d="M107.5,370 L135.5,370" marker-end="url(#a-ce)"/><text class="t-mono" x="141.5" y="374">CloudEvent</text><path class="ln ln-patch" d="M226.5,370 L254.5,370" marker-end="url(#a-patch)"/><text class="t-mono" x="260.5" y="374">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="475.7" y="362" width="16" height="12" rx="2"/><text class="t-mono" x="497.7" y="374">状態を持つ場所</text></svg></div>
-<ul>
-<li><strong>状態を持つ場所は finalizer そのもの。</strong> 「まだ送っていない削除」は、自分の finalizer が残っていることで表される。コントローラが落ちても、Kubernetes が Application を消さずに持っていてくれる</li>
-<li>検証には、Python で 40 行ほどの試作を使った（1 秒ごとに全件を見直す）。本番なら controller-runtime で書き、Manager の <code>LeaderElection</code> でリーダーを 1 つにする（<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/v0.25.1/pkg/manager/manager.go">controller-runtime v0.25.1 の pkg/manager/manager.go</a>）</li>
-</ul>
+<div class="dgm"><div class="cap">状態は Application の finalizer 自身が持つ。Metacontroller が付け外しと再試行を受け持ち、hook は状態を持たない</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="finalizer 方式のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="360" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="370" y="46">metacontroller / notify namespace</text><rect class="zone zone-ext" x="710" y="30" width="280" height="330" rx="8"/><text class="t-zone" x="720" y="46">送信先</text><rect class="nd nd-app" x="25" y="60" width="300" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-state" x="25" y="130" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="149">metadata.finalizers</text><text class="t-mono" x="35" y="165">resources-finalizer.argocd…</text><text class="t-mono" x="35" y="181">post-delete-finalizer.argocd…</text><text class="t-mono" x="35" y="197">metacontroller.io/decorator…</text><rect class="nd nd-comp" x="25" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="35" y="269">application-controller</text><text class="t-mono" x="35" y="285">argocd の finalizer を順に外す</text><rect class="nd nd-comp" x="375" y="60" width="300" height="70" rx="6"/><text class="t-ink" x="385" y="79">Metacontroller</text><text class="" x="385" y="95">DecoratorController</text><text class="t-mono" x="385" y="111">付け外し・resync・再試行</text><rect class="nd nd-crd" x="375" y="160" width="300" height="66" rx="6"/><text class="t-ink" x="385" y="179">DecoratorController（CR）</text><text class="t-mono" x="385" y="195">resources: applications</text><text class="t-mono" x="385" y="211">hooks: sync / finalize</text><rect class="nd nd-comp" x="375" y="255" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="274">finalize hook（Webhook）</text><text class="t-mono" x="385" y="290">状態なし・約 30 行・2 レプリカ</text><rect class="nd nd-ext" x="725" y="255" width="250" height="54" rx="6"/><text class="t-ink" x="735" y="274">送信先 / Broker</text><text class="t-mono" x="735" y="290">CloudEvent（Ce-Id = uid）</text><path class="ln ln-watch" d="M375,89 L325,88" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="330" y="78" width="40" height="15" rx="3"/><text class="t-mono" x="350" y="88" text-anchor="middle">watch</text><path class="ln ln-patch" d="M443,130 L350,170 L325,170" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="310" y="155" width="79" height="15" rx="3"/><text class="t-mono" x="350" y="166" text-anchor="middle">付ける / 外す</text><path class="ln ln-patch" d="M175,250 L175,216" marker-end="url(#a-patch)"/><path class="ln ln-watch" d="M525,130 L525,160" marker-end="url(#a-watch)"/><path class="ln ln-http" d="M675,95 L690,95 L690,240 L525,240 L525,255" marker-end="url(#a-http)"/><rect class="lbl-bg" x="647" y="229" width="86" height="15" rx="3"/><text class="t-mono" x="690" y="240" text-anchor="middle">finalize 要求</text><path class="ln ln-ce" d="M675,282 L725,282" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="686" y="271" width="29" height="15" rx="3"/><text class="t-mono" x="700" y="282" text-anchor="middle">送信</text><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M107.5,390 L135.5,390" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="394">HTTP</text><path class="ln ln-ce" d="M188.7,390 L216.7,390" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="394">CloudEvent</text><path class="ln ln-patch" d="M307.7,390 L335.7,390" marker-end="url(#a-patch)"/><text class="t-mono" x="341.7" y="394">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="556.9" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="578.9" y="394">状態を持つ場所</text></svg></div>
+<p><strong>流れ:</strong></p>
+<ol>
+<li>DecoratorController に <code>finalize</code> hook を定義すると、Metacontroller は対象の Application に finalizer <code>metacontroller.io/decoratorcontroller-&lt;名前&gt;</code> を付ける（<a href="https://github.com/metacontroller/metacontroller/blob/master/docs/src/api/decoratorcontroller.md">decoratorcontroller.md の Finalize Hook</a>、<code>pkg/controller/decorator/controller.go</code>）。</li>
+<li>Application が削除されると、Metacontroller は <code>finalizing: true</code> を付けて hook を呼ぶ。</li>
+<li>hook は、自分以外の finalizer が残っているうちは <code>finalized: false</code> を返す。残りが自分だけになったら送信し、成功した場合に限って <code>finalized: true</code> を返す。</li>
+<li><code>finalized: true</code> を受け取ると、Metacontroller が finalizer を外し、Application が消える。</li>
+</ol>
+<p><strong>hook の中身</strong> は、試作で約 30 行だった。受け取った JSON の <code>object.metadata.finalizers</code> を見て、送るかどうかを決めるだけ。状態は持たない。</p>
+<h2>自作（controller-runtime）と比べる</h2>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>Metacontroller ＋ hook</th>
+<th>controller-runtime で自作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>削除完了を取る確実さ</td>
+<td>同じ（どちらも finalizer が根拠）</td>
+<td>同じ</td>
+</tr>
+<tr>
+<td>自分で書くもの</td>
+<td>状態を持たない Webhook 1 つ</td>
+<td>watch・finalizer の付け外し・再試行・リーダー選出の設定・テスト</td>
+</tr>
+<tr>
+<td>再試行</td>
+<td>Metacontroller が、hook が <code>finalized: true</code> を返すまで呼び直す</td>
+<td>自分で <code>RequeueAfter</code> などを書く</td>
+</tr>
+<tr>
+<td>権限</td>
+<td>Metacontroller の ClusterRole は、既定で全リソースへの全 verb（<code>*</code>）。Helm の <code>clusterRole.rules</code> で絞る</td>
+<td>必要な分だけ（applications の get/list/watch/patch）</td>
+</tr>
+<tr>
+<td>保守</td>
+<td>Metacontroller のアップグレードに追従する（1,009 star、v4.17.2、2026-08-13）</td>
+<td>自分のコードと、controller-runtime の追従</td>
+</tr>
+</tbody>
+</table>
+<p><strong>自作の利点は、権限を最小にできることだけ。</strong> Metacontroller でも、ClusterRole を絞れば同じところまで寄せられる。検知の確実さと配送保証は、どちらで作っても変わらない。自作にする理由は薄い。</p>
 <h2>権限分離</h2>
-<div class="dgm"><div class="cap">Application に書き込む権限が要るので、Platform が持つ部品になる。App 側は Broker の先で受けるだけ</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="自前 finalizer の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">App 側</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">notify-finalizer（Platform が運用）</text><text class="t-mono" x="35" y="95">ServiceAccount: finalizer-ctrl</text><rect class="nd nd-crd" x="25" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="159">Role in argocd</text><text class="t-mono" x="35" y="175">applications: get/list/watch/patch/update</text><rect class="nd nd-crd" x="25" y="220" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="239">admission（任意）</text><text class="t-mono" x="35" y="255">作成時に finalizer を足す（Kyverno など）</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">Trigger と受け手</text><text class="t-mono" x="535" y="95">type=…app.deleted を購読</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">受け手の Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は App が持つ</text><path class="ln ln-rbac" d="M250,140 L250,114" marker-end="url(#a-rbac)"/><path class="ln ln-ce" d="M475,87 L525,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="463" y="76" width="73" height="15" rx="3"/><text class="t-mono" x="500" y="87" text-anchor="middle">Broker 経由</text><path class="ln ln-ce" d="M20,320 L48,320" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="324">CloudEvent</text><path class="ln ln-rbac" d="M139.0,320 L167.0,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="173.0" y="324">権限付与</text></svg></div>
+<div class="dgm"><div class="cap">Application に書き込むので、基盤側が持つ部品になる。利用者は送信先で受けるだけ</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="finalizer 方式の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">基盤側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">利用者側</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">Metacontroller（基盤が運用）</text><text class="t-mono" x="35" y="95">ClusterRole は既定で */*/*。絞ること</text><rect class="nd nd-crd" x="25" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="159">DecoratorController と hook</text><text class="t-mono" x="35" y="175">クラスタスコープの CR</text><rect class="nd nd-crd" x="25" y="220" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="239">admission（任意）</text><text class="t-mono" x="35" y="255">作成時に finalizer を足す（Kyverno など）</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">受け手</text><text class="t-mono" x="535" y="95">uid で冪等に受ける</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">受け手の Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は利用者が持つ</text><path class="ln ln-rbac" d="M250,140 L250,114" marker-end="url(#a-rbac)"/><path class="ln ln-ce" d="M475,87 L525,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="459" y="76" width="82" height="15" rx="3"/><text class="t-mono" x="500" y="87" text-anchor="middle">hook から送信</text><path class="ln ln-ce" d="M20,320 L48,320" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="324">CloudEvent</text><path class="ln ln-rbac" d="M139.0,320 L167.0,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="173.0" y="324">権限付与</text></svg></div>
 <ul>
-<li><strong>Platform が持つ部品。</strong> Argo CD が所有する CR の <code>metadata.finalizers</code> に書き込むので、applications への <code>patch</code>（または <code>update</code>）が要る。ほかの方式より権限が広く、App 側に渡してはいけない</li>
-<li><strong>越境:</strong> App 側は Broker の先で受けるだけなので、Application そのものには触れない。受け手を分ければ、他チームの削除通知を購読させない構成にもできる（Trigger の filter で <code>subject</code> を絞る）</li>
+<li><strong>越境:</strong> 利用者側は Application に触れない。DecoratorController はクラスタスコープの CR なので、作れるのは基盤側だけになる。</li>
+<li><strong>資格情報:</strong> 直接送る場合、送信先の資格情報は hook が持つ（基盤側）。Broker を挟めば、送信先ごとの受け手（利用者側）に閉じる。</li>
 </ul>
 <h2>評価</h2>
-<p><strong>削除完了の検知: ◎。</strong> 自分の finalizer だけが残った時点では、Argo CD はすでに <code>resources-finalizer</code> と <code>post-delete-finalizer</code> を外し終えている。つまり、管理リソースの削除も PostDelete hook の完了も保証された状態で送れる。自分の finalizer を外した直後に、オブジェクトは消える。run6 では、送信から 45 ms 後に Application が消えた。</p>
-<p><strong>検知層の耐障害性: ◎。</strong> レベルトリガで、起動するたびに全件を見直すので、止まっていた間の削除も復旧後に拾える。run4 では、コントローラを止めたまま削除すると、Application は自前の finalizer 1 つを残して待った。復旧から 2.4 秒後に送信され、Application が消えた。</p>
-<p><strong>配送層の回復性: ○。</strong> 送信に成功するまで finalizer を外さないので、retry は実装で自由に書ける（<code>RequeueAfter</code> によるバックオフなど）。DLQ や circuit breaker は付いてこないので、自分で持つか、Broker に任せる。</p>
-<p><strong>配送保証: ◎。</strong> 送ってから外すので at-least-once になる。外す前に落ちれば、重複しうる。冪等キーには Application の <code>uid</code> を使える（試作では <code>Idempotency-Key</code> ヘッダに入れた）。</p>
-<p><strong>可用性: ×。</strong> 止まっている間は削除が完了しない。これは確実さと引き換えの性質で、削除できるかどうかをこのコントローラに預けることになる。2 レプリカ以上とリーダー選出が要る。完全に失われた場合の抜け道（finalizer を手で外す手順）も、運用手順として用意しておく。</p>
-<p><strong>疎結合: ○。</strong> 単体だと、送信先がコードに入る。CloudEvent を Broker に出す形にすれば、送信先の追加は Trigger 側で済み、◎ になる（推奨構成）。</p>
-<p><strong>スケーラビリティ: △。</strong> 処理するのはリーダー 1 つ。Application の数が数千程度なら問題にならないと読めるが、測っていない。</p>
-<p><strong>可観測性: ○。</strong> 自分で OTel SDK を入れ、送信の span を切り、<code>traceparent</code> を付けて送れる。組み込みではないので ○ にした。</p>
-<p><strong>セキュリティ・権限分離: △。</strong> applications への <code>patch</code> が要り、権限が広い。</p>
-<p><strong>運用負荷: △。</strong> 自作のコントローラを保守することになる。</p>
-<p><strong>レイテンシ: ○。</strong> Argo CD の最後の finalizer が外れてから、次のループで送る。試作は 1 秒ごとのポーリングだったので、最大で約 1 秒遅れる。watch で書けば、この遅れは縮む。</p>
+<p><strong>削除完了の検知: ◎。</strong> 自分の finalizer だけが残った時点で、Argo CD はすでに <code>resources-finalizer</code> と <code>post-delete-finalizer</code> を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（run6）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（run10）。</p>
+<p><strong>検知層の耐障害性: ◎。</strong> Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（run10）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（run4）。</p>
+<p><strong>配送層の回復性: ○。</strong> 送信先を常に 500 にすると、hook は <code>finalized: false</code> を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（<code>resyncPeriodSeconds: 30</code>）と再送した（run10）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。</p>
+<p><strong>配送保証: ◎。</strong> 送ってから <code>finalized: true</code> を返すので、at-least-once になる。応答の前に落ちると重複する。CloudEvent の <code>Ce-Id</code> に Application の <code>uid</code> を入れ、受け手で重複を除く。</p>
+<p><strong>可用性: ×。</strong> Metacontroller が止まっている間は、削除が完了しない。<code>--leader-election</code> を付けて複数レプリカで動かす（<a href="https://github.com/metacontroller/metacontroller/blob/master/docs/src/guide/configuration.md">configuration.md</a>）。既定のマニフェストは 1 レプリカ。複数レプリカでの動きは実測していない。</p>
+<p><strong>疎結合: ○。</strong> 直接送る形だと、送信先が hook の中に入る。Broker を挟めば、送信先の追加は Trigger 側で済む。</p>
+<p><strong>スケーラビリティ: △。</strong> Metacontroller はリーダー 1 つで処理する。hook は水平に増やせる。</p>
+<p><strong>可観測性: ○。</strong> Metacontroller は <code>--metrics-address</code> で Prometheus のメトリクスを出す。送信の span と <code>traceparent</code> は hook の側で付ける。</p>
+<p><strong>セキュリティ・権限分離: △。</strong> 既定の ClusterRole が広い。絞るのは基盤側の仕事になる。</p>
+<p><strong>運用負荷: ○。</strong> 増える部品は Metacontroller と hook。自作のコントローラを保守するよりは軽い。</p>
+<p><strong>レイテンシ: ○。</strong> 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。run10 では、送信から消滅まで約 10 ms だった。</p>
 <footer>
   正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
   の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。

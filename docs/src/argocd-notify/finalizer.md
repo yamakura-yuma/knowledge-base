@@ -1,78 +1,98 @@
-# ⑤ 自前 finalizer コントローラ
+# ⑤ finalizer 方式（Metacontroller）
 
-> Application に自分の finalizer（例 `notify.example.com/deletion`）を付けておく。`deletionTimestamp` が立ち、**残っている finalizer が自分だけ**になったら送信し、送信に成功してから finalizer を外す。**削除完了を保証して送れるのは、6 方式の中でこれだけ。** 代わりに、止まっている間は削除も止まる。
+> Application に自分の finalizer を付けておき、**残っている finalizer が自分だけ**になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。
 
 ## アーキテクチャ
 
 ```diagram
-title: 自前 finalizer コントローラのアーキテクチャ
-caption: 状態は Application の finalizer 自身が持つ。コントローラは状態を持たず、毎回全件を見直す
-height: 380
+title: finalizer 方式のアーキテクチャ
+caption: 状態は Application の finalizer 自身が持つ。Metacontroller が付け外しと再試行を受け持ち、hook は状態を持たない
+height: 400
 zones:
-  - {label: "argocd namespace", kind: platform, box: [10, 30, 330, 310]}
-  - {label: "notify namespace（Platform）", kind: platform, box: [360, 30, 330, 310]}
-  - {label: "外部 / Broker", kind: ext, box: [710, 30, 280, 310]}
+  - {label: "argocd namespace", kind: platform, box: [10, 30, 330, 330]}
+  - {label: "metacontroller / notify namespace", kind: platform, box: [360, 30, 330, 330]}
+  - {label: "送信先", kind: ext, box: [710, 30, 280, 330]}
 nodes:
   - {id: app, kind: app, label: "Application（CR）", box: [25, 60, 300, 44]}
-  - {id: fin, kind: state, label: "metadata.finalizers", mono: ["resources-finalizer.argocd…", "post-delete-finalizer.argocd…", "notify.example.com/deletion"], box: [25, 130, 300, 86]}
+  - {id: fin, kind: state, label: "metadata.finalizers", mono: ["resources-finalizer.argocd…", "post-delete-finalizer.argocd…", "metacontroller.io/decorator…"], box: [25, 130, 300, 86]}
   - {id: argo, label: "application-controller", mono: ["argocd の finalizer を順に外す"], box: [25, 250, 300, 54]}
-  - {id: ctl, label: "notify-finalizer", lines: ["作成時に付ける"], mono: ["残りが自分だけ → 送信 → 外す", "controller-runtime・Lease"], box: [375, 60, 300, 86]}
-  - {id: lease, kind: state, label: "Lease", mono: ["リーダー選出"], box: [375, 250, 300, 54]}
-  - {id: ext, kind: ext, label: "Broker / 任意の HTTP", mono: ["Idempotency-Key: uid"], box: [725, 60, 250, 70]}
+  - {id: mc, label: "Metacontroller", lines: ["DecoratorController"], mono: ["付け外し・resync・再試行"], box: [375, 60, 300, 70]}
+  - {id: dc, kind: crd, label: "DecoratorController（CR）", mono: ["resources: applications", "hooks: sync / finalize"], box: [375, 160, 300, 66]}
+  - {id: hook, label: "finalize hook（Webhook）", mono: ["状態なし・約 30 行・2 レプリカ"], box: [375, 255, 300, 54]}
+  - {id: ext, kind: ext, label: "送信先 / Broker", mono: ["CloudEvent（Ce-Id = uid）"], box: [725, 255, 250, 54]}
 edges:
-  - {from: ctl, to: app, kind: watch, label: watch}
-  - {from: ctl, to: fin, kind: patch, via: [[350, 170]], label: "付ける / 外す", dy: -4}
+  - {from: mc, to: app, kind: watch, label: watch}
+  - {from: mc, to: fin, kind: patch, via: [[350, 170]], label: "付ける / 外す", dy: -4}
   - {from: argo, to: fin, kind: patch}
-  - {from: ctl, to: ext, kind: ce, label: "送信"}
-  - {from: ctl, to: lease, kind: patch}
+  - {from: mc, to: dc, kind: watch}
+  - {from: mc, to: hook, kind: http, via: [[690, 95], [690, 240], [525, 240]], label: "finalize 要求"}
+  - {from: hook, to: ext, kind: ce, label: "送信"}
 ```
 
-- **状態を持つ場所は finalizer そのもの。** 「まだ送っていない削除」は、自分の finalizer が残っていることで表される。コントローラが落ちても、Kubernetes が Application を消さずに持っていてくれる
-- 検証には、Python で 40 行ほどの試作を使った（1 秒ごとに全件を見直す）。本番なら controller-runtime で書き、Manager の `LeaderElection` でリーダーを 1 つにする（[controller-runtime v0.25.1 の pkg/manager/manager.go](https://github.com/kubernetes-sigs/controller-runtime/blob/v0.25.1/pkg/manager/manager.go)）
+**流れ:**
+
+1. DecoratorController に `finalize` hook を定義すると、Metacontroller は対象の Application に finalizer `metacontroller.io/decoratorcontroller-<名前>` を付ける（[decoratorcontroller.md の Finalize Hook](https://github.com/metacontroller/metacontroller/blob/master/docs/src/api/decoratorcontroller.md)、`pkg/controller/decorator/controller.go`）。
+2. Application が削除されると、Metacontroller は `finalizing: true` を付けて hook を呼ぶ。
+3. hook は、自分以外の finalizer が残っているうちは `finalized: false` を返す。残りが自分だけになったら送信し、成功した場合に限って `finalized: true` を返す。
+4. `finalized: true` を受け取ると、Metacontroller が finalizer を外し、Application が消える。
+
+**hook の中身** は、試作で約 30 行だった。受け取った JSON の `object.metadata.finalizers` を見て、送るかどうかを決めるだけ。状態は持たない。
+
+## 自作（controller-runtime）と比べる
+
+| 観点 | Metacontroller ＋ hook | controller-runtime で自作 |
+|---|---|---|
+| 削除完了を取る確実さ | 同じ（どちらも finalizer が根拠） | 同じ |
+| 自分で書くもの | 状態を持たない Webhook 1 つ | watch・finalizer の付け外し・再試行・リーダー選出の設定・テスト |
+| 再試行 | Metacontroller が、hook が `finalized: true` を返すまで呼び直す | 自分で `RequeueAfter` などを書く |
+| 権限 | Metacontroller の ClusterRole は、既定で全リソースへの全 verb（`*`）。Helm の `clusterRole.rules` で絞る | 必要な分だけ（applications の get/list/watch/patch） |
+| 保守 | Metacontroller のアップグレードに追従する（1,009 star、v4.17.2、2026-08-13） | 自分のコードと、controller-runtime の追従 |
+
+**自作の利点は、権限を最小にできることだけ。** Metacontroller でも、ClusterRole を絞れば同じところまで寄せられる。検知の確実さと配送保証は、どちらで作っても変わらない。自作にする理由は薄い。
 
 ## 権限分離
 
 ```diagram
-title: 自前 finalizer の権限分離
-caption: Application に書き込む権限が要るので、Platform が持つ部品になる。App 側は Broker の先で受けるだけ
+title: finalizer 方式の権限分離
+caption: Application に書き込むので、基盤側が持つ部品になる。利用者は送信先で受けるだけ
 height: 330
 zones:
-  - {label: "Platform 側", kind: platform, box: [10, 30, 480, 260]}
-  - {label: "App 側", kind: app, box: [510, 30, 480, 260]}
+  - {label: "基盤側", kind: platform, box: [10, 30, 480, 260]}
+  - {label: "利用者側", kind: app, box: [510, 30, 480, 260]}
 nodes:
-  - {id: ctl, label: "notify-finalizer（Platform が運用）", mono: ["ServiceAccount: finalizer-ctrl"], box: [25, 60, 450, 54]}
-  - {id: role, kind: crd, label: "Role in argocd", mono: ["applications: get/list/watch/patch/update"], box: [25, 140, 450, 54]}
+  - {id: mc, label: "Metacontroller（基盤が運用）", mono: ["ClusterRole は既定で */*/*。絞ること"], box: [25, 60, 450, 54]}
+  - {id: dc, kind: crd, label: "DecoratorController と hook", mono: ["クラスタスコープの CR"], box: [25, 140, 450, 54]}
   - {id: adm, kind: crd, label: "admission（任意）", mono: ["作成時に finalizer を足す（Kyverno など）"], box: [25, 220, 450, 54]}
-  - {id: sub, label: "Trigger と受け手", mono: ["type=…app.deleted を購読"], box: [525, 60, 450, 54]}
-  - {id: sec, label: "受け手の Secret", mono: ["送信先の資格情報は App が持つ"], box: [525, 140, 450, 54]}
+  - {id: sub, label: "受け手", mono: ["uid で冪等に受ける"], box: [525, 60, 450, 54]}
+  - {id: sec, label: "受け手の Secret", mono: ["送信先の資格情報は利用者が持つ"], box: [525, 140, 450, 54]}
 edges:
-  - {from: role, to: ctl, kind: rbac}
-  - {from: ctl, to: sub, kind: ce, label: "Broker 経由"}
+  - {from: dc, to: mc, kind: rbac}
+  - {from: mc, to: sub, kind: ce, label: "hook から送信"}
 ```
 
-- **Platform が持つ部品。** Argo CD が所有する CR の `metadata.finalizers` に書き込むので、applications への `patch`（または `update`）が要る。ほかの方式より権限が広く、App 側に渡してはいけない
-- **越境:** App 側は Broker の先で受けるだけなので、Application そのものには触れない。受け手を分ければ、他チームの削除通知を購読させない構成にもできる（Trigger の filter で `subject` を絞る）
+- **越境:** 利用者側は Application に触れない。DecoratorController はクラスタスコープの CR なので、作れるのは基盤側だけになる。
+- **資格情報:** 直接送る場合、送信先の資格情報は hook が持つ（基盤側）。Broker を挟めば、送信先ごとの受け手（利用者側）に閉じる。
 
 ## 評価
 
-**削除完了の検知: ◎。** 自分の finalizer だけが残った時点では、Argo CD はすでに `resources-finalizer` と `post-delete-finalizer` を外し終えている。つまり、管理リソースの削除も PostDelete hook の完了も保証された状態で送れる。自分の finalizer を外した直後に、オブジェクトは消える。run6 では、送信から 45 ms 後に Application が消えた。
+**削除完了の検知: ◎。** 自分の finalizer だけが残った時点で、Argo CD はすでに `resources-finalizer` と `post-delete-finalizer` を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（run6）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（run10）。
 
-**検知層の耐障害性: ◎。** レベルトリガで、起動するたびに全件を見直すので、止まっていた間の削除も復旧後に拾える。run4 では、コントローラを止めたまま削除すると、Application は自前の finalizer 1 つを残して待った。復旧から 2.4 秒後に送信され、Application が消えた。
+**検知層の耐障害性: ◎。** Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（run10）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（run4）。
 
-**配送層の回復性: ○。** 送信に成功するまで finalizer を外さないので、retry は実装で自由に書ける（`RequeueAfter` によるバックオフなど）。DLQ や circuit breaker は付いてこないので、自分で持つか、Broker に任せる。
+**配送層の回復性: ○。** 送信先を常に 500 にすると、hook は `finalized: false` を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（`resyncPeriodSeconds: 30`）と再送した（run10）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。
 
-**配送保証: ◎。** 送ってから外すので at-least-once になる。外す前に落ちれば、重複しうる。冪等キーには Application の `uid` を使える（試作では `Idempotency-Key` ヘッダに入れた）。
+**配送保証: ◎。** 送ってから `finalized: true` を返すので、at-least-once になる。応答の前に落ちると重複する。CloudEvent の `Ce-Id` に Application の `uid` を入れ、受け手で重複を除く。
 
-**可用性: ×。** 止まっている間は削除が完了しない。これは確実さと引き換えの性質で、削除できるかどうかをこのコントローラに預けることになる。2 レプリカ以上とリーダー選出が要る。完全に失われた場合の抜け道（finalizer を手で外す手順）も、運用手順として用意しておく。
+**可用性: ×。** Metacontroller が止まっている間は、削除が完了しない。`--leader-election` を付けて複数レプリカで動かす（[configuration.md](https://github.com/metacontroller/metacontroller/blob/master/docs/src/guide/configuration.md)）。既定のマニフェストは 1 レプリカ。複数レプリカでの動きは実測していない。
 
-**疎結合: ○。** 単体だと、送信先がコードに入る。CloudEvent を Broker に出す形にすれば、送信先の追加は Trigger 側で済み、◎ になる（推奨構成）。
+**疎結合: ○。** 直接送る形だと、送信先が hook の中に入る。Broker を挟めば、送信先の追加は Trigger 側で済む。
 
-**スケーラビリティ: △。** 処理するのはリーダー 1 つ。Application の数が数千程度なら問題にならないと読めるが、測っていない。
+**スケーラビリティ: △。** Metacontroller はリーダー 1 つで処理する。hook は水平に増やせる。
 
-**可観測性: ○。** 自分で OTel SDK を入れ、送信の span を切り、`traceparent` を付けて送れる。組み込みではないので ○ にした。
+**可観測性: ○。** Metacontroller は `--metrics-address` で Prometheus のメトリクスを出す。送信の span と `traceparent` は hook の側で付ける。
 
-**セキュリティ・権限分離: △。** applications への `patch` が要り、権限が広い。
+**セキュリティ・権限分離: △。** 既定の ClusterRole が広い。絞るのは基盤側の仕事になる。
 
-**運用負荷: △。** 自作のコントローラを保守することになる。
+**運用負荷: ○。** 増える部品は Metacontroller と hook。自作のコントローラを保守するよりは軽い。
 
-**レイテンシ: ○。** Argo CD の最後の finalizer が外れてから、次のループで送る。試作は 1 秒ごとのポーリングだったので、最大で約 1 秒遅れる。watch で書けば、この遅れは縮む。
+**レイテンシ: ○。** 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。run10 では、送信から消滅まで約 10 ms だった。

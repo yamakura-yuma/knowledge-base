@@ -98,6 +98,34 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
+  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
+  .gr .fig text { font-size:13px; fill:var(--ink); }
+  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
+  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
+  .gr .gr-m { font-size:14px; fill:var(--ink); }
+  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
+  .gr .gr-b { font-weight:700; }
+  .gr .gr-big { font-size:64px; font-weight:800; }
+  .gr .gr-red { fill:var(--hot); }
+  .gr .gr-code { font-family:var(--mono); }
+  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
+  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-dot { fill:var(--ink); }
+  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
+  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
+  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
+  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
+  .gr .gr-ink { fill:var(--ink); }
+  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -120,50 +148,225 @@
   <p class="sub">Argo CD の <code>Application</code> について、デプロイ完了（Synced かつ Healthy）と削除完了（finalizer の処理が終わってオブジェクトと管理リソースが実際に消えた時点）を検知し、外部へ送る 6 つの方式を比べる。根拠は kind 上の Argo CD v3.5.3 での実測と、各プロジェクトのソース・公式ドキュメント。方式ごとの詳細は各ページに分けた。</p>
 </header>
 <nav class="nav"><a href="index.html" class="on">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
-<h2>結論</h2>
-<p><strong>検知と配送を分けて組む。検知は「確実に取る」役と「速く取る」役に分け、配送は永続化した Broker に任せる。</strong></p>
+<h2>結論: おすすめ</h2>
+<p><strong>おすすめは次の構成。</strong></p>
+<ul>
+<li><strong>デプロイ完了:</strong> Argo CD Notifications の <code>on-deployed</code> で取る。</li>
+<li><strong>削除完了:</strong> Metacontroller の DecoratorController で Application に finalizer を付け、finalize hook で取る。hook の中身は、Argo CD の finalizer が全部外れたら送信先に HTTP で送るだけの Webhook。</li>
+<li><strong>Broker:</strong> 必須ではない。送信先が 1〜2 か所のうちは、直接送ればよい。</li>
+</ul>
+<p>おすすめの理由:</p>
+<ol>
+<li><strong>削除完了を取りこぼさないのは、finalizer 方式だけ。</strong></li>
+<li>Notifications の <code>on-deleted</code> は削除<strong>開始</strong>で発火する。watch 系（Knative ApiServerSource、Argo Events、API stream）は、止まっている間に起きた削除を取りこぼす。</li>
+<li>finalizer 方式では、Metacontroller を止めたまま削除しても Application は消えずに待ち、復旧後に通知が届いた（run10）。</li>
+<li><strong>自前のコントローラは書かない。</strong> finalizer の付け外し、watch、再同期、リーダー選出は Metacontroller が持つ。自分で書くのは、状態を持たない Webhook 1 つ（試作で約 30 行）。</li>
+<li>これを controller-runtime で自作しても、得るものは少ない。検知の確実さも、配送保証も変わらない。増えるのは保守するコードだけ。</li>
+<li><strong>Broker が無くても、配送保証は落ちない。</strong> finalize hook が送信に失敗すると「まだ終わっていない」と返す。すると Metacontroller が hook を呼び直すので、送信先が戻るまで何度でも再送される（run10 で実測）。</li>
+<li>状態は Application の finalizer 自身が持つ。永続チャネルは要らない。</li>
+<li>代わりに、送信先が長く落ちていると削除も完了しない。</li>
+</ol>
+<h3 id="broker">Broker は必須か</h3>
+<p><strong>必須ではない。</strong> Broker が効くのは、「送信先が増える」「送信先ごとに再送と DLQ を分けたい」ときだけ。</p>
 <table>
 <thead>
 <tr>
-<th>役割</th>
-<th>何を使うか</th>
-<th>理由</th>
+<th>構成</th>
+<th>向いている状況</th>
+<th>配送保証</th>
+<th>送信先が落ちたとき</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>デプロイ完了の検知</td>
-<td>Argo CD Notifications の <code>on-deployed</code></td>
-<td>1 リビジョンにつき 1 回だけ届いた。送信済みの記録を Application の annotation に持つので、再起動しても二重に送らない</td>
+<td><strong>直接送る（おすすめの起点）</strong>: finalize hook と Notifications が送信先へ HTTP で送る</td>
+<td>送信先が 1〜2 か所。Knative を入れていない</td>
+<td>削除: at-least-once（送れるまで finalizer を外さない）<br>デプロイ: Notifications は 4 回試して諦める</td>
+<td>削除は送れるまで待つ（削除が止まる）。デプロイ通知は失われる</td>
 </tr>
 <tr>
-<td>削除完了の検知（確実）</td>
-<td>自前 finalizer のコントローラ</td>
-<td>Argo CD の finalizer が全部外れて自分の finalizer だけが残ったら送り、成功してから外す。通知系を全部止めたまま削除しても、復旧後に届いたのはこれだけだった</td>
-</tr>
-<tr>
-<td>削除完了の検知（速報、任意）</td>
-<td>Knative ApiServerSource の delete</td>
-<td>消滅から 5 ms で届く。ただし止まっている間の削除は取りこぼすので、速報としてだけ使い、確実な通知は上の finalizer に任せる</td>
-</tr>
-<tr>
-<td>配送</td>
-<td>Knative Broker / Trigger（Kafka Broker などの永続化した実装）</td>
-<td>retry・backoff・DLQ を Trigger ごとに宣言できる（実測済み）。送信先を足すときは Trigger を 1 枚足すだけで、送る側に手を入れない</td>
+<td><strong>Knative Broker を挟む</strong></td>
+<td>送信先が 3 か所以上、または複数チーム。送信先ごとに再送・DLQ を変えたい</td>
+<td>Broker が受け取った時点で hook は成功。その先は Broker の実装しだい（下の表）</td>
+<td>削除はすぐ完了する。再送は Broker が受け持ち、上限を超えたら DLQ へ</td>
 </tr>
 </tbody>
 </table>
-<p><strong><code>on-deleted</code> は削除完了ではない。</strong> 条件が <code>deletionTimestamp != nil</code> なので、削除要求から 0.06 秒後、まだ何も消えていない時点で発火する。</p>
-<p><strong>watch で DELETE を拾う方式（Knative / Argo Events / API stream）に共通の弱点は、検知層での取りこぼし。</strong> 受け手が止まっている間に消えた Application の DELETE は、復旧後も届かなかった。これは Kubernetes の watch と informer の性質によるもので、特定の製品に固有の欠点ではない。配送層の強さは製品ごとに大きく違い、Knative の配送層は 6 方式の中で最も強い。</p>
-<div class="dgm"><div class="cap">推奨構成。検知（確実・速報）→ 配送（Broker）→ 送信先</div><svg class="fig" viewBox="0 0 1000 440" role="img" aria-label="推奨構成"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="300" height="380" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace（Platform）</text><rect class="zone zone-platform" x="330" y="30" width="330" height="380" rx="8"/><text class="t-zone" x="340" y="46">notify namespace（Platform）</text><rect class="zone zone-app" x="680" y="30" width="310" height="380" rx="8"/><text class="t-zone" x="690" y="46">App チームの namespace / 外部</text><rect class="nd nd-app" x="25" y="60" width="270" height="76" rx="6"/><text class="t-ink" x="35" y="79">Application</text><text class="t-mono" x="35" y="95">finalizers: argocd の 3 つ</text><text class="t-mono" x="35" y="111">+ notify.example.com/deletion</text><text class="t-mono" x="35" y="127">annotation: notified.…</text><rect class="nd nd-comp" x="25" y="200" width="270" height="70" rx="6"/><text class="t-ink" x="35" y="219">notifications-controller</text><text class="" x="35" y="235">trigger: on-deployed</text><text class="t-mono" x="35" y="251">template で CloudEvent を組む</text><rect class="nd nd-comp" x="345" y="60" width="300" height="70" rx="6"/><text class="t-ink" x="355" y="79">notify-finalizer（自前）</text><text class="" x="355" y="95">残りが自分だけ → 送信 → 外す</text><text class="t-mono" x="355" y="111">2 レプリカ + Lease</text><rect class="nd nd-comp" x="345" y="160" width="300" height="54" rx="6"/><text class="t-ink" x="355" y="179">ApiServerSource（速報、任意）</text><text class="" x="355" y="195">resource.delete</text><rect class="nd nd-state" x="345" y="250" width="300" height="70" rx="6"/><text class="t-ink" x="355" y="269">Broker（Kafka Broker など）</text><text class="" x="355" y="285">永続化・retry・DLQ</text><text class="t-mono" x="355" y="301">delivery: retry / backoff / DLQ</text><rect class="nd nd-comp" x="345" y="345" width="300" height="50" rx="6"/><text class="t-ink" x="355" y="364">DLQ</text><text class="t-mono" x="355" y="380">配送できなかったイベント</text><rect class="nd nd-ext" x="695" y="60" width="280" height="52" rx="6"/><text class="t-ink" x="705" y="79">Trigger → Slack 送信</text><text class="t-mono" x="705" y="95">filter: type=…deployed</text><rect class="nd nd-ext" x="695" y="170" width="280" height="52" rx="6"/><text class="t-ink" x="705" y="189">Trigger → 社内 API 送信</text><text class="t-mono" x="705" y="205">filter: type=…deleted</text><rect class="nd nd-ext" x="695" y="280" width="280" height="52" rx="6"/><text class="t-ink" x="705" y="299">Trigger → 追加の送信先</text><text class="t-mono" x="705" y="315">Trigger を 1 枚足すだけ</text><path class="ln ln-watch" d="M160,200 L160,136" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="170" y="157" width="40" height="15" rx="3"/><text class="t-mono" x="190" y="168" text-anchor="middle">watch</text><path class="ln ln-watch" d="M345,81 L330,80 L295,84" marker-end="url(#a-watch)"/><path class="ln ln-patch" d="M345,113 L330,115 L295,112" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="298" y="120" width="65" height="15" rx="3"/><text class="t-mono" x="330" y="131" text-anchor="middle">finalizer</text><path class="ln ln-watch" d="M345,187 L330,187 L300,187 L220,136" marker-end="url(#a-watch)"/><path class="ln ln-ce" d="M272,270 L320,285 L345,285" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="275" y="268" width="90" height="15" rx="3"/><text class="t-mono" x="320" y="279" text-anchor="middle">…app.deployed</text><path class="ln ln-ce" d="M575,130 L620,150 L620,245 L604,250" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="540" y="186" width="84" height="15" rx="3"/><text class="t-mono" x="582" y="198" text-anchor="middle">…app.deleted</text><path class="ln ln-ce" d="M495,214 L495,250" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M495,320 L495,345" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M555,250 L791,112" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M629,250 L736,222" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M645,294 L695,297" marker-end="url(#a-ce)"/><path class="ln ln-watch" d="M20,430 L48,430" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="434">watch</text><path class="ln ln-ce" d="M107.5,430 L135.5,430" marker-end="url(#a-ce)"/><text class="t-mono" x="141.5" y="434">CloudEvent</text><path class="ln ln-patch" d="M226.5,430 L254.5,430" marker-end="url(#a-patch)"/><text class="t-mono" x="260.5" y="434">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="475.7" y="422" width="16" height="12" rx="2"/><text class="t-mono" x="497.7" y="434">状態を持つ場所</text></svg></div>
+<p>Broker を挟む場合、<strong>永続化の選択肢は Kafka だけではない。</strong> 3 つの実装を、一次情報で比べた。</p>
+<table>
+<thead>
+<tr>
+<th>実装</th>
+<th>何が保証されるか</th>
+<th>根拠</th>
+<th>成熟度・数字</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka Broker</strong>（<code>knative-extensions/eventing-kafka-broker</code>）</td>
+<td>Kafka の topic に書く。replication factor を設定できる。制御面の HA、データプレーンの水平スケール。<code>delivery.order: ordered</code> でパーティション単位の順序</td>
+<td><a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/brokers/broker-types/kafka-broker/README.md">Kafka Broker のドキュメント</a></td>
+<td>201 star、knative-v1.23.1（2026-08-25）</td>
+</tr>
+<tr>
+<td><strong>RabbitMQ Broker</strong>（<code>knative-extensions/eventing-rabbitmq</code>）</td>
+<td>exchange と queue は <code>Durable: true</code>、メッセージは <code>DeliveryMode: Persistent</code>。ingress は publisher confirm（<code>PublishWithDeferredConfirm</code> と <code>Wait()</code>）で RabbitMQ の ack を待ち、nack なら 500 を返す。<code>queueType: quorum</code> を指定できる。Trigger の既定の並列度は 1 で、順序を保つ。delivery spec が無いと、最初の失敗で NACK して<strong>捨てる</strong></td>
+<td><a href="https://github.com/knative-extensions/eventing-rabbitmq/blob/main/docs/broker/README.md">RabbitMQ Broker の README</a>、<code>pkg/rabbit/queue.go</code>・<code>message.go</code>、<code>cmd/ingress/main.go</code></td>
+<td>100 star、knative-v1.23.0（2026-07-28）</td>
+</tr>
+<tr>
+<td><strong>NATS JetStream Channel</strong>（<code>knative-extensions/eventing-natss</code>）</td>
+<td>stream の storage は既定で File、クラスタなら replicas を指定できる。consumer は <code>AckExplicitPolicy</code>。失敗したら <code>NakWithDelay</code> で遅らせて再配送する。publish のとき CloudEvent の ID を <code>MsgId</code> に入れるので、<code>duplicateWindow</code> の間は同じ ID の重複を JetStream が除く</td>
+<td><a href="https://github.com/knative-extensions/eventing-natss/blob/main/docs/jetstream.md">docs/jetstream.md</a>、<code>pkg/channel/jetstream/dispatcher/</code></td>
+<td>48 star、knative-v1.23.2（2026-09-01）。README に "These components are BETA"。JetStream Broker の文書（at-least-once を謳う）は 2026-09-21 に追加されたばかり</td>
+</tr>
+</tbody>
+</table>
+<p>3 つとも、Trigger の <code>delivery</code>（retry・backoff・deadLetterSink）に対応している。どれも実測していない。今回の kind で測ったのは、永続化しない InMemoryChannel だけ。選ぶ基準は、どのメッセージ基盤をすでに運用しているかで決めてよい。</p>
+<h3>状況ごとのおすすめ</h3>
+<table>
+<thead>
+<tr>
+<th>状況</th>
+<th>おすすめ</th>
+<th>その代わりに失うもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基本形（削除完了を取りこぼせない、送信先は少ない）</td>
+<td><strong>Notifications ＋ Metacontroller の finalize hook、直接送る</strong></td>
+<td>送信先が長く落ちると、削除が止まる。デプロイ通知は失敗すると失われる</td>
+</tr>
+<tr>
+<td>送信先が多い、複数チームに配る</td>
+<td>上の構成の送信先を <strong>Knative Broker</strong> にする（永続化は Kafka / RabbitMQ / NATS JetStream のうち、運用しているもの）</td>
+<td>Knative と、メッセージ基盤の運用</td>
+</tr>
+<tr>
+<td>削除は「管理リソースが消えた」で十分。部品を増やしたくない</td>
+<td>Notifications だけで組む。<code>on-deployed</code> と、カスタム trigger（<code>deletionTimestamp != nil and health == Missing</code>）</td>
+<td>CR が消えた保証、止まっている間の削除、失敗時の再送</td>
+</tr>
+<tr>
+<td>Argo Events をすでに運用している</td>
+<td>配送を Argo Events に任せ、削除完了は Metacontroller で取る。<code>atLeastOnce: true</code> と <code>policy.status.allow</code> は必ず指定する</td>
+<td>CloudEvents と OTel の連携</td>
+</tr>
+</tbody>
+</table>
+<p><strong>避けたほうがよいもの:</strong></p>
+<ul>
+<li><code>on-deleted</code> を削除完了として扱う。削除要求から 0.06 秒後、まだ何も消えていない時点で発火する。</li>
+<li>PostDelete hook だけに任せる。送信先が落ちていると、削除そのものが詰まり、アプリごとに Job を書くことになる。</li>
+<li>API stream を常駐させる。受け取りが詰まると、イベントを捨てる。</li>
+<li>finalizer のコントローラを一から自作する。Metacontroller で足りる。</li>
+</ul>
+<div class="dgm"><div class="cap">推奨構成（直接送る形）。送信先が増えたら、点線の Broker を挟む</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="推奨構成"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="300" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace（基盤）</text><rect class="zone zone-platform" x="330" y="30" width="330" height="330" rx="8"/><text class="t-zone" x="340" y="46">metacontroller / notify（基盤）</text><rect class="zone zone-app" x="680" y="30" width="310" height="330" rx="8"/><text class="t-zone" x="690" y="46">送信先（利用者）</text><rect class="nd nd-app" x="25" y="60" width="270" height="76" rx="6"/><text class="t-ink" x="35" y="79">Application</text><text class="t-mono" x="35" y="95">finalizers: argocd の 3 つ</text><text class="t-mono" x="35" y="111">+ metacontroller.io/…</text><text class="t-mono" x="35" y="127">annotation: notified.…</text><rect class="nd nd-comp" x="25" y="200" width="270" height="70" rx="6"/><text class="t-ink" x="35" y="219">notifications-controller</text><text class="" x="35" y="235">trigger: on-deployed</text><text class="t-mono" x="35" y="251">同梱・設定だけ</text><rect class="nd nd-comp" x="345" y="60" width="300" height="70" rx="6"/><text class="t-ink" x="355" y="79">Metacontroller</text><text class="" x="355" y="95">DecoratorController</text><text class="t-mono" x="355" y="111">finalizer の付け外し・再試行</text><rect class="nd nd-comp" x="345" y="170" width="300" height="70" rx="6"/><text class="t-ink" x="355" y="189">finalize hook（Webhook）</text><text class="" x="355" y="205">残りが自分だけ → 送信</text><text class="t-mono" x="355" y="221">状態なし・2 レプリカ</text><rect class="nd nd-crd" x="345" y="280" width="300" height="54" rx="6"/><text class="t-ink" x="355" y="299">Knative Broker（任意）</text><text class="t-mono" x="355" y="315">送信先が増えたら挟む</text><rect class="nd nd-ext" x="695" y="60" width="280" height="44" rx="6"/><text class="t-ink" x="705" y="79">Slack</text><rect class="nd nd-ext" x="695" y="170" width="280" height="54" rx="6"/><text class="t-ink" x="705" y="189">社内 API</text><text class="t-mono" x="705" y="205">uid で冪等に受ける</text><path class="ln ln-watch" d="M160,200 L160,136" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="140" y="157" width="40" height="15" rx="3"/><text class="t-mono" x="160" y="168" text-anchor="middle">watch</text><path class="ln ln-patch" d="M345,97 L320,97 L295,97" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="288" y="80" width="65" height="15" rx="3"/><text class="t-mono" x="320" y="91" text-anchor="middle">finalizer</text><path class="ln ln-http" d="M495,130 L495,170" marker-end="url(#a-http)"/><rect class="lbl-bg" x="466" y="139" width="58" height="15" rx="3"/><text class="t-mono" x="495" y="150" text-anchor="middle">finalize</text><path class="ln ln-http" d="M295,248 L320,250 L320,20 L835,20 L835,60" marker-end="url(#a-http)"/><rect class="lbl-bg" x="391" y="9" width="58" height="15" rx="3"/><text class="t-mono" x="420" y="20" text-anchor="middle">deployed</text><path class="ln ln-http" d="M645,201 L695,200" marker-end="url(#a-http)"/><rect class="lbl-bg" x="602" y="190" width="136" height="15" rx="3"/><text class="t-mono" x="670" y="201" text-anchor="middle">deleted（CloudEvent）</text><path class="ln ln-ce" d="M495,240 L495,280" marker-end="url(#a-ce)"/><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M107.5,390 L135.5,390" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="394">HTTP</text><path class="ln ln-ce" d="M188.7,390 L216.7,390" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="394">CloudEvent</text><path class="ln ln-patch" d="M307.7,390 L335.7,390" marker-end="url(#a-patch)"/><text class="t-mono" x="341.7" y="394">書き込み（annotation・finalizer）</text></svg></div>
 <p>組むときの注意:</p>
 <ul>
-<li><strong>自前 finalizer は、作成時点で付いていないと効かない。</strong> コントローラが止まっている間に作られて消えた Application は取りこぼす。確実に付けたいなら admission で足す（Kyverno の mutate ポリシーなど。この部分は実測していない）</li>
-<li><strong>コントローラが止まっている間、削除は完了しない。</strong> 自前の finalizer が残るので Application は消えずに待つ（実測で確認）。削除できるかどうかをこのコントローラに預けることになるので、2 レプリカ以上とリーダー選出が要る</li>
-<li><strong>非カスケード削除（<code>resources-finalizer.argocd.argoproj.io</code> が付いていない）では、削除開始の直後に送る。</strong> 管理リソースを消さない削除なので仕様どおりの動きになる。ペイロードにカスケードかどうかを入れておき、受け手で区別する</li>
-<li><strong>速報と確実な通知は同じ削除で 2 通届く。</strong> CloudEvent の <code>type</code> を分けておき、受け手は Application の <code>uid</code> を冪等キーにする</li>
+<li><strong>Metacontroller の finalizer は、作成時点で付いていないと効かない。</strong> Metacontroller が止まっている間に作られ、そのまま消えた Application は取りこぼす。</li>
+<li><strong>Metacontroller が止まっている間、削除は完了しない。</strong> 実測で確認した（run10）。<code>--leader-election</code> を付けて 2 レプリカ以上で動かす。</li>
+<li><strong>非カスケード削除では、削除開始の直後に送る。</strong> <code>resources-finalizer.argocd.argoproj.io</code> が付いていないと、Argo CD は管理リソースを消さずに finalizer をすぐ外すため。ペイロードにカスケードの有無を入れ、受け手で区別する。</li>
+<li><strong>受け手は Application の <code>uid</code> で冪等にする。</strong> finalize hook は、送信に成功してから <code>finalized: true</code> を返す。その応答の前に落ちると、同じ削除を 2 回送る。</li>
 </ul>
-<p>Knative が無い環境なら、Broker を挟まず両コンポーネントから直接 HTTP で送っても組める。その場合、配送層の retry は送信側の実装（Notifications は 4 回試行して諦める）に頼ることになり、DLQ は無い。</p>
+<hr />
+<h2>グラレコ</h2>
+<div class="dgm gr">
+<div class="cap">グラレコ: この調査を 1 枚で</div>
+<svg class="fig" viewBox="0 0 1000 760" role="img" aria-label="グラフィックレコーディング">
+  <defs>
+    <marker id="gr-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker>
+  </defs>
+  <!-- タイトル帯 -->
+  <path class="gr-hl" d="M40,52 C260,40 620,58 960,46 L962,78 C640,90 300,72 38,84 Z"/>
+  <text class="gr-title" x="500" y="74" text-anchor="middle">Argo CD の「できた！」「消えた！」を外に知らせるには？</text>
+
+  <!-- 1. 問い: Application くん -->
+  <g transform="translate(40,120)">
+    <rect class="gr-body" x="0" y="20" width="110" height="90" rx="14"/>
+    <circle class="gr-dot" cx="35" cy="55" r="5"/><circle class="gr-dot" cx="75" cy="55" r="5"/>
+    <path class="gr-line" d="M35,80 Q55,95 75,80"/>
+    <text class="gr-s" x="55" y="130" text-anchor="middle">Application</text>
+    <path class="gr-bubble" d="M130,0 h230 a12,12 0 0 1 12,12 v70 a12,12 0 0 1 -12,12 h-200 l-26,22 l4,-22 h-8 a12,12 0 0 1 -12,-12 v-70 a12,12 0 0 1 12,-12 z"/>
+    <text class="gr-m" x="148" y="30">デプロイできた！</text>
+    <text class="gr-m" x="148" y="54">消えた！…を</text>
+    <text class="gr-m" x="148" y="78">Slack や社内 API に伝えたい</text>
+  </g>
+
+  <!-- 2. 落とし穴 -->
+  <g transform="translate(470,110)">
+    <path class="gr-warn" d="M0,150 L60,40 L120,150 Z"/>
+    <text class="gr-big gr-red" x="60" y="132" text-anchor="middle">!</text>
+    <text class="gr-h gr-red" x="140" y="40">落とし穴 ①</text>
+    <text class="gr-m" x="140" y="64"><tspan class="gr-code">on-deleted</tspan> は「消え始め」で鳴る</text>
+    <text class="gr-s" x="140" y="86">削除要求から 0.06 秒、まだ何も消えていない</text>
+    <text class="gr-h gr-red" x="140" y="118">落とし穴 ②</text>
+    <text class="gr-m" x="140" y="142">watch は寝ている間の DELETE を見逃す</text>
+    <text class="gr-s" x="140" y="164">Knative / Argo Events / API stream 共通</text>
+  </g>
+
+  <path class="gr-sep" d="M30,300 C300,292 700,308 970,298"/>
+
+  <!-- 3. 鍵: finalizer = 消えない約束 -->
+  <g transform="translate(40,330)">
+    <text class="gr-h" x="0" y="0">ひらめき：finalizer は「消えない約束」</text>
+    <!-- 錠前 -->
+    <rect class="gr-lock" x="10" y="40" width="80" height="64" rx="8"/>
+    <path class="gr-line2" d="M26,40 v-14 a24,24 0 0 1 48,0 v14"/>
+    <circle class="gr-dot" cx="50" cy="70" r="7"/>
+    <text class="gr-m" x="110" y="52">自分の finalizer が残っている限り</text>
+    <text class="gr-m" x="110" y="76">Application は消えずに待ってくれる</text>
+    <text class="gr-s" x="110" y="100">→ 送れたら外す。止まっていても、起きたら続きから</text>
+    <!-- 付箋: Metacontroller -->
+    <g transform="translate(470,20) rotate(-3)">
+      <rect class="gr-note" x="0" y="0" width="256" height="96" rx="4"/>
+      <text class="gr-h" x="14" y="28">自作しない！</text>
+      <text class="gr-s" x="14" y="52">Metacontroller が付け外しと再試行</text>
+      <text class="gr-s" x="14" y="72">書くのは Webhook 1 つ（約 30 行）</text>
+    </g>
+    <g transform="translate(750,26) rotate(2)">
+      <rect class="gr-note2" x="0" y="0" width="200" height="90" rx="4"/>
+      <text class="gr-h" x="14" y="28">Broker は任意</text>
+      <text class="gr-s" x="14" y="52">送信先が増えたら挟む</text>
+      <text class="gr-s" x="14" y="72">Kafka / RabbitMQ / NATS</text>
+    </g>
+  </g>
+
+  <path class="gr-sep" d="M30,470 C300,478 700,462 970,472"/>
+
+  <!-- 4. おすすめの流れ -->
+  <text class="gr-h" x="40" y="505">おすすめの流れ</text>
+  <g transform="translate(40,525)">
+    <ellipse class="gr-pill" cx="95" cy="40" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="36" text-anchor="middle">デプロイ完了</text>
+    <text class="gr-s" x="95" y="56" text-anchor="middle">Notifications</text>
+    <ellipse class="gr-pill" cx="95" cy="135" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="131" text-anchor="middle">削除完了</text>
+    <text class="gr-s" x="95" y="151" text-anchor="middle">Metacontroller hook</text>
+    <path class="gr-arrow" d="M195,45 C290,40 330,80 400,85" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M195,130 C290,135 330,100 400,95" marker-end="url(#gr-ar)"/>
+    <rect class="gr-env" x="410" y="55" width="190" height="70" rx="10"/>
+    <path class="gr-line" d="M410,58 L505,100 L600,58"/>
+    <text class="gr-s" x="505" y="146" text-anchor="middle">HTTP + CloudEvents</text>
+    <text class="gr-s" x="505" y="164" text-anchor="middle">ID = uid で重複を除く</text>
+    <path class="gr-arrow" d="M605,90 C680,70 720,40 780,40" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M605,95 C680,110 720,140 780,140" marker-end="url(#gr-ar)"/>
+    <text class="gr-m" x="790" y="45">Slack</text>
+    <text class="gr-m" x="790" y="145">社内 API</text>
+  </g>
+
+  <!-- 5. 役割分担 -->
+  <g transform="translate(40,700)">
+    <circle class="gr-head" cx="14" cy="8" r="10"/><path class="gr-line2" d="M14,18 v22 M0,28 h28"/>
+    <text class="gr-m" x="40" y="22"><tspan class="gr-b">基盤チーム</tspan>：部品を入れて守る</text>
+    <circle class="gr-head gr-head2" cx="534" cy="8" r="10"/><path class="gr-line2" d="M534,18 v22 M520,28 h28"/>
+    <text class="gr-m" x="560" y="22"><tspan class="gr-b">利用者</tspan>：受け手を作って冪等に受けるだけ</text>
+  </g>
+</svg>
+</div>
+
 <hr />
 <h2>方式</h2>
 <div class="pagegrid">
@@ -171,13 +374,13 @@
 <a class="pcard" href="hooks.html"><b>② PostSync / PostDelete Job</b><span>application-controller が hook の Job を実行する</span></a>
 <a class="pcard" href="knative.html"><b>③ Knative Eventing</b><span>ApiServerSource → Broker / Trigger。CloudEvents で運ぶ</span></a>
 <a class="pcard" href="argo-events.html"><b>④ Argo Events</b><span>resource EventSource → EventBus → Sensor</span></a>
-<a class="pcard" href="finalizer.html"><b>⑤ 自前 finalizer コントローラ</b><span>自分の finalizer を付け、最後の 1 つになったら送る</span></a>
+<a class="pcard" href="finalizer.html"><b>⑤ finalizer 方式（Metacontroller）</b><span>finalizer を付け、最後の 1 つになったら hook が送る</span></a>
 <a class="pcard" href="api-stream.html"><b>⑥ Argo CD API stream</b><span>/api/v1/stream/applications を購読する常駐クライアント</span></a>
 </div>
 
-<p>①〜③ は依頼で必須とされた方式、④〜⑥ は追加の提案。</p>
-<h3>追加提案の選定基準</h3>
-<p>候補を 3 つの条件で絞った。数字は 2026-09-25 に GitHub API（<code>gh api</code>）で取った値。</p>
+<p>①〜③ は依頼で指定された方式、④〜⑥ はこちらから追加で提案した方式。</p>
+<h3>方式の選定基準</h3>
+<p>依頼で指定された ①〜③ も含め、すべての候補を同じ 3 つの条件に照らした。数字は、2026-09-25 に GitHub API（<code>gh api</code>）で取った値。</p>
 <ol>
 <li>削除完了のシグナル（watch の DELETE か、自分の finalizer）を自力で受けられる。admission で受ける DELETE は削除開始の時点なので対象外</li>
 <li>直近 180 日以内に push がある</li>
@@ -187,6 +390,7 @@
 <thead>
 <tr>
 <th>候補</th>
+<th>出どころ</th>
 <th style="text-align: right;">star</th>
 <th>直近 push</th>
 <th>最新リリース</th>
@@ -195,28 +399,64 @@
 </thead>
 <tbody>
 <tr>
-<td>Argo Events</td>
-<td style="text-align: right;">2,694</td>
-<td>2026-09-20</td>
-<td>v1.9.11（2026-07-13）</td>
-<td>採用（④）</td>
+<td>Argo CD Notifications（Argo CD 本体、エンジンは notifications-engine）</td>
+<td>依頼</td>
+<td style="text-align: right;">24,240（engine 335）</td>
+<td>2026-09-25（engine 2026-09-23）</td>
+<td>v3.5.3（2026-09-14）。engine はリリースが無く、コミット固定で取り込まれている</td>
+<td>条件 1 を満たさない（削除開始までしか取れない）。それでも、デプロイ完了の検知では最良なので採用（①）</td>
 </tr>
 <tr>
-<td>controller-runtime（自前コントローラの土台）</td>
-<td style="text-align: right;">2,960</td>
-<td>2026-09-25</td>
-<td>v0.25.1（2026-09-14）</td>
-<td>採用（⑤）</td>
-</tr>
-<tr>
-<td>Argo CD API server の stream（Argo CD 本体）</td>
+<td>PostSync / PostDelete hook（Argo CD 本体）</td>
+<td>依頼</td>
 <td style="text-align: right;">24,240</td>
 <td>2026-09-25</td>
 <td>v3.5.3（2026-09-14）</td>
-<td>採用（⑥）</td>
+<td>条件 1 は一部だけ満たす（PostDelete が捉えるのは、管理リソースが消えた後・CR が消える前）。採用（②）</td>
+</tr>
+<tr>
+<td>Knative Eventing</td>
+<td>依頼</td>
+<td style="text-align: right;">1,554</td>
+<td>2026-09-21</td>
+<td>knative-v1.23.0（2026-07-28）</td>
+<td>条件 1〜3 をすべて満たす。採用（③）</td>
+</tr>
+<tr>
+<td>Argo Events</td>
+<td>追加提案</td>
+<td style="text-align: right;">2,694</td>
+<td>2026-09-20</td>
+<td>v1.9.11（2026-07-13）</td>
+<td>条件 1〜3 をすべて満たす。採用（④）</td>
+</tr>
+<tr>
+<td>Metacontroller</td>
+<td>追加提案</td>
+<td style="text-align: right;">1,009</td>
+<td>2026-08-27</td>
+<td>v4.17.2（2026-08-13）</td>
+<td>条件 1〜3 をすべて満たす。finalize hook で ⑤ を実装する土台として採用</td>
+</tr>
+<tr>
+<td>controller-runtime（自作の土台）</td>
+<td>追加提案</td>
+<td style="text-align: right;">2,960</td>
+<td>2026-09-25</td>
+<td>v0.25.1（2026-09-14）</td>
+<td>条件 1〜3 をすべて満たす。⑤ を自作する場合の土台。Metacontroller と比べて得るものが少ない（⑤ のページ）</td>
+</tr>
+<tr>
+<td>Argo CD API server の stream（Argo CD 本体）</td>
+<td>追加提案</td>
+<td style="text-align: right;">24,240</td>
+<td>2026-09-25</td>
+<td>v3.5.3（2026-09-14）</td>
+<td>条件 1〜3 をすべて満たす。採用（⑥）</td>
 </tr>
 <tr>
 <td>Kyverno</td>
+<td>追加候補</td>
 <td style="text-align: right;">8,178</td>
 <td>2026-09-25</td>
 <td>v1.19.1（2026-09-10）</td>
@@ -224,6 +464,7 @@
 </tr>
 <tr>
 <td>Robusta</td>
+<td>追加候補</td>
 <td style="text-align: right;">3,101</td>
 <td>2026-09-24</td>
 <td>0.50.0（2026-09-16）</td>
@@ -231,6 +472,7 @@
 </tr>
 <tr>
 <td>Botkube</td>
+<td>追加候補</td>
 <td style="text-align: right;">2,310</td>
 <td>2024-12-11</td>
 <td>v1.14.0（2024-11-13）</td>
@@ -238,6 +480,7 @@
 </tr>
 <tr>
 <td>Tekton Triggers</td>
+<td>追加候補</td>
 <td style="text-align: right;">594</td>
 <td>2026-09-24</td>
 <td>v0.37.1（2026-09-23）</td>
@@ -245,7 +488,7 @@
 </tr>
 </tbody>
 </table>
-<p>必須方式の本体の数字は、Knative Eventing が 1,554 star・v1.23.0（2026-07-28）、notifications-engine が 335 star（リリースは無く、Argo CD がコミット固定で取り込んでいる）。</p>
+<p>依頼の 3 方式のうち、① と ② は条件 1 を満たさない。それでも評価には残した。① はデプロイ完了の検知で最良だった。② は「条件 1 を満たさない理由」自体が、比べるうえで役に立つからだ。</p>
 <hr />
 <h2>ライフサイクル上で各方式が捉える時点</h2>
 <p>時刻は実測（run3・run6）の値。削除側は <code>kubectl delete</code> を 0 秒とし、<code>resources-finalizer.argocd.argoproj.io</code> 付きで PostDelete hook を 1 つ持つ Application を消した。</p>
@@ -287,7 +530,7 @@
   <text x="20" y="100">① on-deleted</text><circle class="mk-bad" cx="246" cy="96" r="6"/><text class="t-mono t-bad" x="258" y="100">削除開始で発火（完了ではない）</text>
   <text x="20" y="128">① カスタム trigger</text><circle class="mk-mid" cx="604" cy="124" r="6"/><text class="t-mono" x="400" y="128">health=Missing で発火 →</text>
   <text x="20" y="156">② PostDelete hook</text><circle class="mk-mid" cx="681" cy="152" r="6"/><text class="t-mono" x="693" y="156">リソース消滅後・CR 消滅前</text>
-  <text x="20" y="184">⑤ 自前 finalizer</text><circle class="mk-ok" cx="935" cy="180" r="6"/><text class="t-mono" x="700" y="184">残り finalizer が自分だけ →</text>
+  <text x="20" y="184">⑤ finalizer 方式</text><circle class="mk-ok" cx="935" cy="180" r="6"/><text class="t-mono" x="700" y="184">残り finalizer が自分だけ →</text>
   <text x="20" y="212">③ Knative delete</text><circle class="mk-ok" cx="940" cy="208" r="6"/><text class="t-mono" x="790" y="212">消滅 +5ms</text>
   <text x="20" y="240">④ Argo Events DELETE</text><circle class="mk-ok" cx="940" cy="236" r="6"/><text class="t-mono" x="790" y="240">消滅 +7ms</text>
   <text x="20" y="268">⑥ API stream DELETED</text><circle class="mk-ok" cx="940" cy="264" r="6"/><text class="t-mono" x="790" y="268">消滅 +2ms</text>
@@ -299,6 +542,129 @@
 管理リソースが消え切ると <code>resources-finalizer.argocd.argoproj.io</code> を外す。
 次に <code>post-delete-finalizer.argocd.argoproj.io</code> の段で PostDelete hook を実行し、成功したら外して hook を片付ける。
 実測でも finalizer はこの順に外れた（<code>resources-finalizer</code> → <code>post-delete-finalizer</code> → <code>post-delete-finalizer/cleanup</code> → 消滅）。</p>
+<hr />
+<h2>通信規格</h2>
+<p><strong>送信は HTTP で、本文は CloudEvents 1.0 にそろえる。</strong> 6 方式のどれでも、送信先から見える形を同じにできる。</p>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>規格</th>
+<th>この構成での使い方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>転送</td>
+<td>HTTP/1.1 POST（TLS）</td>
+<td>全方式の送信がこれ。gRPC の stream を使うのは ⑥（<code>rpc Watch</code> の <code>ApplicationWatchEvent</code>）だけ</td>
+</tr>
+<tr>
+<td>イベントの形</td>
+<td><a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md">CloudEvents 1.0</a>（HTTP binding の binary mode = <code>Ce-*</code> ヘッダ、または structured mode = <code>application/cloudevents+json</code>）</td>
+<td>Knative は binary mode で送る（実測で <code>Ce-Id</code> などが付いた）。Notifications の template で structured mode の本文を組めば、Broker に入る（run7）。Metacontroller の hook は <code>Ce-*</code> ヘッダを自分で付ける（run10）</td>
+</tr>
+<tr>
+<td>冪等キー</td>
+<td>CloudEvents の <code>id</code>（<code>source</code> との組で一意）</td>
+<td>Application の <code>metadata.uid</code> を使う。Knative の ApiServerSource は送るたびに UUID を振るので、再起動の前後で同じ削除が別の <code>id</code> になる（<code>delegate.go</code>）</td>
+</tr>
+<tr>
+<td>分散トレース</td>
+<td><a href="https://www.w3.org/TR/trace-context/">W3C Trace Context</a>（<code>traceparent</code> / <code>tracestate</code>）</td>
+<td>Knative の RabbitMQ Broker の ingress は、<code>traceparent</code> を読んでメッセージに載せる（<code>cmd/ingress/main.go</code>）。Notifications と Argo Events の HTTP trigger は付けなかった（実測）</td>
+</tr>
+<tr>
+<td>認証</td>
+<td>送信先ごとに Bearer / Basic / mTLS。Knative 内部では OIDC（<code>authentication-oidc</code>）</td>
+<td>資格情報は、送る部品の Secret に置く</td>
+</tr>
+<tr>
+<td>型の定義</td>
+<td>CloudEvents の <code>type</code>（例 <code>com.example.argocd.app.deleted</code>）と <code>dataschema</code></td>
+<td>デプロイ・削除・速報で <code>type</code> を分け、受け手が振り分けられるようにする</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CloudEvents にそろえる利点:</strong></p>
+<ul>
+<li>Broker を後から挟んでも、送信先の実装を変えずに済む。Knative の Trigger は <code>type</code>・<code>source</code>・<code>subject</code> で振り分けるので、直接送っていた頃と同じ形のまま Broker を通せる。</li>
+<li>受け手の冪等処理（<code>id</code> で重複を除く）の書き方が、全方式で共通になる（<a href="https://microservices.io/patterns/communication-style/idempotent-consumer.html">microservices.io: Idempotent Consumer</a>）。</li>
+</ul>
+<hr />
+<h2>運用保守</h2>
+<p>基盤チームと利用者（アプリチーム）で、持ち物がはっきり分かれる。</p>
+<div class="dgm"><div class="cap">推奨構成で、基盤チームと利用者がそれぞれ何を持つか</div><svg class="fig" viewBox="0 0 1000 440" role="img" aria-label="運用保守の分担"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="370" rx="8"/><text class="t-zone" x="20" y="46">基盤チームが持つもの</text><rect class="zone zone-app" x="510" y="30" width="480" height="370" rx="8"/><text class="t-zone" x="520" y="46">利用者が持つもの</text><line class="divider" x1="500" y1="40" x2="500" y2="400"/><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">Argo CD と Notifications</text><text class="t-mono" x="35" y="95">trigger / template の管理、アップグレード</text><rect class="nd nd-comp" x="25" y="130" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="149">Metacontroller と finalize hook</text><text class="t-mono" x="35" y="165">2 レプリカ + リーダー選出、ClusterRole の絞り込み</text><rect class="nd nd-comp" x="25" y="200" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="219">詰まった削除の手当て</text><text class="t-mono" x="35" y="235">finalizer を手で外す手順、監視</text><rect class="nd nd-crd" x="25" y="270" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="289">Knative と Broker（任意）</text><text class="t-mono" x="35" y="305">1 マイナーずつの更新、永続基盤の運用</text><rect class="nd nd-state" x="25" y="335" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="354">監視・アラート</text><text class="t-mono" x="35" y="370">送信失敗、削除待ちの滞留、DLQ</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">受け手（送信先の API）</text><text class="t-mono" x="535" y="95">uid で冪等に受ける、2xx を返す</text><rect class="nd nd-comp" x="525" y="130" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="149">購読の設定</text><text class="t-mono" x="535" y="165">subscribe annotation または Trigger</text><rect class="nd nd-comp" x="525" y="200" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="219">送信先の資格情報</text><text class="t-mono" x="535" y="235">自分の namespace の Secret、更新</text><rect class="nd nd-comp" x="525" y="270" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="289">DLQ に落ちたイベントの処理</text><text class="t-mono" x="535" y="305">Broker を使う場合</text><path class="ln ln-ce" d="M443,130 L557,114" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="486" y="111" width="29" height="15" rx="3"/><text class="t-mono" x="500" y="122" text-anchor="middle">通知</text><path class="ln ln-ce" d="M20,430 L48,430" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="434">CloudEvent</text><rect class="nd nd-state" x="139.0" y="422" width="16" height="12" rx="2"/><text class="t-mono" x="161.0" y="434">状態を持つ場所</text></svg></div>
+<h3>基盤チームの運用</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>内容</th>
+<th>頻度・根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>アップグレード</td>
+<td>Argo CD（Notifications 同梱）と Metacontroller を追従させる。Knative を入れていれば、<strong>1 マイナーずつ</strong>しか上げられない</td>
+<td>Knative の <a href="https://github.com/knative/docs/blob/main/docs/versioned/install/upgrade/upgrade-installation.md">upgrade-installation.md</a>。Knative v1.23.0 は Kubernetes 1.34 以上を要求した（実測）</td>
+</tr>
+<tr>
+<td>可用性の維持</td>
+<td>Metacontroller に <code>--leader-election</code> を付け、2 レプリカ以上で動かす。hook の Deployment も 2 レプリカ以上にする。止まると削除が完了しなくなる</td>
+<td>run10</td>
+</tr>
+<tr>
+<td>詰まった削除の手当て</td>
+<td>送信先が長く落ちていたり、Metacontroller が失われたりすると、Application が消えない。手順は、Metacontroller の finalizer を手で外して削除を完了させ、通知は別途出すか、送らなかったものとして記録する</td>
+<td>Argo CD の <a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/user-guide/app_deletion.md">app_deletion.md</a> にも、finalizer を外す手順がある</td>
+</tr>
+<tr>
+<td>監視</td>
+<td>Notifications の <code>argocd_notifications_deliveries_total{succeeded="false"}</code>、Metacontroller のメトリクス、<code>deletionTimestamp</code> が付いたまま一定時間残っている Application の数、DLQ の件数</td>
+<td>Notifications の monitoring.md、Metacontroller の <code>--metrics-address</code></td>
+</tr>
+<tr>
+<td>権限の管理</td>
+<td>Metacontroller の ClusterRole を、applications と hook に必要な範囲まで絞る。既定は <code>*</code></td>
+<td>Metacontroller の <code>metacontroller-rbac.yaml</code></td>
+</tr>
+<tr>
+<td>作成時の finalizer の保証（任意）</td>
+<td>Metacontroller が止まっている間に作られた Application にも finalizer を付けたいなら、admission（Kyverno など）で足す</td>
+<td>実測していない</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者の運用</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>受け手を作る</td>
+<td>送信先の API に、CloudEvent を受ける口を作る。<code>id</code>（Application の <code>uid</code>）で重複を除き、成功したら 2xx を返す。Knative の Broker から受けるなら、本文は空で返す（本文を返すと、Broker が CloudEvent ではないとして 500 扱いにする。実測）</td>
+</tr>
+<tr>
+<td>購読する</td>
+<td>Notifications なら Application の subscribe annotation（apps-in-any-namespace と self-service を使えば、自分の namespace だけで完結する）。Broker を使うなら、自分の namespace に Trigger を置く</td>
+</tr>
+<tr>
+<td>資格情報を更新する</td>
+<td>送信先の資格情報は、自分の namespace の Secret に置いて自分で更新する（Notifications の self-service、または自分の受け手）</td>
+</tr>
+<tr>
+<td>失敗を見る</td>
+<td>Broker を使う場合は、DLQ に落ちたイベントの再処理。直接送る形なら、基盤チームのアラートを受けて送信先を直す</td>
+</tr>
+</tbody>
+</table>
+<p><strong>利用者は Application に触る権限も、Argo CD の設定を編集する権限も要らない。</strong> 送信先が落ちたときの影響は、推奨構成（直接送る形）では削除の遅れとして基盤側に出る。Broker を挟めば DLQ として利用者側に出る。どちらで受け止めたいかも、Broker を入れるかどうかの判断材料になる。</p>
 <hr />
 <h2>評価軸</h2>
 <p>「マイクロサービス適正」を 1 列で済ませず、実在を確かめた 4 つの出典の品質特性に分解した。</p>
@@ -441,13 +807,13 @@
 <tr><td><a href="hooks.html">② PostSync / PostDelete</a></td><td><span class="g1">△</span><small>CR 消滅前</small></td><td><span class="g3">◎</span><small>controller が再実行</small></td><td><span class="g1">△</span><small>backoffLimit</small></td><td><span class="g1">△</span><small>sync ごとに実行</small></td><td><span class="g0">×</span><small>失敗で削除が詰まる</small></td><td><span class="g0">×</span><small>全アプリのマニフェスト</small></td><td><span class="g0">×</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>資格情報がアプリごと</small></td><td><span class="g1">△</span><small>アプリごとに Job</small></td><td><span class="g1">△</span><small>0.8 秒＋CR 消滅は後</small></td></tr>
 <tr><td><a href="knative.html">③ Knative</a></td><td><span class="g2">○</span><small>DELETE</small></td><td><span class="g0">×</span><small>停止中は取りこぼす</small></td><td><span class="g3">◎</span><small>retry・backoff・DLQ</small></td><td><span class="g2">○</span><small>永続 Broker で at-least-once</small></td><td><span class="g2">○</span><small>制御面・Kafka 系は HA、adapter は 1</small></td><td><span class="g3">◎</span><small>Trigger を足すだけ</small></td><td><span class="g3">◎</span><small>データプレーン水平</small></td><td><span class="g3">◎</span><small>OTLP・CloudEvents</small></td><td><span class="g2">○</span><small>ns 内で完結、偽装に EventPolicy</small></td><td><span class="g1">△</span><small>部品が多い</small></td><td><span class="g3">◎</span><small>5 ms</small></td></tr>
 <tr><td><a href="argo-events.html">④ Argo Events</a></td><td><span class="g2">○</span><small>DELETE</small></td><td><span class="g0">×</span><small>停止中は取りこぼす</small></td><td><span class="g2">○</span><small>retry・dlqTrigger</small></td><td><span class="g1">△</span><small>既定 at-most-once</small></td><td><span class="g2">○</span><small>Active-Passive</small></td><td><span class="g2">○</span><small>Sensor の編集</small></td><td><span class="g2">○</span><small>Sensor 単位</small></td><td><span class="g1">△</span><small>Prometheus</small></td><td><span class="g2">○</span><small>ns 内で完結</small></td><td><span class="g1">△</span><small>EventBus が要る</small></td><td><span class="g3">◎</span><small>7 ms</small></td></tr>
-<tr><td><a href="finalizer.html">⑤ 自前 finalizer</a></td><td><span class="g3">◎</span><small>消滅を保証</small></td><td><span class="g3">◎</span><small>復旧後に拾う</small></td><td><span class="g2">○</span><small>自前（成功まで外さない）</small></td><td><span class="g3">◎</span><small>at-least-once＋uid</small></td><td><span class="g0">×</span><small>止まると削除も止まる</small></td><td><span class="g2">○</span><small>Broker に出せば ◎</small></td><td><span class="g1">△</span><small>単一リーダー</small></td><td><span class="g2">○</span><small>自前で OTel</small></td><td><span class="g1">△</span><small>applications の patch</small></td><td><span class="g1">△</span><small>自作コード</small></td><td><span class="g2">○</span><small>45 ms 前に送信</small></td></tr>
+<tr><td><a href="finalizer.html">⑤ finalizer（Metacontroller）</a></td><td><span class="g3">◎</span><small>消滅を保証</small></td><td><span class="g3">◎</span><small>復旧後に拾う</small></td><td><span class="g2">○</span><small>送れるまで呼び直す</small></td><td><span class="g3">◎</span><small>at-least-once＋uid</small></td><td><span class="g0">×</span><small>止まると削除も止まる</small></td><td><span class="g2">○</span><small>Broker に出せば ◎</small></td><td><span class="g1">△</span><small>単一リーダー</small></td><td><span class="g2">○</span><small>hook で OTel</small></td><td><span class="g1">△</span><small>ClusterRole を絞る</small></td><td><span class="g2">○</span><small>hook 1 つ</small></td><td><span class="g2">○</span><small>約 10 ms</small></td></tr>
 <tr><td><a href="api-stream.html">⑥ API stream</a></td><td><span class="g2">○</span><small>DELETED</small></td><td><span class="g0">×</span><small>取りこぼす</small></td><td><span class="g0">×</span><small>無い</small></td><td><span class="g0">×</span><small>詰まると捨てる</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g2">○</span><small>Argo CD の RBAC で絞られる</small></td><td><span class="g0">×</span><small>自作</small></td><td><span class="g3">◎</span><small>2 ms</small></td></tr>
 </tbody>
 </table>
 </div>
 
-<p>採点の根拠は各方式のページに書いた。表を縦に読むと、watch 系（③④⑥）は検知層が全部 × で、違いが出るのは配送層から後になる。自前 finalizer（⑤）はその逆で、検知層は ◎ だが、可用性と運用負荷を自分で背負う。推奨構成はこの 2 つを組み合わせて、互いの × を埋めている。</p>
+<p>採点の根拠は各方式のページに書いた。表を縦に読むと、watch 系（③④⑥）は検知層が全部 × で、違いが出るのは配送層から後になる。finalizer 方式（⑤）はその逆で、検知層は ◎ だが、可用性と運用負荷を自分で背負う。推奨構成では ⑤ で削除完了を確実に取り、配送が必要になったら ③ の配送層（Broker）だけを借りる。</p>
 <hr />
 <h2>実測の条件と記録</h2>
 <p>kind v0.29.0（Kubernetes v1.33.1）の単一ノードに、各プロジェクトの最新リリースを入れて測った。</p>
@@ -478,7 +844,12 @@
 <tr>
 <td>自前 finalizer</td>
 <td>試作</td>
-<td>Python で、1 秒ごとに全件を見直す</td>
+<td>Python で、1 秒ごとに全件を見直す（run4・run6）</td>
+</tr>
+<tr>
+<td>Metacontroller</td>
+<td>v4.17.2</td>
+<td>公式の production マニフェスト。hook は Python で約 30 行（run10）</td>
 </tr>
 </tbody>
 </table>
@@ -523,6 +894,11 @@
 <td>Knative: 初回＋retry 3 回（0.5 → 1 → 2 秒）のあと DLQ へ。<code>Ce-Knativeerrorcode: 500</code> などが付き、<code>Ce-Id</code> は初回と同じだった。Argo Events: <code>policy.status.allow</code> を指定すると retry 3 回のあと <code>dlqTrigger</code> へ（指定しないと 500 でも成功扱いになり、1 回で終わった）。Notifications: 4 回試行（1 → 2 → 4 秒）で諦め、annotation には送信済みとして記録され、以後は送り直されなかった</td>
 </tr>
 <tr>
+<td>run10</td>
+<td>Metacontroller v4.17.2 の DecoratorController と finalize hook で、finalizer 方式を作り直した</td>
+<td>Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つ残して待った。25 秒後に復旧させると、hook が送信し Application が消えた。送信先を常に 500 にすると、hook が <code>finalized: false</code> を返し続け、4 秒後・30 秒後と呼び直されて削除も待った。送信先を戻すと完了した。通常時は、送信から消滅まで約 10 ms</td>
+</tr>
+<tr>
 <td>run9</td>
 <td>App チーム用の namespace <code>team-a</code> を作り、<code>edit</code> と Knative の namespaced-admin を与えて、テナント越境を試した</td>
 <td>ApiServerSource は作れたが、SubjectAccessReview で <code>argocd</code> namespace の applications を見る権限が無いと判定され、Ready にならなかった。Platform の Broker には、team-a の Pod から偽の delete イベントを POST でき、Platform の受け手まで届いた（EventPolicy を設定していない既定の状態）。argocd namespace の applications と secrets には、どちらも手が届かなかった</td>
@@ -533,7 +909,8 @@
 <ul>
 <li>複数レプリカ構成でのフェイルオーバー</li>
 <li>Knative のトレースを有効にしたとき、<code>traceparent</code> が受け手まで伝わるか</li>
-<li>Kafka Broker での永続化と順序</li>
+<li>Kafka Broker・RabbitMQ Broker・NATS JetStream Channel での永続化と順序（文献だけ）</li>
+<li>Metacontroller の複数レプリカでのフェイルオーバー</li>
 <li>EventPolicy を有効にしたときに偽装を防げるか</li>
 <li>Kyverno で作成時に finalizer を付ける構成</li>
 <li>Robusta が CRD の削除を拾えるか</li>

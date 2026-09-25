@@ -134,6 +134,34 @@ CSS = """
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
+  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
+  .gr .fig text { font-size:13px; fill:var(--ink); }
+  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
+  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
+  .gr .gr-m { font-size:14px; fill:var(--ink); }
+  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
+  .gr .gr-b { font-weight:700; }
+  .gr .gr-big { font-size:64px; font-weight:800; }
+  .gr .gr-red { fill:var(--hot); }
+  .gr .gr-code { font-family:var(--mono); }
+  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
+  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-dot { fill:var(--ink); }
+  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
+  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
+  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
+  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
+  .gr .gr-ink { fill:var(--ink); }
+  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
