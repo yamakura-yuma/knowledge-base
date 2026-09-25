@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推奨構成の詳細</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
+  .gr .fig text { font-size:13px; fill:var(--ink); }
+  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
+  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
+  .gr .gr-m { font-size:14px; fill:var(--ink); }
+  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
+  .gr .gr-b { font-weight:700; }
+  .gr .gr-big { font-size:64px; font-weight:800; }
+  .gr .gr-red { fill:var(--hot); }
+  .gr .gr-code { font-family:var(--mono); }
+  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
+  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-dot { fill:var(--ink); }
+  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
+  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
+  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
+  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
+  .gr .gr-ink { fill:var(--ink); }
+  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>推奨構成の詳細</h1>
+  <p class="sub">概要ページの結論の中身。構成の各部、デプロイ完了と削除完了の取り方、採らない案、基盤側の負荷、通信規格、運用保守。<strong>できること:</strong> 基盤側の設定を触らずに、デプロイ完了と削除完了を取る。<strong>できないこと:</strong> 受信役が、ある Namespace の生存期間中ずっと止まっていた場合は、その削除を取れない。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="on">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<h3>経路を 1 本にしたい場合</h3>
+<p>2 経路（主経路と安全網）で送るのは、即時性と確実さの両方が要る場合に限る。どちらか一方でよければ、経路は 1 本にする。経路が 1 本のほうが、重複や取りこぼしの原因を追いやすい。</p>
+<table>
+<thead>
+<tr>
+<th>優先すること</th>
+<th>使う経路</th>
+<th>遅延</th>
+<th>取りこぼし</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>即時性（取りこぼしは許容）</td>
+<td>ApiServerSource だけ</td>
+<td>消滅から 5〜10 ms（run13・run15）</td>
+<td>受信役が止まっている間の削除</td>
+</tr>
+<tr>
+<td>確実さ（遅延は許容）</td>
+<td>突き合わせだけ</td>
+<td>最大で周期 1 回分（PingSource の最短は 1 分）</td>
+<td>1 周期のうちに作られて消えた Namespace</td>
+</tr>
+<tr>
+<td>両方</td>
+<td>両方（推奨の既定）</td>
+<td>通常は即時</td>
+<td>受信役が、その Namespace が生きていた間ずっと止まっていた場合だけ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="deploy">デプロイ完了の取り方</h3>
+<p><strong>第一候補は、Knative で Application を観測する形。</strong> Notifications は、trigger・template・service を <code>argocd</code> namespace の <code>argocd-notifications-cm</code> に書く。通知を変えるたびに基盤側の設定に手を入れることになるので、第一候補から外した。Argo CD の設定を管理しているチームが通知も持つ場合の代替として残す（<a href="notifications.html">①</a>）。</p>
+<table>
+<thead>
+<tr>
+<th>案</th>
+<th>重複の除去</th>
+<th>状態</th>
+<th>基盤側の設定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ApiServerSource で Application を観測（推奨）</strong></td>
+<td>決定的な id（<code>&lt;uid&gt;:&lt;revision&gt;:deployed</code>）で、受け手が消す</td>
+<td>持たない（観測 Service は状態なし）</td>
+<td>触らない</td>
+</tr>
+<tr>
+<td>Notifications の <code>on-deployed</code> を Broker に送る</td>
+<td><code>oncePer</code> と annotation で 1 回にする</td>
+<td>Application の annotation</td>
+<td><code>argocd-notifications-cm</code> を触る</td>
+</tr>
+</tbody>
+</table>
+<p><strong>観測 Service の判定（<code>deploy_obs.py</code>、41 行の試作）:</strong></p>
+<ul>
+<li><code>deletionTimestamp</code> が無い</li>
+<li><code>status.operationState.phase == Succeeded</code>、かつ <code>status.health.status == Healthy</code></li>
+<li>Notifications カタログの <code>on-deployed</code> と同じ時刻の条件（health の <code>lastTransitionTime</code> と、operation の <code>startedAt</code>・<code>finishedAt</code> の比較）</li>
+<li>満たしたら、<code>id = &lt;uid&gt;:&lt;operationState.syncResult.revision&gt;:deployed</code> の CloudEvent を Broker に送る</li>
+</ul>
+<p><strong>Notifications と同じ条件式にして、ずれを確かめた（<a href="report.html#run19">run19</a>）。</strong> 最初の 0.1.0 のデプロイ完了は、Notifications と観測 Service がどちらも同じ時点で出した（差は 9〜18 ms）。</p>
+<p>一方で、ずれも 2 つ見つかった。</p>
+<ul>
+<li><strong>同じ revision に戻したとき。</strong> 0.2.0 から 0.1.0 に戻すと、Notifications は <code>oncePer: revision</code> の記録がすでにあるので送らなかった。観測 Service は、同じ id <code>&lt;uid&gt;:0.1.0:deployed</code> で送った。受け手が id で重複を消すと、2 回目の 0.1.0 も消えてしまう。<strong>ロールバックも通知したいなら、id に operation の <code>startedAt</code> を足す</strong>（<code>&lt;uid&gt;:&lt;revision&gt;:&lt;startedAt&gt;:deployed</code>）。</li>
+<li><strong>更新が多い。</strong> 1 回の sync で、Application の update が 14 件届いた（<a href="report.html#run3">run3</a>）。観測 Service は、条件を満たす update のたびに送るので、同じ id が 2〜4 通になった。受け手が id で消す前提なら問題にならない。Broker に流す量を減らしたければ、観測 Service の前に Trigger の filter（<code>kind: Application</code>）を置き、EventTransform で id を決めてから通す。</li>
+</ul>
+<p><strong>安全網:</strong> 削除側と同じ PingSource で、観測 Service が毎分 Application を list し、条件を満たすものを同じ id で送る。adapter を止めている間にデプロイした 0.2.0 も、次の周期（6 秒後）に届いた（<a href="report.html#run19">run19</a>）。状態を持たずに済むのは、id が決定的だから。その代わり、Synced/Healthy のあいだは毎分同じ id が送られるので、受け手の重複除去が前提になる。<strong>削除側と部品は共有できる。</strong> 観測 Service 1 つに、Application の判定と Namespace の突き合わせを両方載せられる（試作は別々に書いた）。</p>
+<p><strong>必要な権限:</strong> applications の get/list/watch だけ（argocd namespace の Role）。Argo CD の RBAC にも、Application の annotation にも触らない。</p>
+<h3>Broker の土台と、宛先ごとの Trigger</h3>
+<ul>
+<li><strong>永続化の選択肢:</strong> Kafka Broker、RabbitMQ Broker、NATS JetStream の 3 つ。何が保証されるかは<a href="#broker">下の表</a>。InMemoryChannel は永続化しないので、本番では使わない。</li>
+<li><strong>宛先ごとの Trigger は、アプリ側の namespace に置く。</strong> 通知基盤の Broker から、アプリ側の namespace の Broker へ転送する Trigger を基盤側が 1 本置き、アプリ側は自分の Broker に宛先ごとの Trigger を置く。delivery の retry と DLQ はアプリ側が決める。</li>
+<li><strong>宛先の障害は削除を止めない。</strong> アプリ側の宛先を常に 500 にしても、Namespace の削除はそのまま完了した。アプリ側の Trigger が retry を 3 回行ったあと、DLQ に送った（run16）。</li>
+</ul>
+<h3>設計の原則（デバッグしやすさ）</h3>
+<ul>
+<li><strong>イベントの種類ごとに、経路を 1 本に決める。</strong> デプロイ完了は Notifications、削除完了は ApiServerSource（安全網は例外として足す）。</li>
+<li><strong>決定的な id を付ける。</strong> 削除は <code>&lt;uid&gt;:deleted</code>、デプロイは <code>&lt;uid&gt;:deployed:&lt;revision&gt;</code>。再送しても、経路が違っても同じ id になる。run13 では、3 つの経路から同じ id が届いた。</li>
+<li><strong>観測点を 1 か所にする。</strong> すべてを 1 つの Broker に通すと、「Broker に入ったか」で送り側の問題と配送側の問題を切り分けられる。</li>
+<li><strong>経路を属性に残す。</strong> 拡張属性（今回は <code>via</code>）に、どの経路から来たかを入れる。</li>
+<li><strong>トレースを付ける。</strong> W3C の <code>traceparent</code> を付けると、Broker の前後を 1 本のトレースでつなげられる。</li>
+</ul>
+<h3>「削除完了」を何の消滅で定義するか</h3>
+<table>
+<thead>
+<tr>
+<th>定義</th>
+<th>取れる時点</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Namespace の消滅（推奨）</strong></td>
+<td>Terminating が終わり、中身がすべて消えた時点</td>
+<td>基盤の Job が消すので、Argo CD の削除方法に左右されない。1 Namespace につき 1 通</td>
+</tr>
+<tr>
+<td>Application の消滅</td>
+<td>Argo CD の finalizer がすべて外れた時点</td>
+<td>Namespace を Application のマニフェストに含めていれば、Argo CD は Namespace が消えるまで Application を残した（run17）。<code>CreateNamespace=true</code> で作った Namespace は通常 tracking されず、削除されない（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/user-guide/sync-options.md">sync-options.md</a>）。Background や非カスケードの削除では、Application と Namespace の消滅がずれる</td>
+</tr>
+</tbody>
+</table>
+<h3>複数モジュール（app-of-apps・ApplicationSet・sync wave）</h3>
+<p>1 回のリリースが複数の Application に分かれると、Application ごとに通知が届く。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>内容</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>親 Application だけに subscribe する</td>
+<td>app-of-apps の親だけに <code>on-deployed</code> を付ける</td>
+<td>Argo CD 1.8 で、Application の health 判定から子 Application の health が外れた。親は、子が Healthy になるのを待たない。待たせるには、<code>argocd-cm</code> に Application 用の custom health check を足す（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/operator-manual/health.md">health.md</a>、<a href="https://github.com/argoproj/argo-cd/issues/3781">#3781</a>）</td>
+</tr>
+<tr>
+<td>受け手で集約する</td>
+<td>受け手が、同じリリースの通知を束ねる</td>
+<td>リリースを識別するキー（ラベルやリビジョン）が要る</td>
+</tr>
+<tr>
+<td>Namespace 単位にする（削除）</td>
+<td>Namespace ごとに 1 通になるので、1 つの Namespace にある複数の Application がまとまる</td>
+<td>Namespace と Application の対応は、ラベルか命名規則で取る</td>
+</tr>
+</tbody>
+</table>
+<p>実測はしていない。</p>
+<h3>採らない案</h3>
+<table>
+<thead>
+<tr>
+<th>案</th>
+<th>採らない理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Namespace に finalizer を付ける</td>
+<td>基盤の Job の <code>--wait</code> が通知側を待つことになり、密結合になる。namespaces の update という強い権限も要る</td>
+</tr>
+<tr>
+<td>基盤の Job を改修して Broker に送らせる</td>
+<td>基盤の設定に通知の都合を持ち込む。実測では動いた（run14。Terminating で止まると Job が失敗するので、その失敗をアラートにできる）</td>
+</tr>
+<tr>
+<td>完了した Job オブジェクトを観測する</td>
+<td>Job の命名やラベルという契約と、Job が消滅まで待っていることに依存する。Job は <code>ttlSecondsAfterFinished</code> で消えることもある</td>
+</tr>
+<tr>
+<td>自前の watch サービス（client-go の informer）</td>
+<td>informer のキャッシュはメモリにしかない。再起動すると空から始まり、止まっていた間の削除は届かなかった（run18）。<code>DeletedFinalStateUnknown</code> が合成されるのは、同じプロセスの中で再 list したときだけ。取りこぼさないには uid 一覧の永続化が要り、それは突き合わせと同じ処理になる。そのうえで HA・retry・DLQ・ファンアウトも自分で持つことになる</td>
+</tr>
+<tr>
+<td>Application に finalizer を付ける（⑤）</td>
+<td>Application への書き込み権限が要り、止まると全チームの削除が止まる。Namespace を基盤が消す前提なら不要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="footprint">基盤側の負荷（kind で数えた実数）</h3>
+<table>
+<thead>
+<tr>
+<th>構成要素</th>
+<th style="text-align: right;">CRD</th>
+<th style="text-align: right;">Deployment など</th>
+<th style="text-align: right;">ClusterRole</th>
+<th>1 年のリリース数（マイナー数）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Knative Eventing 本体（core）</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">36</td>
+<td>16（5）</td>
+</tr>
+<tr>
+<td>+ InMemoryChannel と MT Broker</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">8</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Kafka Broker（拡張）</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">6</td>
+<td>22（6）</td>
+</tr>
+<tr>
+<td>+ Strimzi（Kafka の operator）</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">7</td>
+<td>11（8）</td>
+</tr>
+<tr>
+<td>RabbitMQ Broker（拡張）</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td>7（5）</td>
+</tr>
+<tr>
+<td>+ RabbitMQ の cluster-operator と topology-operator、cert-manager</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">18</td>
+<td>18・12・19</td>
+</tr>
+<tr>
+<td>NATS JetStream（拡張）</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+<td>18（5）</td>
+</tr>
+<tr>
+<td>推奨構成で足す部品（突き合わせ Service、ApiServerSource、EventTransform）</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>参考: Metacontroller</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td>21（6）</td>
+</tr>
+</tbody>
+</table>
+<p>Knative と Broker の土台は、今回の前提では導入済みとして扱う。そのうえで推奨構成が足すのは、Deployment 3 つ（突き合わせ Service は約 40 行）と ClusterRole 1 つ（namespaces の get/list/watch）だけ。</p>
+<h3 id="broker">Broker の永続化の選択肢</h3>
+<p>永続化の選択肢は Kafka だけではない。3 つの実装を、一次情報で比べた。</p>
+<table>
+<thead>
+<tr>
+<th>実装</th>
+<th>何が保証されるか</th>
+<th>根拠</th>
+<th>成熟度・数字</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka Broker</strong>（<code>knative-extensions/eventing-kafka-broker</code>）</td>
+<td>Kafka の topic に書く。replication factor を設定できる。制御面の HA、データプレーンの水平スケール。<code>delivery.order: ordered</code> でパーティション単位の順序</td>
+<td><a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/brokers/broker-types/kafka-broker/README.md">Kafka Broker のドキュメント</a></td>
+<td>201 star、knative-v1.23.1（2026-08-25）</td>
+</tr>
+<tr>
+<td><strong>RabbitMQ Broker</strong>（<code>knative-extensions/eventing-rabbitmq</code>）</td>
+<td>exchange と queue は <code>Durable: true</code>、メッセージは <code>DeliveryMode: Persistent</code>。ingress は publisher confirm（<code>PublishWithDeferredConfirm</code> と <code>Wait()</code>）で RabbitMQ の ack を待ち、nack なら 500 を返す。<code>queueType: quorum</code> を指定できる。Trigger の既定の並列度は 1 で、順序を保つ。delivery spec が無いと、最初の失敗で NACK して<strong>捨てる</strong></td>
+<td><a href="https://github.com/knative-extensions/eventing-rabbitmq/blob/main/docs/broker/README.md">RabbitMQ Broker の README</a>、<code>pkg/rabbit/queue.go</code>・<code>message.go</code>、<code>cmd/ingress/main.go</code></td>
+<td>100 star、knative-v1.23.0（2026-07-28）</td>
+</tr>
+<tr>
+<td><strong>NATS JetStream Channel</strong>（<code>knative-extensions/eventing-natss</code>）</td>
+<td>stream の storage は既定で File、クラスタなら replicas を指定できる。consumer は <code>AckExplicitPolicy</code>。失敗したら <code>NakWithDelay</code> で遅らせて再配送する。publish のとき CloudEvent の ID を <code>MsgId</code> に入れるので、<code>duplicateWindow</code> の間は同じ ID の重複を JetStream が除く</td>
+<td><a href="https://github.com/knative-extensions/eventing-natss/blob/main/docs/jetstream.md">docs/jetstream.md</a>、<code>pkg/channel/jetstream/dispatcher/</code></td>
+<td>48 star、knative-v1.23.2（2026-09-01）。README に "These components are BETA"。JetStream Broker の文書（at-least-once を謳う）は 2026-09-21 に追加されたばかり</td>
+</tr>
+</tbody>
+</table>
+<p>3 つとも、Trigger の <code>delivery</code>（retry・backoff・deadLetterSink）に対応している。どれも実測していない。今回の kind で測ったのは、永続化しない InMemoryChannel だけ。選ぶ基準は、どのメッセージ基盤をすでに運用しているかで決めてよい。</p>
+<hr />
+<hr />
+<h2>通信規格</h2>
+<p><strong>送信は HTTP で、本文は CloudEvents 1.0 にそろえる。</strong> 6 方式のどれでも、送信先から見える形を同じにできる。</p>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>規格</th>
+<th>この構成での使い方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>転送</td>
+<td>HTTP/1.1 POST（TLS）</td>
+<td>全方式の送信がこれ。gRPC の stream を使うのは ⑥（<code>rpc Watch</code> の <code>ApplicationWatchEvent</code>）だけ</td>
+</tr>
+<tr>
+<td>イベントの形</td>
+<td><a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md">CloudEvents 1.0</a>（HTTP binding の binary mode = <code>Ce-*</code> ヘッダ、または structured mode = <code>application/cloudevents+json</code>）</td>
+<td>Knative は binary mode で送る（実測で <code>Ce-Id</code> などが付いた）。Notifications の template で structured mode の本文を組めば、Broker に入る（run7）。Metacontroller の hook は <code>Ce-*</code> ヘッダを自分で付ける（run10）</td>
+</tr>
+<tr>
+<td>冪等キー</td>
+<td>CloudEvents の <code>id</code>（<code>source</code> との組で一意）</td>
+<td>Application の <code>metadata.uid</code> を使う。Knative の ApiServerSource は送るたびに UUID を振るので、再起動の前後で同じ削除が別の <code>id</code> になる（<code>delegate.go</code>）</td>
+</tr>
+<tr>
+<td>分散トレース</td>
+<td><a href="https://www.w3.org/TR/trace-context/">W3C Trace Context</a>（<code>traceparent</code> / <code>tracestate</code>）</td>
+<td>Knative の RabbitMQ Broker の ingress は、<code>traceparent</code> を読んでメッセージに載せる（<code>cmd/ingress/main.go</code>）。Notifications と Argo Events の HTTP trigger は付けなかった（実測）</td>
+</tr>
+<tr>
+<td>認証</td>
+<td>送信先ごとに Bearer / Basic / mTLS。Knative 内部では OIDC（<code>authentication-oidc</code>）</td>
+<td>資格情報は、送る部品の Secret に置く</td>
+</tr>
+<tr>
+<td>型の定義</td>
+<td>CloudEvents の <code>type</code>（例 <code>com.example.argocd.app.deleted</code>）と <code>dataschema</code></td>
+<td>デプロイ・削除・速報で <code>type</code> を分け、受け手が振り分けられるようにする</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CloudEvents にそろえる利点:</strong></p>
+<ul>
+<li>Broker を後から挟んでも、送信先の実装を変えずに済む。Knative の Trigger は <code>type</code>・<code>source</code>・<code>subject</code> で振り分けるので、直接送っていた頃と同じ形のまま Broker を通せる。</li>
+<li>受け手の冪等処理（<code>id</code> で重複を除く）の書き方が、全方式で共通になる（<a href="https://microservices.io/patterns/communication-style/idempotent-consumer.html">microservices.io: Idempotent Consumer</a>）。</li>
+</ul>
+<hr />
+<h2>運用保守</h2>
+<p>基盤チームと利用者（アプリチーム）で、持ち物がはっきり分かれる。</p>
+<div class="dgm"><div class="cap">推奨構成で、基盤チームと利用者がそれぞれ何を持つか</div><svg class="fig" viewBox="0 0 1000 440" role="img" aria-label="運用保守の分担"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="370" rx="8"/><text class="t-zone" x="20" y="46">基盤チームが持つもの</text><rect class="zone zone-app" x="510" y="30" width="480" height="370" rx="8"/><text class="t-zone" x="520" y="46">利用者が持つもの</text><line class="divider" x1="500" y1="40" x2="500" y2="400"/><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">Argo CD と Notifications</text><text class="t-mono" x="35" y="95">trigger / template の管理、アップグレード</text><rect class="nd nd-comp" x="25" y="130" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="149">Metacontroller と finalize hook</text><text class="t-mono" x="35" y="165">2 レプリカ + リーダー選出、ClusterRole の絞り込み</text><rect class="nd nd-comp" x="25" y="200" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="219">詰まった削除の手当て</text><text class="t-mono" x="35" y="235">finalizer を手で外す手順、監視</text><rect class="nd nd-crd" x="25" y="270" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="289">Knative と Broker（任意）</text><text class="t-mono" x="35" y="305">1 マイナーずつの更新、永続基盤の運用</text><rect class="nd nd-state" x="25" y="335" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="354">監視・アラート</text><text class="t-mono" x="35" y="370">送信失敗、削除待ちの滞留、DLQ</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">受け手（送信先の API）</text><text class="t-mono" x="535" y="95">uid で冪等に受ける、2xx を返す</text><rect class="nd nd-comp" x="525" y="130" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="149">購読の設定</text><text class="t-mono" x="535" y="165">subscribe annotation または Trigger</text><rect class="nd nd-comp" x="525" y="200" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="219">送信先の資格情報</text><text class="t-mono" x="535" y="235">自分の namespace の Secret、更新</text><rect class="nd nd-comp" x="525" y="270" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="289">DLQ に落ちたイベントの処理</text><text class="t-mono" x="535" y="305">Broker を使う場合</text><path class="ln ln-ce" d="M443,130 L557,114" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="486" y="111" width="29" height="15" rx="3"/><text class="t-mono" x="500" y="122" text-anchor="middle">通知</text><path class="ln ln-ce" d="M20,430 L48,430" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="434">CloudEvent</text><rect class="nd nd-state" x="139.0" y="422" width="16" height="12" rx="2"/><text class="t-mono" x="161.0" y="434">状態を持つ場所</text></svg></div>
+<h3>基盤チームの運用</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>内容</th>
+<th>頻度・根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>アップグレード</td>
+<td>Argo CD（Notifications 同梱）と Metacontroller を追従させる。Knative を入れていれば、<strong>1 マイナーずつ</strong>しか上げられない</td>
+<td>Knative の <a href="https://github.com/knative/docs/blob/main/docs/versioned/install/upgrade/upgrade-installation.md">upgrade-installation.md</a>。Knative v1.23.0 は Kubernetes 1.34 以上を要求した（実測）</td>
+</tr>
+<tr>
+<td>可用性の維持</td>
+<td>Metacontroller に <code>--leader-election</code> を付け、2 レプリカ以上で動かす。hook の Deployment も 2 レプリカ以上にする。止まると削除が完了しなくなる</td>
+<td>run10</td>
+</tr>
+<tr>
+<td>詰まった削除の手当て</td>
+<td>送信先が長く落ちていたり、Metacontroller が失われたりすると、Application が消えない。手順は、Metacontroller の finalizer を手で外して削除を完了させ、通知は別途出すか、送らなかったものとして記録する</td>
+<td>Argo CD の <a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/user-guide/app_deletion.md">app_deletion.md</a> にも、finalizer を外す手順がある</td>
+</tr>
+<tr>
+<td>監視</td>
+<td>Notifications の <code>argocd_notifications_deliveries_total{succeeded="false"}</code>、Metacontroller のメトリクス、<code>deletionTimestamp</code> が付いたまま一定時間残っている Application の数、DLQ の件数</td>
+<td>Notifications の monitoring.md、Metacontroller の <code>--metrics-address</code></td>
+</tr>
+<tr>
+<td>権限の管理</td>
+<td>Metacontroller の ClusterRole を、applications と hook に必要な範囲まで絞る。既定は <code>*</code></td>
+<td>Metacontroller の <code>metacontroller-rbac.yaml</code></td>
+</tr>
+<tr>
+<td>作成時の finalizer の保証（任意）</td>
+<td>Metacontroller が止まっている間に作られた Application にも finalizer を付けたいなら、admission（Kyverno など）で足す</td>
+<td>実測していない</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者の運用</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>受け手を作る</td>
+<td>送信先の API に、CloudEvent を受ける口を作る。<code>id</code>（Application の <code>uid</code>）で重複を除き、成功したら 2xx を返す。Knative の Broker から受けるなら、本文は空で返す（本文を返すと、Broker が CloudEvent ではないとして 500 扱いにする。実測）</td>
+</tr>
+<tr>
+<td>購読する</td>
+<td>Notifications なら Application の subscribe annotation（apps-in-any-namespace と self-service を使えば、自分の namespace だけで完結する）。Broker を使うなら、自分の namespace に Trigger を置く</td>
+</tr>
+<tr>
+<td>資格情報を更新する</td>
+<td>送信先の資格情報は、自分の namespace の Secret に置いて自分で更新する（Notifications の self-service、または自分の受け手）</td>
+</tr>
+<tr>
+<td>失敗を見る</td>
+<td>Broker を使う場合は、DLQ に落ちたイベントの再処理。直接送る形なら、基盤チームのアラートを受けて送信先を直す</td>
+</tr>
+</tbody>
+</table>
+<p><strong>利用者は Application に触る権限も、Argo CD の設定を編集する権限も要らない。</strong> 送信先が落ちたときの影響は、推奨構成（直接送る形）では削除の遅れとして基盤側に出る。Broker を挟めば DLQ として利用者側に出る。どちらで受け止めたいかも、Broker を入れるかどうかの判断材料になる。</p>
+<hr />
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

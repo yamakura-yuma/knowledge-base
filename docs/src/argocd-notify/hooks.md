@@ -75,11 +75,11 @@ edges:
 
 ## 評価
 
-**削除完了の検知: △。** ドキュメントは「全リソースが消えた後に実行し、hook が Healthy になるまで待ってから Application を消す」としている。実測では、管理リソースが消えた 0.8 秒後に Job が送信し、その 2.5 秒後に Application が消えた（run3）。hook が失敗すると、Application は `DeletionError` の状態で残る。つまり「送った」とは言えても、「消えた」とは言えない。
+**削除完了の検知: △。** ドキュメントは「全リソースが消えた後に実行し、hook が Healthy になるまで待ってから Application を消す」としている。実測では、管理リソースが消えた 0.8 秒後に Job が送信し、その 2.5 秒後に Application が消えた（[run3](report.html#run3)）。hook が失敗すると、Application は `DeletionError` の状態で残る。つまり「送った」とは言えても、「消えた」とは言えない。
 
 **デプロイ完了: 取れる。** PostSync は Healthy になった後に実行された（Healthy の 1.3 秒後）。ただし sync のたびに実行され、重複を除く仕組みは無い。
 
-**検知層の耐障害性: ◎。** 実行するのは application-controller 自身なので、通知専用の部品が無い。ほかの通知系を全部止めた run5 でも、PostDelete hook だけは送った。
+**検知層の耐障害性: ◎。** 実行するのは application-controller 自身なので、通知専用の部品が無い。ほかの通知系を全部止めた [run5](report.html#run5) でも、PostDelete hook だけは送った。
 
 **配送層の回復性: △。** 再試行は Job の `backoffLimit` と、コンテナ内の実装（今回は `curl --retry 5`）に頼る。DLQ は無い。
 

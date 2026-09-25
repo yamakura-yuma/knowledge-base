@@ -58,8 +58,8 @@ edges:
 | 作業 | Metacontroller ＋ hook | 自作（controller-runtime） |
 |---|---|---|
 | 本体の導入 | Metacontroller 本体。CRD は 3 種で、CompositeController と DecoratorController はクラスタスコープ、ControllerRevision は namespace スコープ。StatefulSet 1 つ | 自分のコントローラの Deployment。CRD は無い |
-| 権限を絞る | 既定の ClusterRole は `*/*/*`。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（run11）。namespaces を外すと list が Forbidden になり、試行錯誤が要った | 必要な分だけを最初から書く（applications の get/list/watch/update/patch、leases、events） |
-| HA | `--leader-election` を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（run11） | Manager の `LeaderElection: true` で 2 レプリカ |
+| 権限を絞る | 既定の ClusterRole は `*/*/*`。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（[run11](report.html#run11)）。namespaces を外すと list が Forbidden になり、試行錯誤が要った | 必要な分だけを最初から書く（applications の get/list/watch/update/patch、leases、events） |
+| HA | `--leader-election` を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（[run11](report.html#run11)） | Manager の `LeaderElection: true` で 2 レプリカ |
 | アップグレードへの追従 | Metacontroller は過去 1 年で 21 リリース、マイナーは 6 つ | controller-runtime は過去 1 年で 12 リリース、マイナーは 4 つ。追従のたびに再ビルドと再テストが要る |
 | hook の運用 | hook の Deployment と Service（2 レプリカ）。コンテナイメージとその CI | コントローラ自体のイメージと CI |
 | finalizer が残って削除が止まったとき（runbook） | ① 削除中のまま一定時間残っている Application を検知する（`deletionTimestamp` があり、残りの finalizer が自分だけのもの）② hook と送信先の状態を確かめる ③ 送信を諦める判断をしたら、`kubectl patch app <name> --type json -p '[{"op":"remove","path":"/metadata/finalizers/<i>"}]'` で自分の finalizer を外し、通知を送らなかったことを記録する | 同じ |
@@ -102,7 +102,7 @@ controller-runtime で本番に出す場合の規模を見積もった。**実�
 | RBAC | applications の get/list/watch/update/patch、coordination.k8s.io の leases、events の create/patch |
 | HA | leader election を有効にして 2 レプリカ |
 | CloudEvent | `id = <uid>:deleted`、`type = com.example.argocd.app.deleted`、`source = argocd/applications`、`subject = <name>`、拡張属性に `project`。`traceparent` を付ける |
-| 宛先障害の切り離し | Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（run16 で、アプリ側の宛先を常に 500 にしても、削除は完了した） |
+| 宛先障害の切り離し | Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（[run16](report.html#run16) で、アプリ側の宛先を常に 500 にしても、削除は完了した） |
 | 運用 | 削除中のまま残った Application のアラート、finalizer を手で外す手順、アンインストール前の一括除去（上の表） |
 
 ### PingSource による突き合わせとの比較
@@ -115,7 +115,7 @@ controller-runtime で本番に出す場合の規模を見積もった。**実�
 | 遅延 | ms 単位 | 最大で周期 1 回分（最短 1 分） |
 | 1 周期のうちの作成と削除 | 拾う（作成時に finalizer が付いていれば） | ADD を記録しないと取りこぼす |
 | 状態 | Application の finalizer | uid 一覧（ConfigMap か受け手の DB） |
-| 実測 | run4・run10・run11 | run12・run13・run15 |
+| 実測 | [run4](report.html#run4)・[run10](report.html#run10)・[run11](report.html#run11) | [run12](report.html#run12)・[run13](report.html#run13)・[run15](report.html#run15) |
 
 ## 権限分離
 
@@ -142,11 +142,11 @@ edges:
 
 ## 評価
 
-**削除完了の検知: ◎。** 自分の finalizer だけが残った時点で、Argo CD はすでに `resources-finalizer` と `post-delete-finalizer` を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（run6）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（run10）。
+**削除完了の検知: ◎。** 自分の finalizer だけが残った時点で、Argo CD はすでに `resources-finalizer` と `post-delete-finalizer` を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（[run6](report.html#run6)）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（[run10](report.html#run10)）。
 
-**検知層の耐障害性: ◎。** Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（run10）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（run4）。
+**検知層の耐障害性: ◎。** Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（[run10](report.html#run10)）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（[run4](report.html#run4)）。
 
-**配送層の回復性: ○。** 送信先を常に 500 にすると、hook は `finalized: false` を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（`resyncPeriodSeconds: 30`）と再送した（run10）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。
+**配送層の回復性: ○。** 送信先を常に 500 にすると、hook は `finalized: false` を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（`resyncPeriodSeconds: 30`）と再送した（[run10](report.html#run10)）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。
 
 **配送保証: ◎。** 送ってから `finalized: true` を返すので、at-least-once になる。応答の前に落ちると重複する。CloudEvent の `Ce-Id` に Application の `uid` を入れ、受け手で重複を除く。
 
@@ -162,4 +162,4 @@ edges:
 
 **運用負荷: ○。** 増える部品は Metacontroller と hook。自作のコントローラを保守するよりは軽い。
 
-**レイテンシ: ○。** 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。run10 では、送信から消滅まで約 10 ms だった。
+**レイテンシ: ○。** 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。[run10](report.html#run10) では、送信から消滅まで約 10 ms だった。

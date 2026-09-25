@@ -147,7 +147,7 @@
   <h1>⑤ finalizer 方式（Metacontroller / 自作）</h1>
   <p class="sub"><strong>位置づけ:</strong> Namespace を基盤の Job が消す前提では、推奨構成（概要ページ）に置き換わる。この方式は、削除完了を Application の消滅で定義する場合の代替として残す。</p>
 </header>
-<nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="on">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="on">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
 <blockquote>
 <p>Application に自分の finalizer を付けておき、<strong>残っている finalizer が自分だけ</strong>になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。</p>
 </blockquote>
@@ -212,12 +212,12 @@
 </tr>
 <tr>
 <td>権限を絞る</td>
-<td>既定の ClusterRole は <code>*/*/*</code>。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（run11）。namespaces を外すと list が Forbidden になり、試行錯誤が要った</td>
+<td>既定の ClusterRole は <code>*/*/*</code>。applications の get/list/watch/patch/update、metacontroller.k8s.io の自分の CR、namespaces の get/list/watch、events、leases まで絞った。絞った ClusterRole は 29 行・5 ルールで、動作を確認した（<a href="report.html#run11">run11</a>）。namespaces を外すと list が Forbidden になり、試行錯誤が要った</td>
 <td>必要な分だけを最初から書く（applications の get/list/watch/update/patch、leases、events）</td>
 </tr>
 <tr>
 <td>HA</td>
-<td><code>--leader-election</code> を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（run11）</td>
+<td><code>--leader-election</code> を付けて 2 レプリカ。リーダーを殺しても、15 秒の Lease のあとにもう一方が引き継ぎ、削除中の Application も完了して通知も 1 通届いた（<a href="report.html#run11">run11</a>）</td>
 <td>Manager の <code>LeaderElection: true</code> で 2 レプリカ</td>
 </tr>
 <tr>
@@ -327,7 +327,7 @@
 </tr>
 <tr>
 <td>宛先障害の切り離し</td>
-<td>Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（run16 で、アプリ側の宛先を常に 500 にしても、削除は完了した）</td>
+<td>Broker が永続化した土台なら、202 を受けた時点で finalizer を外してよい。宛先の障害は Broker 側の retry と DLQ が受け持つので、削除は止まらない（<a href="report.html#run16">run16</a> で、アプリ側の宛先を常に 500 にしても、削除は完了した）</td>
 </tr>
 <tr>
 <td>運用</td>
@@ -377,8 +377,8 @@
 </tr>
 <tr>
 <td>実測</td>
-<td>run4・run10・run11</td>
-<td>run12・run13・run15</td>
+<td><a href="report.html#run4">run4</a>・<a href="report.html#run10">run10</a>・<a href="report.html#run11">run11</a></td>
+<td><a href="report.html#run12">run12</a>・<a href="report.html#run13">run13</a>・<a href="report.html#run15">run15</a></td>
 </tr>
 </tbody>
 </table>
@@ -389,9 +389,9 @@
 <li><strong>資格情報:</strong> 直接送る場合、送信先の資格情報は hook が持つ（基盤側）。Broker を挟めば、送信先ごとの受け手（利用者側）に閉じる。</li>
 </ul>
 <h2>評価</h2>
-<p><strong>削除完了の検知: ◎。</strong> 自分の finalizer だけが残った時点で、Argo CD はすでに <code>resources-finalizer</code> と <code>post-delete-finalizer</code> を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（run6）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（run10）。</p>
-<p><strong>検知層の耐障害性: ◎。</strong> Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（run10）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（run4）。</p>
-<p><strong>配送層の回復性: ○。</strong> 送信先を常に 500 にすると、hook は <code>finalized: false</code> を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（<code>resyncPeriodSeconds: 30</code>）と再送した（run10）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。</p>
+<p><strong>削除完了の検知: ◎。</strong> 自分の finalizer だけが残った時点で、Argo CD はすでに <code>resources-finalizer</code> と <code>post-delete-finalizer</code> を外し終えている。管理リソースの削除と PostDelete hook の完了が保証された状態で送れる。実測では、自前の試作は消滅の 45 ms 前に送信した（<a href="report.html#run6">run6</a>）。Metacontroller の hook では、送信からオブジェクトの消滅まで約 10 ms だった（<a href="report.html#run10">run10</a>）。</p>
+<p><strong>検知層の耐障害性: ◎。</strong> Metacontroller と hook を止めたまま削除すると、Application は Metacontroller の finalizer を 1 つだけ残して待った（<a href="report.html#run10">run10</a>）。25 秒後に復旧させると、hook が送信し、約 16 秒後に Application が消えた。自前の試作でも同じ動きだった（<a href="report.html#run4">run4</a>）。</p>
+<p><strong>配送層の回復性: ○。</strong> 送信先を常に 500 にすると、hook は <code>finalized: false</code> を返し続けた。Metacontroller は hook を呼び直し、実測では 4 秒後、30 秒後（<code>resyncPeriodSeconds: 30</code>）と再送した（<a href="report.html#run10">run10</a>）。送信先を戻すと、次の呼び出しで送れて Application が消えた。DLQ は無い。送れるまで、削除も完了しない。</p>
 <p><strong>配送保証: ◎。</strong> 送ってから <code>finalized: true</code> を返すので、at-least-once になる。応答の前に落ちると重複する。CloudEvent の <code>Ce-Id</code> に Application の <code>uid</code> を入れ、受け手で重複を除く。</p>
 <p><strong>可用性: ×。</strong> Metacontroller が止まっている間は、削除が完了しない。<code>--leader-election</code> を付けて複数レプリカで動かす（<a href="https://github.com/metacontroller/metacontroller/blob/master/docs/src/guide/configuration.md">configuration.md</a>）。既定のマニフェストは 1 レプリカ。複数レプリカでの動きは実測していない。</p>
 <p><strong>疎結合: ○。</strong> 直接送る形だと、送信先が hook の中に入る。Broker を挟めば、送信先の追加は Trigger 側で済む。</p>
@@ -399,7 +399,7 @@
 <p><strong>可観測性: ○。</strong> Metacontroller は <code>--metrics-address</code> で Prometheus のメトリクスを出す。送信の span と <code>traceparent</code> は hook の側で付ける。</p>
 <p><strong>セキュリティ・権限分離: △。</strong> 既定の ClusterRole が広い。絞るのは基盤側の仕事になる。</p>
 <p><strong>運用負荷: ○。</strong> 増える部品は Metacontroller と hook。自作のコントローラを保守するよりは軽い。</p>
-<p><strong>レイテンシ: ○。</strong> 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。run10 では、送信から消滅まで約 10 ms だった。</p>
+<p><strong>レイテンシ: ○。</strong> 最後の Argo CD の finalizer が外れると、Metacontroller の watch がそれを拾って hook を呼ぶ。<a href="report.html#run10">run10</a> では、送信から消滅まで約 10 ms だった。</p>
 <footer>
   正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
   の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。

@@ -32,6 +32,9 @@ OUT = HERE / "site" / "argocd-notify"
 # (ファイル名の stem, ナビのラベル)。index が概要、残りが方式ごとのページ。
 PAGES = [
     ("index",         "概要"),
+    ("recommended",   "推奨構成の詳細"),
+    ("criteria",      "評価軸"),
+    ("report",        "実測の報告書"),
     ("notifications", "① Notifications"),
     ("hooks",         "② PostSync / PostDelete"),
     ("knative",       "③ Knative"),

@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>実測の報告書</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* グラレコ。手描き風に、線を太く、色を蛍光ペン風にする */
+  .gr .fig text { font-size:13px; fill:var(--ink); }
+  .gr .gr-title { font-size:21px; font-weight:700; fill:var(--ink); }
+  .gr .gr-h { font-size:16px; font-weight:700; fill:var(--ink); }
+  .gr .gr-m { font-size:14px; fill:var(--ink); }
+  .gr .gr-s { font-size:12.5px; fill:var(--ink-2); }
+  .gr .gr-b { font-weight:700; }
+  .gr .gr-big { font-size:64px; font-weight:800; }
+  .gr .gr-red { fill:var(--hot); }
+  .gr .gr-code { font-family:var(--mono); }
+  .gr .gr-hl { fill:color-mix(in srgb, var(--stale) 30%, transparent); }
+  .gr .gr-body { fill:color-mix(in srgb, var(--l1) 18%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-dot { fill:var(--ink); }
+  .gr .gr-line { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+  .gr .gr-line2 { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-bubble { fill:var(--surface); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-warn { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:3; stroke-linejoin:round; }
+  .gr .gr-sep { fill:none; stroke:var(--ink-3); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
+  .gr .gr-lock { fill:color-mix(in srgb, var(--l2) 25%, var(--bg)); stroke:var(--ink); stroke-width:2.4; }
+  .gr .gr-note { fill:color-mix(in srgb, var(--stale) 28%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-note2 { fill:color-mix(in srgb, var(--l3) 22%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
+  .gr .gr-pill { fill:color-mix(in srgb, var(--l1) 14%, var(--bg)); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-env { fill:var(--surface); stroke:var(--ink); stroke-width:2.2; }
+  .gr .gr-arrow { fill:none; stroke:var(--ink); stroke-width:2.6; stroke-linecap:round; }
+  .gr .gr-ink { fill:var(--ink); }
+  .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
+  .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>実測の報告書</h1>
+  <p class="sub">kind 上で行った run1〜run19 の記録。各 run の数字は、scratchpad に保存したログ（<code>runs/</code>）から取り直した。ログが保存されていない数字は、その旨を書いた。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="on">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<h2>1. 目的</h2>
+<p>次の問いに答えるために測った。</p>
+<table>
+<thead>
+<tr>
+<th>番号</th>
+<th>問い</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q1</td>
+<td>削除の<strong>開始</strong>と<strong>完了</strong>を区別して取れるか。各方式はどの時点を捉えるか</td>
+</tr>
+<tr>
+<td>Q2</td>
+<td>受け手が止まっている間に起きた削除を、復旧後に拾えるか</td>
+</tr>
+<tr>
+<td>Q3</td>
+<td>送信先が失敗したとき、retry・DLQ はどう動くか。削除を止めるか</td>
+</tr>
+<tr>
+<td>Q4</td>
+<td>同じ変化が何通届くか。重複を id で消せるか</td>
+</tr>
+<tr>
+<td>Q5</td>
+<td>必要な権限はどこまで小さくできるか。他チームの Application を覗けるか、通知を偽装できるか</td>
+</tr>
+<tr>
+<td>Q6</td>
+<td>デプロイ完了を、基盤側の設定を触らずに Notifications と同じ条件で取れるか</td>
+</tr>
+<tr>
+<td>Q7</td>
+<td>Namespace の消滅を、基盤の Job を変えずに取れるか</td>
+</tr>
+<tr>
+<td>Q8</td>
+<td>HA 構成（リーダー選出）で、フェイルオーバー中の削除を取りこぼさないか</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 結論</h2>
+<div class="dgm gr">
+<div class="cap">図 1 グラレコ: 実測でわかったこと</div>
+<svg class="fig" viewBox="0 0 1000 760" role="img" aria-label="グラフィックレコーディング">
+  <defs>
+    <marker id="gr-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker>
+  </defs>
+  <!-- タイトル帯 -->
+  <path class="gr-hl" d="M40,52 C260,40 620,58 960,46 L962,78 C640,90 300,72 38,84 Z"/>
+  <text class="gr-title" x="500" y="74" text-anchor="middle">Argo CD の「できた！」「消えた！」を外に知らせるには？</text>
+
+  <!-- 1. 問い: Application くん -->
+  <g transform="translate(40,120)">
+    <rect class="gr-body" x="0" y="20" width="110" height="90" rx="14"/>
+    <circle class="gr-dot" cx="35" cy="55" r="5"/><circle class="gr-dot" cx="75" cy="55" r="5"/>
+    <path class="gr-line" d="M35,80 Q55,95 75,80"/>
+    <text class="gr-s" x="55" y="130" text-anchor="middle">Application</text>
+    <path class="gr-bubble" d="M130,0 h230 a12,12 0 0 1 12,12 v70 a12,12 0 0 1 -12,12 h-200 l-26,22 l4,-22 h-8 a12,12 0 0 1 -12,-12 v-70 a12,12 0 0 1 12,-12 z"/>
+    <text class="gr-m" x="148" y="30">デプロイできた！</text>
+    <text class="gr-m" x="148" y="54">Namespace 消えた！…を</text>
+    <text class="gr-m" x="148" y="78">Slack や社内 API に伝えたい</text>
+  </g>
+
+  <!-- 2. 落とし穴 -->
+  <g transform="translate(470,110)">
+    <path class="gr-warn" d="M0,150 L60,40 L120,150 Z"/>
+    <text class="gr-big gr-red" x="60" y="132" text-anchor="middle">!</text>
+    <text class="gr-h gr-red" x="140" y="40">落とし穴 ①</text>
+    <text class="gr-m" x="140" y="64"><tspan class="gr-code">on-deleted</tspan> は「消え始め」で鳴る</text>
+    <text class="gr-s" x="140" y="86">削除要求から 0.06 秒、まだ何も消えていない</text>
+    <text class="gr-h gr-red" x="140" y="118">落とし穴 ②</text>
+    <text class="gr-m" x="140" y="142">watch は止まっている間の DELETE を見逃す</text>
+    <text class="gr-s" x="140" y="164">Knative / Argo Events / API stream 共通</text>
+  </g>
+
+  <path class="gr-sep" d="M30,300 C300,292 700,308 970,298"/>
+
+  <!-- 3. 鍵: finalizer = 消えない約束 -->
+  <g transform="translate(40,330)">
+    <text class="gr-h" x="0" y="0">ひらめき：触らずに、外から見張る</text>
+    <!-- 錠前 -->
+    <rect class="gr-lock" x="10" y="40" width="80" height="64" rx="8"/>
+    <path class="gr-line2" d="M26,40 v-14 a24,24 0 0 1 48,0 v14"/>
+    <circle class="gr-dot" cx="50" cy="70" r="7"/>
+    <text class="gr-m" x="110" y="52">基盤の Job にも Namespace にも手を入れない</text>
+    <text class="gr-m" x="110" y="76">watch で即時、突き合わせで取りこぼしを拾う</text>
+    <text class="gr-s" x="110" y="100">→ 同じ id（uid:deleted）で届くので、受け手が重複を消す</text>
+    <!-- 付箋: Metacontroller -->
+    <g transform="translate(470,20) rotate(-3)">
+      <rect class="gr-note" x="0" y="0" width="256" height="96" rx="4"/>
+      <text class="gr-h" x="14" y="28">finalizer は付けない</text>
+      <text class="gr-s" x="14" y="52">付けると基盤の Job が通知を待つ</text>
+      <text class="gr-s" x="14" y="72">＝密結合。権限も強くなる</text>
+    </g>
+    <g transform="translate(750,26) rotate(2)">
+      <rect class="gr-note2" x="0" y="0" width="200" height="90" rx="4"/>
+      <text class="gr-h" x="14" y="28">入口は Broker 1 つ</text>
+      <text class="gr-s" x="14" y="52">Trigger はアプリ側に置く</text>
+      <text class="gr-s" x="14" y="72">Kafka / RabbitMQ / NATS</text>
+    </g>
+  </g>
+
+  <path class="gr-sep" d="M30,470 C300,478 700,462 970,472"/>
+
+  <!-- 4. おすすめの流れ -->
+  <text class="gr-h" x="40" y="505">おすすめの流れ</text>
+  <g transform="translate(40,525)">
+    <ellipse class="gr-pill" cx="95" cy="40" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="36" text-anchor="middle">デプロイ完了</text>
+    <text class="gr-s" x="95" y="56" text-anchor="middle">Application を観測</text>
+    <ellipse class="gr-pill" cx="95" cy="135" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="131" text-anchor="middle">削除完了</text>
+    <text class="gr-s" x="95" y="151" text-anchor="middle">ApiServerSource＋突き合わせ</text>
+    <path class="gr-arrow" d="M195,45 C290,40 330,80 400,85" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M195,130 C290,135 330,100 400,95" marker-end="url(#gr-ar)"/>
+    <rect class="gr-env" x="410" y="55" width="190" height="70" rx="10"/>
+    <path class="gr-line" d="M410,58 L505,100 L600,58"/>
+    <text class="gr-s" x="505" y="146" text-anchor="middle">Broker（永続化）→ Trigger</text>
+    <text class="gr-s" x="505" y="164" text-anchor="middle">ID = uid で重複を除く</text>
+    <path class="gr-arrow" d="M605,90 C680,70 720,40 780,40" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M605,95 C680,110 720,140 780,140" marker-end="url(#gr-ar)"/>
+    <text class="gr-m" x="790" y="45">Slack</text>
+    <text class="gr-m" x="790" y="145">社内 API</text>
+  </g>
+
+  <!-- 5. 役割分担 -->
+  <g transform="translate(40,700)">
+    <circle class="gr-head" cx="14" cy="8" r="10"/><path class="gr-line2" d="M14,18 v22 M0,28 h28"/>
+    <text class="gr-m" x="40" y="22"><tspan class="gr-b">基盤チーム</tspan>：Knative と観測部品を守る</text>
+    <circle class="gr-head gr-head2" cx="534" cy="8" r="10"/><path class="gr-line2" d="M534,18 v22 M520,28 h28"/>
+    <text class="gr-m" x="560" y="22"><tspan class="gr-b">利用者</tspan>：Trigger と受け手を持つ</text>
+  </g>
+</svg>
+</div>
+
+<ul>
+<li><strong>削除開始と削除完了は別物（Q1）。</strong> Notifications の <code>on-deleted</code> は削除要求から 0.05 秒で発火し、管理リソースは 3.45 秒、Application は 6.80 秒で消えた（run3）。</li>
+<li><strong>watch 系は、止まっている間の削除を取りこぼす（Q2）。</strong> 突き合わせ（uid 一覧）と finalizer だけが、復旧後に拾った（run4・run5・run12・run13・run15）。</li>
+<li><strong>Broker に入ったあとの配送は強い（Q3）。</strong> 宛先が 500 を返し続けても、retry のあと DLQ に入り、削除は止まらなかった（run16）。</li>
+<li><strong>重複は決定的な id で 1 通にできる（Q4）。</strong> 3 経路から同じ id が届いた（run13）。デプロイの観測では、同じ revision へのロールバックで id が衝突した（run19）。</li>
+<li><strong>観測だけで、基盤側の設定を触らずに取れる（Q6・Q7）。</strong> 権限は get/list/watch だけで済んだ（run15・run19）。</li>
+</ul>
+<h2>3. 検証環境のアーキテクチャ</h2>
+<div class="dgm"><div class="cap">図 2 検証環境（kind 1 ノード）。どの namespace で何が動き、どこで時刻を取ったか</div><svg class="fig" viewBox="0 0 1000 560" role="img" aria-label="検証環境"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-plain" x="10" y="30" width="980" height="490" rx="8"/><text class="t-zone" x="20" y="46">kind ノード（Kubernetes v1.33.1、kind v0.29.0）</text><rect class="zone zone-platform" x="25" y="55" width="300" height="200" rx="8"/><text class="t-zone" x="35" y="71">argocd（Argo CD v3.5.3）</text><rect class="zone zone-platform" x="345" y="55" width="300" height="200" rx="8"/><text class="t-zone" x="355" y="71">knative-eventing（v1.23.0）</text><rect class="zone zone-app" x="665" y="55" width="310" height="450" rx="8"/><text class="t-zone" x="675" y="71">obs（観測・受け手）</text><rect class="zone zone-plain" x="25" y="275" width="300" height="230" rx="8"/><text class="t-zone" x="35" y="291">demo / team-a / ラベル付き ns</text><rect class="zone zone-plain" x="345" y="275" width="300" height="230" rx="8"/><text class="t-zone" x="355" y="291">その他（run ごとに入れ替え）</text><rect class="nd nd-comp" x="40" y="85" width="270" height="40" rx="6"/><text class="t-ink" x="50" y="104">application-controller</text><rect class="nd nd-comp" x="40" y="140" width="270" height="40" rx="6"/><text class="t-ink" x="50" y="159">notifications-controller</text><rect class="nd nd-comp" x="40" y="195" width="270" height="40" rx="6"/><text class="t-ink" x="50" y="214">argocd-server（API stream）</text><rect class="nd nd-comp" x="360" y="85" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="104">Broker（MT・InMemoryChannel）</text><rect class="nd nd-comp" x="360" y="140" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="159">PingSource</text><rect class="nd nd-comp" x="360" y="195" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="214">EventTransform（JSONata）</text><rect class="nd nd-app" x="40" y="305" width="270" height="54" rx="6"/><text class="t-ink" x="50" y="324">テスト用チャート</text><text class="t-mono" x="50" y="340">ConfigMap・Deployment・hook Job</text><rect class="nd nd-app" x="40" y="380" width="270" height="54" rx="6"/><text class="t-ink" x="50" y="399">ラベル付き Namespace</text><text class="t-mono" x="50" y="415">notify.example.com/watch=true</text><rect class="nd nd-comp" x="360" y="305" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="324">Metacontroller v4.17.2</text><rect class="nd nd-comp" x="360" y="360" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="379">Argo Events v1.9.11</text><rect class="nd nd-comp" x="360" y="415" width="270" height="40" rx="6"/><text class="t-ink" x="370" y="434">自前 finalizer（試作）</text><rect class="nd nd-comp" x="680" y="85" width="280" height="40" rx="6"/><text class="t-ink" x="690" y="104">ApiServerSource adapter</text><rect class="nd nd-comp" x="680" y="145" width="280" height="40" rx="6"/><text class="t-ink" x="690" y="164">観測 Service / 突き合わせ</text><rect class="nd nd-comp" x="680" y="205" width="280" height="40" rx="6"/><text class="t-ink" x="690" y="224">Helm リポジトリ（http.server）</text><rect class="nd nd-state" x="680" y="270" width="280" height="60" rx="6"/><text class="t-ink" x="690" y="289">受け手（receiver.py）</text><text class="t-mono" x="690" y="305">受信時刻・ヘッダを JSON で記録</text><rect class="nd nd-state" x="680" y="350" width="280" height="76" rx="6"/><text class="t-ink" x="690" y="369">kubectl watch（ホスト側）</text><text class="t-mono" x="690" y="385">Application と管理リソースの</text><text class="t-mono" x="690" y="401">イベントに時刻を付けて記録</text><path class="ln ln-http" d="M175,125 L175,305" marker-end="url(#a-http)"/><path class="ln ln-ce" d="M680,105 L630,105" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M630,105 L655,105 L655,300 L680,300" marker-end="url(#a-ce)"/><path class="ln ln-http" d="M310,160 L330,160 L330,265 L660,265 L660,290 L680,291" marker-end="url(#a-http)"/><path class="ln ln-watch" d="M680,388 L640,388 L640,332 L310,332 L310,332" marker-end="url(#a-watch)"/><path class="ln ln-watch" d="M20,550 L48,550" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="554">watch</text><path class="ln ln-http" d="M107.5,550 L135.5,550" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="554">HTTP</text><path class="ln ln-ce" d="M188.7,550 L216.7,550" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="554">CloudEvent</text><rect class="nd nd-state" x="307.7" y="542" width="16" height="12" rx="2"/><text class="t-mono" x="329.7" y="554">状態を持つ場所</text></svg></div>
+<p><strong>観測の仕組み:</strong></p>
+<ul>
+<li><strong>受け手:</strong> 1 つの Pod（<code>receiver.py</code>）で全方式の送信を受け、受信時刻（UTC、ミリ秒）・パス・<code>Ce-*</code> ヘッダ・本文を 1 行の JSON で記録した。ログは <code>kubectl logs -f</code> でホスト側のファイルに保存した。</li>
+<li><strong>ホスト側の watch:</strong> Application と管理リソースを <code>kubectl get -w --output-watch-events</code> で見て、ホストの時刻を付けて記録した。</li>
+<li><strong>突き合わせ:</strong> 受け手の時刻と watch の時刻は、同じホストの時計で比べた。受け手の Pod もノード上にあるので、時計のずれは ms 未満と見なした（測ってはいない）。</li>
+<li><strong>操作の時刻:</strong> 削除の発行などの操作時刻は <code>marks</code> ファイルに記録した。</li>
+</ul>
+<h2>4. 各 run の結果</h2>
+<p>各 run を、目的・手順・結果・解釈の順に書く。</p>
+<h3 id="run1">4.1 run1: Notifications の deployed が届くか</h3>
+<ul>
+<li><strong>目的:</strong> Notifications の <code>on-deployed</code>（カタログの条件）と PostSync hook が届くかを確かめる（Q1）</li>
+<li><strong>手順:</strong> <code>resources-finalizer</code> 付きの Application を作り、Synced かつ Healthy まで待った</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>受信</th>
+<th>時刻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/postsync</code>（PostSync hook の Job）</td>
+<td>06:03:01.286</td>
+</tr>
+<tr>
+<td><code>/notifications/deployed</code></td>
+<td>06:03:04.167</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> PostSync は Healthy のあと、Notifications はその 2.9 秒後、operation が Succeeded になった時点で届いた。この run の削除側（run2）は、セッションが途切れて記録が不完全なので、数字には使わない</li>
+</ul>
+<h3 id="run3">4.2 run3: ライフサイクル上の時点</h3>
+<ul>
+<li><strong>目的:</strong> 各方式が、作成と削除のどの時点を捉えるかを比べる（Q1・Q4）</li>
+<li><strong>手順:</strong> 全方式を同時に動かし、Application を作成して、31 秒後に削除した。</li>
+<li>ホスト側の watch で、Application と管理リソースの時刻を取った</li>
+<li><strong>結果（表 1、0 秒 = <code>kubectl delete</code>）:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>出来事</th>
+<th style="text-align: right;">時刻</th>
+<th style="text-align: right;">Application の消滅との差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/notifications/deleted</code>（<code>on-deleted</code>）</td>
+<td style="text-align: right;">+0.051 s</td>
+<td style="text-align: right;">−6750 ms</td>
+</tr>
+<tr>
+<td>管理リソース（Deployment）の消滅</td>
+<td style="text-align: right;">+3.450 s</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td><code>/postdelete</code>（PostDelete hook）</td>
+<td style="text-align: right;">+4.286 s</td>
+<td style="text-align: right;">−2515 ms</td>
+</tr>
+<tr>
+<td>Application の消滅（watch の DELETED）</td>
+<td style="text-align: right;">+6.801 s</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>/knative/delete</code>（ApiServerSource）</td>
+<td style="text-align: right;">+6.803 s</td>
+<td style="text-align: right;">+2 ms</td>
+</tr>
+<tr>
+<td><code>/argo-events/delete</code></td>
+<td style="text-align: right;">+6.803 s</td>
+<td style="text-align: right;">+2 ms</td>
+</tr>
+<tr>
+<td>API stream の <code>DELETED</code></td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">+2 ms</td>
+</tr>
+</tbody>
+</table>
+<p>作成側（0 秒 = 作成）:</p>
+<table>
+<thead>
+<tr>
+<th>出来事</th>
+<th style="text-align: right;">時刻</th>
+<th style="text-align: right;">件数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/postsync</code></td>
+<td style="text-align: right;">+3.071 s</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><code>/notifications/deployed</code></td>
+<td style="text-align: right;">+6.046 s</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Knative の <code>resource.update</code>（作成から削除開始まで）</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td>Argo Events の deployed（データフィルタ）</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">4（ほかに削除開始の直後に 2）</td>
+</tr>
+</tbody>
+</table>
+<p>時刻は実測（run3・run6）の値。削除側は <code>kubectl delete</code> を 0 秒とし、<code>resources-finalizer.argocd.argoproj.io</code> 付きで PostDelete hook を 1 つ持つ Application を消した。</p>
+<div class="dgm">
+<div class="cap">図 3 デプロイ側のタイムライン（run3、0 秒 = Application を作成）</div>
+<svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="デプロイのタイムライン">
+  <rect class="band" x="240" y="24" width="198" height="18"/>
+  <text class="t-mono" x="246" y="37">Sync / Progressing</text>
+  <rect class="band" x="440" y="24" width="468" height="18" opacity=".55"/>
+  <text class="t-mono" x="446" y="37">Healthy。PostSync hook 実行中、operation は Running</text>
+  <line class="ln" x1="240" y1="56" x2="960" y2="56"/>
+  <text class="t-mono" x="240" y="72">0s</text><text class="t-mono" x="432" y="72">1.8s</text>
+  <text class="t-mono" x="566" y="72">3.1s</text><text class="t-mono" x="896" y="72">6.05s</text>
+  <line class="ln ln-dash" x1="438" y1="48" x2="438" y2="236"/>
+  <line class="ln ln-dash" x1="910" y1="48" x2="910" y2="236"/>
+  <text x="20" y="100">① Notifications on-deployed</text><circle class="mk-ok" cx="910" cy="96" r="6"/><text class="t-mono" x="790" y="100">1 回だけ</text>
+  <text x="20" y="130">② PostSync hook（Job）</text><circle class="mk-ok" cx="580" cy="126" r="6"/><text class="t-mono" x="592" y="130">Healthy 後に実行</text>
+  <text x="20" y="160">④ Argo Events（UPDATE+filter）</text>
+  <circle class="mk-mid" cx="906" cy="156" r="5"/><circle class="mk-mid" cx="912" cy="156" r="5"/><circle class="mk-mid" cx="918" cy="156" r="5"/><circle class="mk-mid" cx="924" cy="156" r="5"/><text class="t-mono" x="790" y="160">4 回届く</text>
+  <text x="20" y="190">③ Knative ApiServerSource</text>
+  <g class="mk-mid"><circle cx="245" cy="186" r="3"/><circle cx="255" cy="186" r="3"/><circle cx="265" cy="186" r="3"/><circle cx="275" cy="186" r="3"/><circle cx="438" cy="186" r="3"/><circle cx="490" cy="186" r="3"/><circle cx="496" cy="186" r="3"/><circle cx="505" cy="186" r="3"/><circle cx="905" cy="186" r="3"/><circle cx="909" cy="186" r="3"/><circle cx="913" cy="186" r="3"/><circle cx="917" cy="186" r="3"/></g>
+  <text class="t-mono" x="600" y="190">更新のたびに update（作成で 14 件）。判定は受け手</text>
+  <text x="20" y="220">⑤⑥ 自前 / API stream</text><text class="t-mono" x="240" y="220">MODIFIED を全部受けて自分で判定する（③ と同じ性質）</text>
+</svg>
+</div>
+
+<div class="dgm">
+<div class="cap">図 4 削除側のタイムライン（run3、0 秒 = kubectl delete）</div>
+<svg class="fig" viewBox="0 0 1000 300" role="img" aria-label="削除のタイムライン">
+  <rect class="band" x="245" y="24" width="355" height="18"/>
+  <text class="t-mono" x="251" y="37">管理リソースを削除（resources-finalizer）</text>
+  <rect class="band" x="602" y="24" width="333" height="18" opacity=".55"/>
+  <text class="t-mono" x="608" y="37">PostDelete hook（post-delete-finalizer）</text>
+  <line class="ln" x1="240" y1="56" x2="960" y2="56"/>
+  <text class="t-mono" x="236" y="72">0.05s 削除開始</text><text class="t-mono" x="545" y="72">3.5s リソース消滅</text><text class="t-mono" x="880" y="72">6.8s 消滅</text>
+  <line class="ln ln-dash" x1="245" y1="48" x2="245" y2="290"/>
+  <line class="ln ln-dash" x1="600" y1="48" x2="600" y2="290"/>
+  <line class="ln ln-dash" x1="939" y1="48" x2="939" y2="290"/>
+  <text x="20" y="100">① on-deleted</text><circle class="mk-bad" cx="246" cy="96" r="6"/><text class="t-mono t-bad" x="258" y="100">削除開始で発火（完了ではない）</text>
+  <text x="20" y="128">① カスタム trigger</text><circle class="mk-mid" cx="604" cy="124" r="6"/><text class="t-mono" x="400" y="128">health=Missing で発火 →</text>
+  <text x="20" y="156">② PostDelete hook</text><circle class="mk-mid" cx="681" cy="152" r="6"/><text class="t-mono" x="693" y="156">リソース消滅後・CR 消滅前</text>
+  <text x="20" y="184">⑤ finalizer 方式</text><circle class="mk-ok" cx="935" cy="180" r="6"/><text class="t-mono" x="700" y="184">残り finalizer が自分だけ →</text>
+  <text x="20" y="212">③ Knative delete</text><circle class="mk-ok" cx="940" cy="208" r="6"/><text class="t-mono" x="790" y="212">消滅 +2ms</text>
+  <text x="20" y="240">④ Argo Events DELETE</text><circle class="mk-ok" cx="940" cy="236" r="6"/><text class="t-mono" x="790" y="240">消滅 +2ms</text>
+  <text x="20" y="268">⑥ API stream DELETED</text><circle class="mk-ok" cx="940" cy="264" r="6"/><text class="t-mono" x="790" y="268">消滅 +2ms</text>
+  <text class="t-mono" x="20" y="292">緑: 削除完了　黄: 途中の段階　赤: 削除開始。止まっていた間の取りこぼしは別の軸（検知層の耐障害性）で評価する</text>
+</svg>
+</div>
+
+<p>Argo CD の <code>controller/appcontroller.go</code> の <code>finalizeApplicationDeletion</code> は、finalizer を 1 段ずつ外していく。
+管理リソースが消え切ると <code>resources-finalizer.argocd.argoproj.io</code> を外す。
+次に <code>post-delete-finalizer.argocd.argoproj.io</code> の段で PostDelete hook を実行し、成功したら外して hook を片付ける。
+実測でも finalizer はこの順に外れた（<code>resources-finalizer</code> → <code>post-delete-finalizer</code> → <code>post-delete-finalizer/cleanup</code> → 消滅）。</p>
+<hr />
+<ul>
+<li><strong>解釈:</strong> <code>on-deleted</code> は削除開始の時点を捉える。削除完了を捉えたのは、watch 系（Knative・Argo Events・API stream）だけだった。</li>
+<li>PostDelete hook は、管理リソースが消えたあと、Application が消える前に届いた。</li>
+<li>Knative の update は 1 回の作成で 14 件来たので、デプロイ完了の判定は受け手が行う必要がある。</li>
+</ul>
+<h3 id="run4">4.3 run4: 通知系を止めたまま削除（自前 finalizer あり）</h3>
+<ul>
+<li><strong>目的:</strong> 止まっている間に削除すると、どの方式が復旧後に拾うかを確かめる（Q2）</li>
+<li><strong>手順:</strong> 自前 finalizer を付けたうえで、次の 4 つを止めて削除し、25 秒後に復旧させた。</li>
+<li>Notifications</li>
+<li>Knative（controller と adapter）</li>
+<li>Argo Events</li>
+<li>自前 finalizer</li>
+<li><strong>結果（0 秒 = 削除、復旧は +25.1 s）:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>受信</th>
+<th style="text-align: right;">削除からの時刻</th>
+<th style="text-align: right;">復旧からの時刻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/postdelete</code></td>
+<td style="text-align: right;">+4.8 s</td>
+<td style="text-align: right;">−20283 ms</td>
+</tr>
+<tr>
+<td><code>/finalizer/deleted</code></td>
+<td style="text-align: right;">+27.4 s</td>
+<td style="text-align: right;">+2303 ms</td>
+</tr>
+<tr>
+<td><code>/knative/delete</code></td>
+<td style="text-align: right;">+27.5 s</td>
+<td style="text-align: right;">+2349 ms</td>
+</tr>
+<tr>
+<td>Application の消滅（GET が 404）</td>
+<td style="text-align: right;">+27.5 s</td>
+<td style="text-align: right;">+2421 ms</td>
+</tr>
+<tr>
+<td>Notifications・Argo Events</td>
+<td style="text-align: right;">届かず</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p>停止中の Application の finalizer は、<code>["notify.example.com/deletion"]</code> だけが残っていた。</p>
+<ul>
+<li><strong>解釈:</strong> finalizer が削除を止めていたので、Knative も、復旧後にまだ残っていた Application の DELETE を送れた。Notifications と Argo Events は送らなかった。</li>
+</ul>
+<h3 id="run5">4.4 run5: 通知系を止めたまま削除（finalizer なし）</h3>
+<ul>
+<li><strong>目的:</strong> finalizer が無い場合の取りこぼしを確かめる（Q2）</li>
+<li><strong>手順:</strong> run4 と同じ部品を止めて削除し、消滅後に復旧して 90 秒待った</li>
+<li><strong>結果:</strong> 届いたのは <code>/postdelete</code>（削除から +4.2 s）の 1 件だけだった</li>
+<li><strong>解釈:</strong> watch 系は、止まっている間に消えたものを復旧後に出さない</li>
+</ul>
+<h3 id="run6">4.5 run6: Notifications のカスタム trigger と自前 finalizer</h3>
+<ul>
+<li><strong>目的:</strong> Notifications で取れる最も遅い時点と、finalizer の送信時点を比べる（Q1）</li>
+<li><strong>手順:</strong> カスタム trigger（<code>deletionTimestamp != nil and health == Missing</code>）を足して削除した</li>
+<li><strong>結果（0 秒 = 削除）:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>受信</th>
+<th style="text-align: right;">時刻</th>
+<th style="text-align: right;">Application の消滅との差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/notifications/deleted</code></td>
+<td style="text-align: right;">+0.050 s</td>
+<td style="text-align: right;">−5545 ms</td>
+</tr>
+<tr>
+<td><code>/notifications/resources-gone</code>（カスタム）</td>
+<td style="text-align: right;">+4.427 s</td>
+<td style="text-align: right;">−1168 ms</td>
+</tr>
+<tr>
+<td><code>/postdelete</code></td>
+<td style="text-align: right;">+5.234 s</td>
+<td style="text-align: right;">−361 ms</td>
+</tr>
+<tr>
+<td><code>/finalizer/deleted</code></td>
+<td style="text-align: right;">+5.547 s</td>
+<td style="text-align: right;">−48 ms</td>
+</tr>
+<tr>
+<td><code>/knative/delete</code></td>
+<td style="text-align: right;">+5.595 s</td>
+<td style="text-align: right;">0 ms</td>
+</tr>
+<tr>
+<td><code>/argo-events/delete</code></td>
+<td style="text-align: right;">+5.600 s</td>
+<td style="text-align: right;">+5 ms</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> カスタム trigger は、管理リソースが消えた直後に発火した。Notifications では、これより遅い時点は取れない。finalizer は、消滅の 48 ms 前に送った</li>
+</ul>
+<h3 id="run7">4.6 run7: Notifications から Broker へ CloudEvent</h3>
+<ul>
+<li><strong>目的:</strong> Notifications の template で CloudEvent を組み、Broker に入れられるかを確かめる（Q6）</li>
+<li><strong>手順:</strong> structured mode の本文を Broker ingress に POST する service と template を足し、Application を作成した</li>
+<li><strong>結果:</strong> <code>/knative/deployed-ce</code> に、<code>Ce-Id: dd455bf2-…-0.1.0</code>、<code>Ce-Type: com.example.argocd.app.deployed</code> で届いた（06:44:39.964）。直接送った <code>/notifications/deployed</code> の 4 ms 前</li>
+<li><strong>解釈:</strong> 送れる。ただし <code>argocd-notifications-cm</code> の変更が要る</li>
+</ul>
+<h3 id="run8">4.7 run8: 宛先の失敗と retry・DLQ</h3>
+<ul>
+<li><strong>目的:</strong> 宛先が常に 500 を返すとき、各方式の retry と DLQ を確かめる（Q3）</li>
+<li><strong>手順:</strong> 宛先を常に 500 にし、Knative の Trigger に <code>retry: 3</code>・<code>exponential</code>・<code>PT0.5S</code>・<code>deadLetterSink</code> を設定した</li>
+<li><strong>結果（ログが残っている部分）:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>時刻</th>
+<th style="text-align: right;">コード</th>
+<th>宛先</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>07:38:18.378</td>
+<td style="text-align: right;">500</td>
+<td><code>/fail/notifications</code>（1 回目）</td>
+</tr>
+<tr>
+<td>07:38:19.381</td>
+<td style="text-align: right;">500</td>
+<td>同 2 回目（+1.0 s）</td>
+</tr>
+<tr>
+<td>07:38:21.384</td>
+<td style="text-align: right;">500</td>
+<td>同 3 回目（+2.0 s）</td>
+</tr>
+<tr>
+<td>07:38:25.388</td>
+<td style="text-align: right;">500</td>
+<td>同 4 回目（+4.0 s）。以後は送らない</td>
+</tr>
+</tbody>
+</table>
+<p>Knative の削除イベントの retry（初回と 3 回の retry、0.5 → 1 → 2 秒、そのあと DLQ）は、保存したログには最後の 1 回と DLQ しか残っていない。ほかの回は、実行時の画面出力（07:40:56.814〜07:41:00.329）で確認した。Argo Events は、<code>policy.status.allow</code> を指定しないと 1 回で終わった。指定すると retry を 3 回行い、<code>dlqTrigger</code> に送った（画面出力で確認、ログは保存していない）。</p>
+<ul>
+<li><strong>解釈:</strong> Notifications は 4 回試したあと送信済みとして記録し、以後は再送しない。Knative は、宣言どおりに retry したあと DLQ に入れた</li>
+</ul>
+<h3 id="run9">4.8 run9: テナント越境</h3>
+<ul>
+<li><strong>目的:</strong> アプリチームの権限で、他チームの Application を覗けるか、通知を偽装できるかを確かめる（Q5）</li>
+<li><strong>手順:</strong> <code>team-a</code> の ServiceAccount に、<code>edit</code> と Knative の namespaced-admin を与えた</li>
+<li><strong>結果（<code>kubectl auth can-i</code> と実際の作成）:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>argocd の applications を list</td>
+<td>no</td>
+</tr>
+<tr>
+<td>team-a に ApiServerSource・Broker・Trigger・EventSource・Sensor を作成</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>argocd を見る ApiServerSource</td>
+<td>作れたが、<code>SufficientPermissions=False</code> で Ready にならない</td>
+</tr>
+<tr>
+<td>Platform の Broker に、偽の delete イベントを POST</td>
+<td>202。Platform の受け手まで届いた</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> 覗くことはできない。偽装は、EventPolicy を設定していない既定の状態では防げない</li>
+</ul>
+<h3 id="run10">4.9 run10: Metacontroller の finalize hook</h3>
+<ul>
+<li><strong>目的:</strong> finalizer を Metacontroller で実現した場合の、停止中の削除と宛先の失敗を確かめる（Q2・Q3）</li>
+<li><strong>手順:</strong> 次の 3 つの場面を順に試した。</li>
+<li>Metacontroller と hook を止めて削除し、25 秒後に復旧した</li>
+<li>宛先を常に 500 にした</li>
+<li>通常の状態で削除した</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>停止中に削除</td>
+<td>25 秒後も finalizer が残って待った。復旧後の 08:41:16.781 に送信し、08:41:17.463 に消滅</td>
+</tr>
+<tr>
+<td>宛先が 500</td>
+<td>08:42:00・08:42:04・08:42:34 に再送（500）。削除も待ち、宛先を戻すと 08:43:05 に消滅</td>
+</tr>
+<tr>
+<td>通常</td>
+<td>送信（08:43:25.393）から消滅（08:43:25.403）まで 10 ms</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> 停止中の削除も拾い、送れるまで削除を止める</li>
+</ul>
+<h3 id="run11">4.10 run11: 権限を絞った Metacontroller と HA</h3>
+<ul>
+<li><strong>目的:</strong> ClusterRole を絞っても動くか、リーダーが変わっても取りこぼさないかを確かめる（Q5・Q8）</li>
+<li><strong>手順:</strong> ClusterRole を 5 ルールに絞り、<code>--leader-election</code> を付けて 2 レプリカで動かした。削除の直前にリーダーを落とした</li>
+<li><strong>結果:</strong></li>
+<li>リーダーは <code>metacontroller-0</code> から <code>metacontroller-1</code> に移った</li>
+<li>削除（09:01:59.273）から消滅（09:02:15.481）まで 16.2 秒</li>
+<li>通知は 1 通</li>
+<li>Lease の期間は 15 秒</li>
+<li>namespaces の get/list/watch を外すと、list が Forbidden になった（画面出力で確認）</li>
+<li><strong>解釈:</strong> 絞った権限で動く。フェイルオーバー中の削除も取りこぼさなかった</li>
+</ul>
+<h3 id="run12">4.11 run12: CronJob による突き合わせ</h3>
+<ul>
+<li><strong>目的:</strong> applications の get/list だけで、停止中の削除を拾えるかを確かめる（Q2・Q5）</li>
+<li><strong>手順:</strong> 毎分の CronJob が uid 一覧（ConfigMap）と list を比べた。通常の削除と、CronJob を止めている間の削除を試した</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>消滅</th>
+<th>受信</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通常</td>
+<td>09:07:55.837</td>
+<td>09:08:01.140（+5.3 s、次の周期）</td>
+</tr>
+<tr>
+<td>CronJob 停止中</td>
+<td>09:10:39.565</td>
+<td>再開（09:12:09.675）の 1.1 秒後に受信</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> 停止中の削除も拾う。遅延は周期に依存する</li>
+</ul>
+<h3 id="run13">4.12 run13: 3 経路と決定的な id</h3>
+<ul>
+<li><strong>目的:</strong> 3 つの経路から同じ id が届くか、adapter を止めたときにどの経路が拾うかを確かめる（Q2・Q4）</li>
+<li><strong>手順:</strong> 次の 3 経路を、同じ Broker に向けて同時に動かした。</li>
+<li>ApiServerSource（EventTransform で id を <code>&lt;uid&gt;:deleted</code> にする）</li>
+<li>自前 finalizer</li>
+<li>PingSource による突き合わせ</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>経路</th>
+<th>受信</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通常（消滅 09:23:59.776）</td>
+<td>finalizer</td>
+<td>09:23:59.731</td>
+</tr>
+<tr>
+<td></td>
+<td>ApiServerSource</td>
+<td>09:23:59.789</td>
+</tr>
+<tr>
+<td></td>
+<td>突き合わせ</td>
+<td>09:24:00.222</td>
+</tr>
+<tr>
+<td>adapter 停止（消滅 09:26:41.826）</td>
+<td>finalizer</td>
+<td>09:26:41.740</td>
+</tr>
+<tr>
+<td></td>
+<td>突き合わせ</td>
+<td>09:27:00.159</td>
+</tr>
+<tr>
+<td></td>
+<td>ApiServerSource</td>
+<td>届かず</td>
+</tr>
+</tbody>
+</table>
+<p>id は、どの経路でも <code>&lt;uid&gt;:deleted</code> だった。team-a の Broker にも、同じ件数だけ転送された。</p>
+<ul>
+<li><strong>解釈:</strong> 経路が違っても id は同じになる。adapter が止まっていると、ApiServerSource だけが取りこぼす</li>
+</ul>
+<h3 id="run14">4.13 run14: Namespace を消す Job を改修する案（採らない案の検証）</h3>
+<ul>
+<li><strong>目的:</strong> Job が消滅を待ってから送る形の動きを確かめる（Q7）</li>
+<li><strong>手順:</strong> 12 行のスクリプトで、<code>delete</code> → <code>kubectl wait --for=delete</code> → Broker に POST、を行った。次の 3 つを試した。</li>
+<li>A: 通常</li>
+<li>B: Terminating のまま止まる（ConfigMap の finalizer）。タイムアウトは 20 秒</li>
+<li>C: すでに消えている Namespace</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>受信 09:29:15.968。Job 完了 09:29:18.496。id は <code>ns:nsa:deleted:&lt;Job の uid&gt;</code></td>
+</tr>
+<tr>
+<td>B</td>
+<td>Pod が 4 回失敗し、<code>BackoffLimitExceeded</code> で Failed。通知は無し</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Job 完了（09:32:00.889）、受信 09:31:57.684</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> 動くが、基盤の Job に通知の都合を持ち込むので採らない。止まった場合は Job の失敗として見える</li>
+</ul>
+<h3 id="run15">4.14 run15: Namespace の観測</h3>
+<ul>
+<li><strong>目的:</strong> Namespace の DELETE がいつ出るか、selector が効くか、取りこぼしの条件を確かめる（Q2・Q7）</li>
+<li><strong>手順:</strong> ラベル付きの Namespace を見る ApiServerSource と、突き合わせ（ADD も記録）を動かして、次の 4 つを試した。</li>
+<li>A: ラベル付きの Namespace と、ラベルの無い Namespace を削除する</li>
+<li>B: adapter を止めて削除する</li>
+<li>C: 1 周期の中で作って消す</li>
+<li>D: adapter を止めたまま作って消す</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>受信</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A（消滅 09:35:38.243）</td>
+<td>update ×2（09:35:27.857・09:35:32.868、Terminating）、ApiServerSource の delete 09:35:38.144、突き合わせ 09:36:00.371。ラベルの無い Namespace は届かなかった</td>
+</tr>
+<tr>
+<td>B（消滅 09:38:23.778）</td>
+<td>突き合わせ 09:39:00.353 のみ</td>
+</tr>
+<tr>
+<td>C（消滅 09:40:08.519）</td>
+<td>ApiServerSource 09:40:08.525、突き合わせ 09:41:00.285</td>
+</tr>
+<tr>
+<td>D</td>
+<td>0 件</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong> Terminating は UPDATE、DELETE は完全に消えた時点で出る。ADD を記録すれば、短命な Namespace も拾える。adapter が生存期間中ずっと止まっていると、どちらの経路でも取れない</li>
+</ul>
+<h3 id="run16">4.15 run16: 宛先の障害は削除を止めない</h3>
+<ul>
+<li><strong>目的:</strong> アプリ側の宛先が失敗しても、削除が止まらないかを確かめる（Q3）</li>
+<li><strong>手順:</strong> team-a の Trigger の宛先を常に 500 にして、Application を削除した</li>
+<li><strong>結果:</strong></li>
+<li>削除は 09:44:07.278 に始まり、消滅は 09:44:18.688 だった。</li>
+<li>finalizer 経路のイベントは、4 回試行（09:44:15.135〜09:44:18.646）したあと DLQ に入った（09:44:18.648）。</li>
+<li>ApiServerSource 経路のイベントも、同じく 4 回試行したあと DLQ に入った（09:44:22.211）。</li>
+<li><strong>解釈:</strong> 宛先の障害は Broker の先で閉じ、削除は止まらない</li>
+</ul>
+<h3 id="run17">4.16 run17: Namespace をマニフェストに含む Application</h3>
+<ul>
+<li><strong>目的:</strong> Argo CD が Namespace の消滅まで Application を残すかを確かめる（削除完了の定義）</li>
+<li><strong>手順:</strong> Namespace と、finalizer 付きの ConfigMap を含むチャートを削除した。ConfigMap の finalizer は後から外した</li>
+<li><strong>結果:</strong></li>
+<li>削除（09:49:11）の直後から、Application は <code>resources-finalizer</code> を 1 つ残し、Namespace は Terminating で止まった。</li>
+<li>finalizer を外すと（09:49:58）、どちらも 09:50:03 までに消えた。</li>
+<li>数字は画面出力から取った。ログは保存していない。</li>
+<li><strong>解釈:</strong> Argo CD は、管理している Namespace が消えるまで Application を残す</li>
+</ul>
+<h3 id="run18">4.17 run18: 自前の informer の再起動</h3>
+<ul>
+<li><strong>目的:</strong> client-go の informer は、プロセスを再起動したあと、止まっていた間の削除を出すかを確かめる（Q2）</li>
+<li><strong>手順:</strong> client-go v0.35.7 の 39 行の watcher を起動して止め、その間に Namespace を消し、再起動した</li>
+<li><strong>結果:</strong> 1 回目の起動では <code>ADD nsw</code>（09:50:59.459）。再起動後の出力は空だった</li>
+<li><strong>解釈:</strong> キャッシュはメモリにしかないので、再起動をはさむと削除は届かない</li>
+</ul>
+<h3 id="run19">4.18 run19: Application の観測によるデプロイ完了</h3>
+<ul>
+<li><strong>目的:</strong> 基盤側の設定を触らずに、Notifications の <code>on-deployed</code> と同じ条件でデプロイ完了を取れるかを確かめる（Q4・Q6）</li>
+<li><strong>手順:</strong></li>
+<li>ApiServerSource で Application を watch する。観測 Service（41 行）が、カタログと同じ条件で <code>&lt;uid&gt;:&lt;revision&gt;:deployed</code> を送る。PingSource で毎分の突き合わせも行った。</li>
+<li>Notifications も、同じ条件で並べて動かした。</li>
+<li>0.1.0 で作成したあと 0.2.0 に上げ（run19c）、0.1.0 に戻し、adapter を止めた状態で 0.2.0 に上げた（run19d）。</li>
+<li>revision の変更は、Helm リポジトリのキャッシュのため、hard refresh を付けないと反映されなかった。run19 と run19c の途中はこれで時間切れになったので、その区間の数字は使わない。</li>
+<li><strong>結果:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>Notifications</th>
+<th>観測（ApiServerSource）</th>
+<th>観測（突き合わせ）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1.0 作成（run19c、OBSERVED 15:20:16.925）</td>
+<td>15:20:16.299 に 1 通</td>
+<td>15:20:16.290 から 4 通（同じ id）</td>
+<td>毎分 1 通</td>
+</tr>
+<tr>
+<td>0.1.0 に戻す（run19d、OBSERVED 15:31:22.285）</td>
+<td>送らなかった（<code>already sent</code>）</td>
+<td>15:31:22.308 から 2 通</td>
+<td>15:32:00.513 に 1 通</td>
+</tr>
+<tr>
+<td>adapter を止めて 0.2.0（OBSERVED 15:32:54.582）</td>
+<td>送った（ログは notifications-controller 側で確認）</td>
+<td>届かず</td>
+<td>15:33:00.503（+5.9 s）</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>解釈:</strong></li>
+<li>初回のデプロイ完了は、Notifications と観測 Service がほぼ同時に出した（差は 9 ms）。</li>
+<li>同じ revision に戻すと、Notifications は <code>oncePer</code> で黙り、観測 Service は前と同じ id を出した。受け手が id で重複を消すと、ロールバックが消えるので、id に operation の開始時刻を足す必要がある。</li>
+<li>adapter の停止中のデプロイは、突き合わせが拾った。</li>
+</ul>
+<h3 id="footprint">4.19 基盤の負荷の計測（footprint）</h3>
+<p>kind に各部品を順に入れ、そのつど CRD・ワークロード・ClusterRole の数を数えて、前の状態との差を取った（<code>runs/footprint/*</code>）。結果は<a href="recommended.html#footprint">推奨構成の詳細</a>の表のとおり。</p>
+<h2>5. まとめ: 問いと run の対応</h2>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>確かめた run</th>
+<th>答え</th>
+<th>未確認の部分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q1 削除の開始と完了</td>
+<td>run3・run6</td>
+<td>区別できる。完了を取れるのは watch 系と finalizer</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Q2 停止中の削除</td>
+<td>run4・run5・run12・run13・run15・run18</td>
+<td>watch 系は取りこぼす。突き合わせと finalizer は拾う</td>
+<td>410 Gone による再 list（実測していない）</td>
+</tr>
+<tr>
+<td>Q3 retry・DLQ</td>
+<td>run8・run10・run16</td>
+<td>Knative は宣言どおり。Notifications は 4 回試行して終わり</td>
+<td>Kafka・RabbitMQ・NATS の土台</td>
+</tr>
+<tr>
+<td>Q4 重複</td>
+<td>run3・run13・run19</td>
+<td>決定的な id で消せる。ロールバックでは id が衝突する</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Q5 権限・越境</td>
+<td>run9・run11・run12</td>
+<td>覗けない。偽装は既定では防げない</td>
+<td>EventPolicy（OIDC）での防御</td>
+</tr>
+<tr>
+<td>Q6 デプロイ完了を観測で取る</td>
+<td>run7・run19</td>
+<td>取れる。Notifications と同じ条件で揃った</td>
+<td>複数モジュールの集約</td>
+</tr>
+<tr>
+<td>Q7 Namespace の消滅を観測で取る</td>
+<td>run14・run15・run17</td>
+<td>取れる。Terminating と消滅を区別できる</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Q8 HA</td>
+<td>run11</td>
+<td>Metacontroller はリーダーが変わっても取りこぼさなかった</td>
+<td>ApiServerSource の adapter の HA（2 台だと 2 通になることは確認）</td>
+</tr>
+</tbody>
+</table>
+<h2>6. 制約と未確認事項</h2>
+<ul>
+<li><strong>環境:</strong> kind の 1 ノードで測った。Kubernetes は 1.33.1 で、Knative v1.23.0 は 1.34 以上を要求するため、起動時の検査を外した。</li>
+<li><strong>Broker:</strong> 永続化しない InMemoryChannel で測った。Kafka・RabbitMQ・NATS JetStream の保証は、文献だけに基づく。</li>
+<li><strong>HA:</strong> 複数ノード、ノード障害、ネットワークの分断は試していない。Argo Events、Notifications、ApiServerSource の adapter の HA は確かめていない。</li>
+<li><strong>410 Gone:</strong> watch が期限切れになったときの再 list による取りこぼしは、ソースからの推論にとどまる。</li>
+<li><strong>ログの欠落:</strong> run2 はセッションが途切れたので使わない。run8 の一部、run11、run17 は、数字を画面出力から取った（ログを保存していない）。</li>
+<li><strong>時計:</strong> ホストと Pod の時計のずれは測っていない。</li>
+</ul>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

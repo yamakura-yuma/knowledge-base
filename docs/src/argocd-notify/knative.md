@@ -1,5 +1,7 @@
 # ③ Knative Eventing
 
+> **推奨構成の中心。** できること: 観測の入口（ApiServerSource・PingSource）、決定的な id への変換（EventTransform）、配送（Broker・Trigger・retry・DLQ）。できないこと: ApiServerSource だけでは、止まっている間の削除を拾えない。この穴は突き合わせで埋める。
+>
 > ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。**検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。** 6 方式の中で配送層が最も強い。
 
 ## Knative が保証する範囲
@@ -40,13 +42,13 @@ edges:
 
 | 場面 | 取りこぼすか | 根拠 |
 |---|---|---|
-| (a) adapter の再起動・ロールアウト・退避 | **取りこぼす**。その間に消えたものは、起動時の list に出てこない | run5・run13-B・run15-B |
+| (a) adapter の再起動・ロールアウト・退避 | **取りこぼす**。その間に消えたものは、起動時の list に出てこない | [run5](report.html#run5)・[run13-B](report.html#run13)・[run15-B](report.html#run15) |
 | (b) watch の resourceVersion が古くなり、410 Gone で再 list になる | **取りこぼしうる**（adapter が生きていても）。reflector は `isExpiredError` で再 list に入り、delegate は差分を出さない | client-go の `reflector.go`（`isExpiredError`・`relistResourceVersion`）。実測はしていない |
 | (c) 短い切断で、resourceVersion から再開できる | **失わない**。watch は再開した地点からイベントを受け直す | reflector の通常の動き |
 
-**自前の informer でも同じことが起きる。** `DeletedFinalStateUnknown` が出るのは、同じプロセスの中で再 list したときだけ。プロセスを再起動するとキャッシュは空から始まるので、止まっていた間の削除は届かなかった（run18、client-go v0.35.7 で書いた 39 行の watcher）。
+**自前の informer でも同じことが起きる。** `DeletedFinalStateUnknown` が出るのは、同じプロセスの中で再 list したときだけ。プロセスを再起動するとキャッシュは空から始まるので、止まっていた間の削除は届かなかった（[run18](report.html#run18)、client-go v0.35.7 で書いた 39 行の watcher）。
 
-**複数レプリカでも補えない。** adapter は `MakeReceiveAdapter` が 1 レプリカで作る。Deployment を 2 にすると、ApiServerSource の controller に戻されずに 2 台で動いたが、2 台とも送った（同じ削除が 2 通、run15 の追試）。リーダー選出は無い（receive adapter の `main.go` は `WithHAEnabled` を呼んでいない）。台数を増やせば、どちらか 1 台が生きていれば届く確率は上がる。ただし重複が増えるので、決定的な id で消す前提になる。
+**複数レプリカでも補えない。** adapter は `MakeReceiveAdapter` が 1 レプリカで作る。Deployment を 2 にすると、ApiServerSource の controller に戻されずに 2 台で動いたが、2 台とも送った（同じ削除が 2 通、[run15](report.html#run15) の追試）。リーダー選出は無い（receive adapter の `main.go` は `WithHAEnabled` を呼んでいない）。台数を増やせば、どちらか 1 台が生きていれば届く確率は上がる。ただし重複が増えるので、決定的な id で消す前提になる。
 
 ## アーキテクチャ
 
@@ -83,7 +85,7 @@ edges:
 - **resync は 10 時間に 1 回**（同ディレクトリ `adapter.go` の `resyncPeriod := 10 * time.Hour`）。
 - **adapter は 1 レプリカ固定。** `MakeReceiveAdapter` が `replicas := int32(1)` で Deployment を作る（[receive_adapter.go](https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/reconciler/apiserversource/resources/receive_adapter.go)）。
   - adapter の共通基盤は `WithHAEnabled` でリーダー選出に入れる。ただし `apiserver_receive_adapter` の `main.go` はこれを呼んでいない（呼んでいるのは mtping）。
-- **配送層は状態を持てる。** InMemoryChannel は README に "No Persistence" とあり、ベストエフォート。永続化できる実装は、Kafka Broker・RabbitMQ Broker・NATS JetStream Channel の 3 つがある。それぞれが何を保証するかは、[概要ページの「Broker は必須か」](index.html#broker)で比べた。
+- **配送層は状態を持てる。** InMemoryChannel は README に "No Persistence" とあり、ベストエフォート。永続化できる実装は、Kafka Broker・RabbitMQ Broker・NATS JetStream Channel の 3 つがある。それぞれが何を保証するかは、[推奨構成の詳細の「Broker の永続化の選択肢」](recommended.html#broker)で比べた。
 
 ## 権限分離
 
@@ -114,10 +116,10 @@ edges:
 |---|---|---|
 | Platform | CRD とコントローラを入れる。namespace 単位の権限は、集約された ClusterRole `knative-eventing-namespaced-admin` などとして配られる | `config/core/roles/clusterrole-namespaced.yaml` |
 | Platform | ApiServerSource の ServiceAccount に、`argocd` namespace の applications の `get` / `list` / `watch` を与える。eventing-controller は SubjectAccessReview でこの 3 つを確かめ、足りなければ `SufficientPermissions=False` にする | [apiserversource.go](https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/reconciler/apiserversource/apiserversource.go) の `runAccessCheck` |
-| App | 自分の namespace に Broker・Trigger・受け手を作り、送信先の資格情報を持つ | run9 で `can-i` が yes |
+| App | 自分の namespace に Broker・Trigger・受け手を作り、送信先の資格情報を持つ | [run9](report.html#run9) で `can-i` が yes |
 | App | Platform の Broker を購読するには、cross-namespace event links（alpha、既定で無効）と `knsubscribe` の権限が要る。無効なら、Platform 側がイベントを App の Broker へ転送する Trigger を持つ | [cross-namespace-event-links.md](https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/cross-namespace-event-links.md) |
 
-**越境（run9 で実測）:**
+**越境（[run9](report.html#run9) で実測）:**
 
 - `team-a` に `edit` と `knative-*-namespaced-admin` を与えた ServiceAccount で、`argocd` を見る ApiServerSource を作った。作成はできたが、`SufficientPermissions=False`（"cannot get, list, watch resource applications … in Namespace argocd"）で、Ready にならなかった。自分に RoleBinding を足そうにも、`argocd` への `create rolebindings` は no だった。**他チームの Application は覗けない。**
 - 一方で、`team-a` の Pod から Platform の Broker の ingress へ、`Ce-Type: dev.knative.apiserver.resource.delete` の**偽のイベントを POST でき、Platform の受け手まで届いた。** 既定では Broker が送り手を検証しないため。EventPolicy で送り手を制限できるが、それには `authentication-oidc` の有効化が前提になる（[authorization.md](https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/authorization.md)）。この対策は実測していない。受け手でも、`Ce-Source` が API server であることなどを検証する。
@@ -144,15 +146,15 @@ edges:
 
 ## 評価
 
-**削除完了の検知: ○。** `dev.knative.apiserver.resource.delete` が、オブジェクトの消滅から 5 ms で届いた（run3）。本文は消える直前の Application で、`deletionTimestamp` と最後に残った finalizer が入っている。デプロイ完了は、更新のたびに `resource.update` が届くだけ（作成 1 回で 14 件）。Synced かつ Healthy かの判定は、受け手が本文を見て行う。Trigger のフィルタは CloudEvents の属性で分けるもので、本文の `status` では絞れない。
+**削除完了の検知: ○。** `dev.knative.apiserver.resource.delete` が、オブジェクトの消滅から 5 ms で届いた（[run3](report.html#run3)）。本文は消える直前の Application で、`deletionTimestamp` と最後に残った finalizer が入っている。デプロイ完了は、更新のたびに `resource.update` が届くだけ（作成 1 回で 14 件）。Synced かつ Healthy かの判定は、受け手が本文を見て行う。Trigger のフィルタは CloudEvents の属性で分けるもので、本文の `status` では絞れない。
 
-**検知層の耐障害性: ×。** adapter を止めている間に消えた Application の delete は、復旧後も届かなかった（run5）。理由は上のとおりで、状態を持たず、初期 list と前回の状態を突き合わせないため。
+**検知層の耐障害性: ×。** adapter を止めている間に消えた Application の delete は、復旧後も届かなかった（[run5](report.html#run5)）。理由は上のとおりで、状態を持たず、初期 list と前回の状態を突き合わせないため。
 
-オブジェクトがまだ残っている間に復旧すれば、その後の DELETE は届く（run4。自前 finalizer が消滅を止めていた）。finalizer 方式（⑤）を併用していれば、adapter が止まっていても、Application は adapter の復旧後まで残る。
+オブジェクトがまだ残っている間に復旧すれば、その後の DELETE は届く（[run4](report.html#run4)。自前 finalizer が消滅を止めていた）。finalizer 方式（⑤）を併用していれば、adapter が止まっていても、Application は adapter の復旧後まで残る。
 
 **配送層の回復性: ◎。** Broker と Trigger（その下の Subscription）の `delivery` に、`retry`・`backoffPolicy`（linear / exponential）・`backoffDelay`・`deadLetterSink` を書ける（[event-delivery.md](https://github.com/knative/docs/blob/main/docs/versioned/eventing/event-delivery.md)）。
 
-run8 で、宛先を常に 500 にして確かめた。初回のあと retry を 3 回（間隔 0.5 → 1 → 2 秒）行い、最後に DLQ へ送った。DLQ には `Ce-Knativeerrorcode: 500`・`Ce-Knativeerrordest`・`Ce-Knativeerrordata` が付き、`Ce-Id` は初回と同じだった。
+[run8](report.html#run8) で、宛先を常に 500 にして確かめた。初回のあと retry を 3 回（間隔 0.5 → 1 → 2 秒）行い、最後に DLQ へ送った。DLQ には `Ce-Knativeerrorcode: 500`・`Ce-Knativeerrordest`・`Ce-Knativeerrordata` が付き、`Ce-Id` は初回と同じだった。
 
 Kafka Broker と RabbitMQ Broker は、4 つのパラメータすべてに対応している。RabbitMQ Broker は、delivery spec が無いと最初の失敗で NACK して捨てるので、必ず書く。MTChannelBasedBroker は、下にある Channel しだい。circuit breaker は Knative には無い。受け手の前に service mesh を置いて持たせる。
 
@@ -176,4 +178,4 @@ adapter から Broker への送信は、失敗するとログを出して終わ�
 
 **運用負荷: △。** 入れる部品が多い（eventing-core、Broker の実装、その下の Kafka / RabbitMQ / NATS）。バージョンと Kubernetes の組み合わせにも縛りがある（v1.23.0 は Kubernetes 1.34 以上が必要）。
 
-**レイテンシ: ◎。** オブジェクトの消滅から受け手まで 5 ms（run3）。
+**レイテンシ: ◎。** オブジェクトの消滅から受け手まで 5 ms（[run3](report.html#run3)）。
