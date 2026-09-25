@@ -420,45 +420,6 @@ CSS = """
   .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
   .pcard span { color:var(--ink-3); font-size:12px; font-family:var(--mono); }
 
-  /* ---- 図のための部品（dotfiles ページで使う） ---- */
-  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
-         padding:16px 18px; margin:18px 0; }
-  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3);
-                margin:-4px 0 12px; letter-spacing:.02em; }
-  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .box { border:1px solid var(--line); border-radius:6px; padding:11px 13px;
-         background:var(--bg); }
-  .box b { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
-  .box span, .box p { font-size:12px; color:var(--ink-2); margin:0; line-height:1.6; }
-  .box.k1 { border-left:3px solid var(--l1); }
-  .box.k2 { border-left:3px solid var(--l2); }
-  .box.k3 { border-left:3px solid var(--l3); }
-  .box.bad { border-left:3px solid var(--hot); }
-  .box.ok  { border-left:3px solid var(--ok); }
-  .down { text-align:center; color:var(--ink-3); font-family:var(--mono);
-          font-size:15px; line-height:1.2; margin:7px 0; }
-
-  /* src ──▶ dst の対応表 */
-  .map { display:grid; grid-template-columns:1fr 26px 1fr; gap:3px 10px; align-items:center;
-         font-family:var(--mono); font-size:11.5px; }
-  .map .s { text-align:right; color:var(--l1); word-break:break-all; }
-  .map .a { color:var(--ink-3); text-align:center; }
-  .map .d { color:var(--l3); word-break:break-all; }
-  .map .h { color:var(--ink-3); font-size:10.5px; padding-bottom:5px;
-            border-bottom:1px solid var(--line); margin-bottom:4px; }
-  .map .h.r { text-align:right; }
-
-  /* 判定の縦レール */
-  .rail { display:grid; grid-template-columns:1fr 128px; gap:9px; align-items:center; }
-  .rail .q { border:1px solid var(--line); border-left:3px solid var(--stale);
-             border-radius:6px; padding:9px 12px; background:var(--bg); font-size:12.5px; }
-  .rail .q b { color:var(--ink); }
-  .rail .v { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
-  .rail .v .no { color:var(--hot); font-weight:600; }
-  .rail .v .yes { color:var(--ok); }
-  .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
-
   .tblwrap { overflow-x:auto; }
   .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
   .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
@@ -495,12 +456,6 @@ CSS = """
     .tl { grid-template-columns:104px 1fr; }
     .tl-name { font-size:10.5px; }
     .c-sum { display:none; }
-    .row3, .row2 { grid-template-columns:1fr; }
-    .map { grid-template-columns:1fr; gap:1px; }
-    .map .s { text-align:left; }
-    .map .a, .map .h { display:none; }
-    .map .d { padding-left:14px; margin-bottom:5px; }
-    .rail { grid-template-columns:1fr; gap:3px; }
   }
 """
 
@@ -535,8 +490,7 @@ PAGES = [
     ("l2.html",                  "モデルアクセス",  ("L2", None),       "landscape"),
     ("l3.html",                  "共通基盤",        ("L3", None),       "landscape"),
     ("l0.html",                  "モデル提供元",    ("L0", None),       "landscape"),
-    ("context-optimization.html","文脈の最適化",    "static",           "dotfiles"),
-    ("dotfiles.html",            "dotfiles 構成",   "static",           "dotfiles"),
+    ("context-optimization.html","文脈の最適化",    "static",           "tool-research"),
 ]
 
 
@@ -680,9 +634,7 @@ def page(reg, metrics, rows, warnings) -> str:
             continue
         if sel == "static":
             desc = {"context-optimization.html":
-                    "いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する",
-                    "dotfiles.html":
-                    "このホストのエージェント環境が、どう組み立てられているか"}[fname]
+                    "いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する"}[fname]
             links.append(f'<a class="pcard" href="{href(fname)}"><b>{esc(label)}</b>'
                          f'<span>{esc(desc)}</span></a>')
             continue
