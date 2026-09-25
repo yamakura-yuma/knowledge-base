@@ -32,10 +32,33 @@ state_criteria:
 
 # 層ごとの節の冒頭に出す「この層で何が分かったか」。state を変えたら読み直すこと。
 layer_findings:
-  prompt: 常駐させる文面を絞る型（階層化した指示、ルールは橋渡しだけ）は揃っている。無いのは、手順の省略を防ぐ型（言い訳と反論の表、プレイブックを ToDo に写す）。記事の使用報告はルールを短くする型に集まり（肯定 5）、常設の指示ファイルそのものには否定が 3 件ある。
-  harness: いちばん薄い層（23 件中 10 件が未採用）。止めるフックと文脈の節約は揃っているが、権限を段階的に緩める型（サンドボックスと承認のプリセット、呼び出しごとの審査）と、サブエージェントごとの権限分離が無い。
-  loop: 振り返りとハーネス自身の検査（make ci、行動評価）は揃っている。無いのは、1 回の作業の中で「続けるか止めるか」を機械が判定する型（目標までの自動継続、TDD ゲート、閾値付きの審査）。記事で肯定の報告が 3 件あるのに未採用なのは、役割を分けたレビューの反復。
-  graph: coordinator と worker、worktree による隔離は採用済みで、いちばん埋まっている層。無いのは、複数の案や観点を並列に出して統合する型と、PR やチャットのイベントを起点にエージェントを立てる型。
+  prompt: 常駐させる文面を絞る型（階層化した指示、ルールは橋渡しだけ）は揃っている。無いのは、手順の省略を防ぐ型（言い訳と反論の表、プレイブックを ToDo に写す）と、レビューの指摘を人が読める形にする型（重大度を付けて絞る、中身と機械的な変更を分けて見せる）。記事の使用報告はルールを短くする型に集まり（肯定 5）、常設の指示ファイルそのものには否定が 3 件ある。
+  harness: ループ層と並んで未採用の割合がいちばん高い層（24 件中 11 件）。止めるフックと文脈の節約は揃っているが、権限を段階的に緩める型（サンドボックスと承認のプリセット、呼び出しごとの審査）と、サブエージェントごとの権限分離が無い。
+  loop: 振り返りとハーネス自身の検査（make ci、行動評価）は揃っている。無いのは、1 回の作業の中で「続けるか止めるか」を機械が判定する型（目標までの自動継続、TDD ゲート、閾値付きの審査）と、レビューの中身を確かめる型（差分と仕様の突き合わせ、所見の反証、差分の外への影響）。記事で肯定の報告が 3 件あるのに未採用なのは、役割を分けたレビューの反復。
+  graph: coordinator と worker、worktree による隔離は採用済みで、プロンプト層と並んで未採用の割合がいちばん低い。無いのは、作業を縦に薄く切って 1 単位 1 差分にする型、レビューの網羅をコードで担保する型、複数の案や観点を並列に出して統合する型、PR やチャットのイベントを起点にエージェントを立てる型。
+
+# 開発の段階（stage）。4 層とは別の軸で、パターンが開発のどの段階で効くかを表す。
+# パターンの stage にはここの鍵を 0 個以上書く。書かないものは「横断」（cross）として扱う。
+stage_criteria:
+  spec: 何を作るかを決める。要件を詰め、範囲と完了条件を書く
+  plan: どう割り、どの順で、誰に渡すかを決める
+  implement: コードを書き、直す。1 回の作業をどう進めるか
+  verify: 書いたものを、テスト・型検査・実行で機械的に確かめる
+  review: 書いたのとは別の目（エージェントか人）が差分を読む
+  ship: PR を作り、マージし、後片付けする
+  retro: 終わった作業から、ハーネス自体を直す
+  cross: 段階によらず常に効く（文脈・権限・索引・スキルの読み込み）
+
+# 段階ごとの行に出す「この段階で何が分かったか」。stage か state を変えたら読み直すこと。
+stage_findings:
+  spec: 要件を一問ずつ詰める道具（grilling）は採用済み。詰めた結果は依頼文に書くが、ファイルとして残る仕様書と、範囲外・テストの継ぎ目まで書く型が無い。
+  plan: coordinator が依頼文を書いて worker に渡す形は採用済み。無いのは、作業を人が 1 回で読める大きさの縦の単位に割る型で、上位 5 に入る。
+  implement: パターンがいちばん多い段階（18 件）。隔離と文脈の渡し方は揃っているが、1 回の作業の中で止まらず逸れずに進める型（目標までの自動継続、振り子の検出、参照の実在確認）は未採用。
+  verify: 採用済みが 1 件も無い段階。完了の報告に証拠を書かせる規範（部分的）があるだけで、テスト・linter・実アプリの操作で機械に確かめさせる型が無い。
+  review: 未採用がいちばん多い段階（16 件中 12 件）で、採用済みは 0 件。別の文脈でレビューする考え方は書いてあるが起動する仕組みが無く、網羅の担保・所見の反証・重大度の付け方も無い。Open Code Review と security-audit はどちらも、LLM に任せるのを判断だけに絞り、網羅と検証はコードと別のエージェントで担保している。
+  ship: 取り消せない操作で止まる、完了を自分から拾う、は（一部）ある。人が PR を読む負担を減らす型（検証の前後と戻せるかを本文に書く、中身と機械的な変更を分ける）は、「決めたことを PR 本文に書く」という規範の手前で止まっている。
+  retro: 未採用が 1 件も無い唯一の段階。ハーネス自体の検査と振り返りが、開発の流れの中でいちばん厚い。
+  cross: 段階によらず効くもの（28 件）。層で見たときのハーネス層の穴（権限の段階的な緩和、サブエージェントごとの権限分離）はここに集まっている。
 
 # 未採用・部分的の行に付ける、取り込んだ場合の効果（impact）と手間（effort）。
 # 「次に取り込む候補」はこの 2 つから機械的に並べる。
@@ -180,6 +203,46 @@ sources:
     repo: gonta223/humanizer-ja
     version: リリースなし (2026-03-23)
     dogfood: null
+  # ---- コードレビューと開発プロセスの出典（open-code-review は候補の rank 21、他は指定で足した）
+  - id: open-code-review
+    name: Open Code Review
+    kind: candidate
+    url: https://github.com/alibaba/open-code-review
+    repo: alibaba/open-code-review
+    version: v1.12.9 (2026-09-22)
+    dogfood:
+      quote: It originated as Alibaba Group's internal official AI code review assistant — over the past two years, it has served tens of thousands of developers
+      url: https://github.com/alibaba/open-code-review/blob/main/README.md
+  - id: cloudflare-security-audit
+    name: security-audit（Cloudflare）
+    kind: candidate
+    url: https://github.com/cloudflare/security-audit-skill
+    repo: cloudflare/security-audit-skill
+    version: リリースなし (2026-09-14)
+    dogfood:
+      quote: This skill seeded Cloudflare's vulnerability discovery harness
+      url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+  - id: mattpocock-skills
+    name: Matt Pocock skills
+    kind: candidate
+    url: https://github.com/mattpocock/skills
+    repo: mattpocock/skills
+    version: v1.2.3 (2026-08-06)
+    dogfood: null
+  - id: ai-hero
+    name: AI Hero（AI Coding Crash Course）
+    kind: candidate
+    url: https://github.com/ai-hero-dev/ai-coding-crash-course
+    repo: ai-hero-dev/ai-coding-crash-course
+    version: リリースなし (2026-09-17)
+    dogfood: null
+  - id: sandcastle
+    name: Sandcastle
+    kind: candidate
+    url: https://github.com/mattpocock/sandcastle
+    repo: mattpocock/sandcastle
+    version: v0.12.0 (2026-06-29)
+    dogfood: null
 
 patterns:
   # =================================================================== prompt
@@ -290,6 +353,7 @@ patterns:
   - id: solution-ladder
     name: 最小解の段階ラダー
     layer: prompt
+    stage: [implement]
     problem: 標準ライブラリや既存機能で済む処理を自前で作り込む
     state: adopted
     self: [core-principal/apm.yml（ponytail スキル群を依存に取る）]
@@ -301,6 +365,7 @@ patterns:
   - id: anti-rationalization-table
     name: 言い訳と反論の表で手順の省略を防ぐ
     layer: prompt
+    stage: [implement]
     problem: 「テストは後で」のような言い訳で手順を飛ばす
     state: missing
     impact: 2
@@ -315,6 +380,7 @@ patterns:
   - id: playbook-steps-as-todos
     name: プレイブックの手順を ToDo にそのまま写す
     layer: prompt
+    stage: [plan]
     problem: 作業種別ごとに決めた手順を飛ばす。飛ばすなら理由を残させる
     state: missing
     impact: 2
@@ -329,6 +395,7 @@ patterns:
   - id: pause-only-irreversible
     name: 取り消せない操作のときだけ止まる
     layer: prompt
+    stage: [ship]
     problem: 取り消せる作業での確認をやめて自律性を上げ、取り消せない操作でだけ人を待つ
     state: partial
     impact: 2
@@ -350,6 +417,7 @@ patterns:
   - id: brand-contract-file
     name: 仕様ファイルを契約として毎回読ませる
     layer: prompt
+    stage: [spec, implement]
     problem: 生成のたびにトークンや文体がぶれる
     state: missing
     impact: 1
@@ -499,6 +567,7 @@ patterns:
   - id: edit-scope-freeze
     name: 編集してよい範囲を凍結する
     layer: harness
+    stage: [implement]
     problem: デバッグ中に関係ないコードまで「ついでに」直す
     state: partial
     impact: 1
@@ -679,6 +748,7 @@ patterns:
   - id: generated-verification-skill
     name: 実アプリを操作する検証手段をプロジェクトごとに作る
     layer: harness
+    stage: [verify]
     problem: 「コンパイルが通った」ではなく、利用者と同じ操作で振る舞いを証明する
     state: missing
     impact: 1
@@ -694,6 +764,7 @@ patterns:
   - id: continue-until-goal
     name: 終了条件を満たすまで自動で続ける（上限付き）
     layer: loop
+    stage: [implement]
     problem: 完了前に止まる。人が「続けて」と促さないと長い作業が進まない
     state: missing
     impact: 3
@@ -722,6 +793,7 @@ patterns:
   - id: fresh-agent-rounds
     name: 毎ラウンド新しいエージェントで回す（Ralph ループ）
     layer: loop
+    stage: [implement]
     problem: 会話履歴を引き継がず、前ラウンドの短い報告だけを渡して文脈の汚染を避ける
     state: missing
     impact: 2
@@ -741,6 +813,7 @@ patterns:
   - id: checkable-exit-predicate
     name: 確認できる終了条件を先に決める
     layer: loop
+    stage: [plan]
     problem: 長い自律実行が、途中で止まったり条件を緩めて完了扱いにしたりする
     state: partial
     impact: 2
@@ -757,6 +830,7 @@ patterns:
   - id: evidence-before-done
     name: 完了は検証の証拠で宣言し、証明したら止まる
     layer: loop
+    stage: [verify]
     problem: 検証を走らせずに「直った」と言う。逆に証明後も磨き込みを続けて膨らむ
     state: partial
     impact: 3
@@ -776,6 +850,7 @@ patterns:
   - id: plan-then-act
     name: 計画と実行を分ける
     layer: loop
+    stage: [plan]
     problem: 調べて計画する段階と編集する段階を分け、承認を挟んでから手を動かす
     state: partial
     impact: 1
@@ -812,6 +887,7 @@ patterns:
   - id: gated-tdd
     name: RED → GREEN → REFACTOR を証跡付きで通す
     layer: loop
+    stage: [implement, verify]
     problem: 「TDD で」と言っても途中で忘れてテストを後回しにする
     state: missing
     impact: 1
@@ -826,6 +902,7 @@ patterns:
   - id: hillclimb
     name: 1 変更 1 計測で残すか戻すかを決める
     layer: loop
+    stage: [verify]
     problem: 検証していない変更を積み重ねる
     state: missing
     impact: 1
@@ -840,6 +917,7 @@ patterns:
   - id: role-review-rounds
     name: 役割別の審査を順序・閾値付きで回す
     layer: loop
+    stage: [review]
     problem: 計画や成果物を 1 つの観点でしか見ない。改善が収束しないときも上限で打ち切る
     state: missing
     impact: 2
@@ -870,6 +948,7 @@ patterns:
   - id: skill-eval-baseline
     name: スキルあり・なしを並べて効きを確かめる
     layer: loop
+    stage: [retro]
     problem: 書いたルールやスキルが本当に振る舞いを変えているか分からない
     state: adopted
     self: [core-principal/tests/eval/run.sh, core-principal/tests/eval/README.md]
@@ -893,6 +972,7 @@ patterns:
   - id: harness-invariant-ci
     name: ハーネス自身の不変条件を CI で検査する
     layer: loop
+    stage: [retro]
     problem: 規則の引用と実物、生成物と正本がずれても誰も気づかない
     state: adopted
     self: [core-principal/tests/harness-check.sh, Makefile（make ci）]
@@ -904,6 +984,7 @@ patterns:
   - id: lessons-into-structure
     name: 繰り返す教訓は文章でなく仕組みに落とす
     layer: loop
+    stage: [retro]
     problem: 同じ指摘を何度もする。学びがセッションとともに消える
     state: adopted
     self: [core-principal/.apm/skills/core-retro/SKILL.md, core-principal/.apm/skills/core-harness/SKILL.md]
@@ -927,6 +1008,7 @@ patterns:
   - id: scoped-learning-promotion
     name: 学びを信頼度付きで貯め、複数プロジェクトで出たら全体へ上げる
     layer: loop
+    stage: [retro]
     problem: 固有の癖が別のプロジェクトに混ざる。逆に共通の学びが 1 か所に閉じる
     state: partial
     impact: 1
@@ -943,6 +1025,7 @@ patterns:
   - id: skill-curator
     name: 使われないスキルを active → stale → archived に回す
     layer: loop
+    stage: [retro]
     problem: 自動で書いたスキルや記憶が重複・陳腐化したまま溜まる
     state: partial
     impact: 1
@@ -959,6 +1042,7 @@ patterns:
   - id: debt-ledger
     name: 意図した手抜きに印を付け、台帳に集める
     layer: loop
+    stage: [retro]
     problem: わざと単純化した箇所が記録されず、後で直す予定が放置される
     state: adopted
     self: [core-principal/apm.yml（ponytail-debt）]
@@ -970,6 +1054,7 @@ patterns:
   - id: poll-not-wait
     name: 完了は通知を待たず、自分から突き合わせる
     layer: loop
+    stage: [ship]
     problem: セッションが終わると待ち受けごと消え、完了通知を取りこぼす
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/prompts/workers.prompt.md]
@@ -982,6 +1067,7 @@ patterns:
   - id: worktree-isolation
     name: 並列の作業を worktree で隔離する
     layer: graph
+    stage: [implement]
     problem: 並列に動くセッションの変更がぶつかる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-default-branch.json]
@@ -989,6 +1075,9 @@ patterns:
       - source: claude-code
         url: https://code.claude.com/docs/en/worktrees
         evidence: Isolate parallel Claude Code sessions in separate git worktrees so changes don't collide.
+      - source: sandcastle
+        url: https://github.com/mattpocock/sandcastle/blob/main/README.md
+        evidence: Sandcastle handles sandboxing the agent with a configurable branch strategy.
     reports:
       - article: zenn:claude-code-tips-findy-2026
         polarity: negative
@@ -998,6 +1087,7 @@ patterns:
   - id: coordinator-worker
     name: coordinator が配り、worker が実装する
     layer: graph
+    stage: [plan]
     problem: 多数のエージェントを並べると、誰が何をしていつ止まるか分からなくなる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-coordinator-edit.json]
@@ -1024,6 +1114,7 @@ patterns:
   - id: fresh-context-per-task
     name: タスクごとに新しい文脈を組み立てて渡す
     layer: graph
+    stage: [implement]
     problem: 長い計画を 1 つの文脈で進めると汚れて品質が落ちる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md]
@@ -1045,6 +1136,7 @@ patterns:
   - id: artifact-handoff
     name: 工程の成果物をファイルで次へ渡す
     layer: graph
+    stage: [plan, implement]
     problem: 工程間で前段の決定が引き継がれず抜け落ちる
     state: adopted
     self: [core-principal/.apm/prompts/worktree.prompt.md（~/.claude/worker-reports/<名前>.md）]
@@ -1052,6 +1144,9 @@ patterns:
       - source: gstack
         url: https://github.com/garrytan/gstack/blob/main/README.md
         evidence: Each skill feeds into the next. `/office-hours` writes a design doc that `/plan-ceo-review` reads.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/.sandcastle/prompt.md
+        evidence: "Make a git commit. The commit message must: 1. Include key decisions made 2. Include files changed 3. Blockers or notes for next iteration"
     reports:
       - article: zenn:8783c6b3ead2cb
         polarity: mixed
@@ -1065,6 +1160,7 @@ patterns:
   - id: fixed-lifecycle-pipeline
     name: 仕様 → 計画 → 実装 → レビュー → 出荷の工程を固定する
     layer: graph
+    stage: [spec, plan, implement, review, ship]
     problem: 要件が固まる前にいきなり実装に入る
     state: partial
     impact: 2
@@ -1083,6 +1179,12 @@ patterns:
       - source: open-design
         url: https://github.com/nexu-io/open-design/blob/main/README.md
         evidence: brief → plugin → direction → design system → artifact → handoff → memory
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/README.md
+        evidence: "**Planning** — Writing a spec, turning it into multi-phase tickets, and implementing it phase by phase."
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/implement/SKILL.md
+        evidence: Once done, use /code-review to review the work.
     reports:
       - article: zenn:claude-code-tips-findy-2026
         polarity: positive
@@ -1092,6 +1194,7 @@ patterns:
   - id: fresh-context-review
     name: 書いたのとは別の文脈でレビューする
     layer: graph
+    stage: [review]
     problem: 同じ文脈でのレビューは自分の盲点と、事実化した仮定を見落とす
     state: partial
     impact: 3
@@ -1124,6 +1227,7 @@ patterns:
   - id: parallel-perspectives-merge
     name: 複数の観点（モデル・ペルソナ）を並列に走らせ、親が統合する
     layer: graph
+    stage: [review]
     problem: 1 つのモデルに役割を演じ分けさせても見落としが減らない
     state: missing
     impact: 2
@@ -1150,6 +1254,7 @@ patterns:
   - id: arena-graft
     name: 並列の競作から土台を選び、他案の良い部分を移植する
     layer: graph
+    stage: [implement]
     problem: 1 回の試作で形が早く固まる
     state: missing
     impact: 1
@@ -1204,6 +1309,7 @@ patterns:
   - id: headless-pipeline
     name: 非対話実行をスクリプトや CI に組み込む
     layer: graph
+    stage: [ship]
     problem: エージェントをパイプラインの 1 段にし、後段が機械的に読める出力を得る
     state: partial
     impact: 1
@@ -1223,6 +1329,7 @@ patterns:
   - id: event-triggered-agents
     name: 外部イベント（PR・チャット）を起点にエージェントを立てる
     layer: graph
+    stage: [review, ship]
     problem: 人が起動しなくても、レビューやトリアージを決まった契機で走らせる
     state: missing
     impact: 2
@@ -1248,7 +1355,8 @@ patterns:
   - id: path-scoped-rules
     name: パスに条件を付けたルールを、該当ファイルに触れたときだけ読ませる
     layer: prompt
-    problem: 常設の指示ファイルに規約を並べると毎回文脈を食い、会話の後半では埋もれて守られない
+    stage: [implement, review]
+    problem: 常設の指示ファイルに規約を並べると毎回文脈を食い、会話の後半では埋もれて守られない。レビューでも、規則を全部渡すと注意が散る
     state: partial
     impact: 2
     effort: 1
@@ -1256,7 +1364,10 @@ patterns:
     cost: apm の applyTo に glob を書いた instructions を足すだけ
     self: [core-principal/.apm/instructions/core-principal.instructions.md]
     note: "apm の applyTo で置き場所はあるが、使っているのは全ファイル対象（\"**\"）の 1 本だけ"
-    sources: []
+    sources:
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Matches review rules to each file's characteristics, keeping the model's attention sharply focused and eliminating information noise at the source.
     reports:
       - article: zenn:65b9a99d22ce2b
         polarity: positive
@@ -1266,11 +1377,15 @@ patterns:
   - id: grill-before-plan
     name: 計画の前に、一問ずつ質問攻めにして認識を揃える
     layer: loop
+    stage: [spec]
     problem: 曖昧な依頼のまま計画や実装に入り、途中で前提の食い違いが見つかる
     state: adopted
     self: [core-principal/apm.yml]
     note: mattpocock/skills の grill-me と grilling をコミット固定で取り込んでいる
-    sources: []
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md
+        evidence: Interview the user relentlessly until you reach a shared understanding.
     reports:
       - article: zenn:8783c6b3ead2cb
         polarity: positive
@@ -1280,6 +1395,7 @@ patterns:
   - id: context-pressure-halt
     name: 文脈が逼迫したら、近道せずに区切りを宣言させる
     layer: loop
+    stage: [implement]
     problem: 文脈の残りが少なくなると、読まずに書く・検証を省くなどの近道で品質が落ちる
     state: missing
     impact: 2
@@ -1296,6 +1412,7 @@ patterns:
   - id: verify-reference-exists
     name: 参照する前に、そのシンボルの実在を確かめさせる
     layer: loop
+    stage: [implement]
     problem: 存在しないメソッドや関係をもっともらしく呼ぶ幻覚のバグが紛れ込む
     state: missing
     impact: 2
@@ -1313,6 +1430,7 @@ patterns:
   - id: oscillation-directive
     name: 修正ループの振り子を検出し、良い方を指示として固定する
     layer: loop
+    stage: [implement]
     problem: レビューと修正を回すと、同じ箇所が A → B → A と行き来して収束しない
     state: missing
     impact: 1
@@ -1329,6 +1447,7 @@ patterns:
   - id: lint-as-guardrail
     name: 規約はプロンプトでなく linter とフックで強制する
     layer: harness
+    stage: [verify]
     problem: コードスタイルや import の方向を指示ファイルに書いても、一定の確率で破られる
     state: missing
     impact: 2
@@ -1385,6 +1504,228 @@ patterns:
         quote: "パワハラ質問タイムのやり取りをなかったことになるので、ノイズなしにすっきりした状態で気持ちよく作業してくれます。"
         note: 生成コードを質問攻めにした後、次の依頼の前に /rewind で質問部分を消したら、ノイズの無い文脈で作業が進んだ
 
+  # =================================================================== 開発の段階とコードレビューから足した型
+  # 開発の段階（stage）で引いたとき空いていた所を、Open Code Review・security-audit・Matt Pocock
+  # skills・Cursor / Addy / Superpowers / gstack のレビュー系スキルから埋めた。
+  - id: spec-document
+    name: 会話から仕様書を起こし、範囲外とテストの継ぎ目まで書く
+    layer: prompt
+    stage: [spec]
+    problem: 詰めた要件が会話の中にしか無く、実装とレビューの段で「何を頼まれたか」を引けない
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 実装の突き合わせとレビューの仕様軸に、同じ 1 枚を使える
+    cost: core-dispatch の spec の項目に「範囲外」と「どこでテストするか」を足し、ファイルにも残す
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md（2. 振り分け「spec を書く」）]
+    note: 依頼文が仕様を兼ね、触ってよい範囲・完了条件・検証の打ち方は必ず書く。ファイルとしては残らず、テストの継ぎ目も決めない
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/to-spec/SKILL.md
+        evidence: Sketch out the seams at which you're going to test the feature.
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/spec-driven-development/SKILL.md
+        evidence: The spec is the shared source of truth between you and the human engineer — it defines what we're building, why, and how we'll know it's done.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/README.md
+        evidence: "**Planning** — Writing a spec, turning it into multi-phase tickets, and implementing it phase by phase."
+
+  - id: vertical-slices
+    name: 作業を縦に薄く切り、1 単位を 1 つの差分にする
+    layer: graph
+    stage: [plan, implement, review]
+    problem: 1 回の依頼で大きな差分ができ、人のレビューが追いつかない。層ごとに横に切ると、単位ごとに動作を確かめられない
+    state: missing
+    impact: 3
+    effort: 1
+    gain: 人が 1 回で読める大きさの差分になり、単位ごとに検証が通った状態で積める
+    cost: core-dispatch の spec に「1 依頼 1 論理変更、目安の行数を超えるなら割って出す」を足す
+    note: 依頼は worktree ごとに分けるが、1 依頼の大きさの目安と割り方は書いていない
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/to-tickets/SKILL.md
+        evidence: Each slice is sized to fit in a single fresh context window
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/incremental-implementation/SKILL.md
+        evidence: Build in thin vertical slices — implement one piece, test it, verify it, then expand.
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/code-review-and-quality/SKILL.md
+        evidence: ~100 lines changed   → Good. Reviewable in one sitting.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/.sandcastle/prompt.md
+        evidence: ONLY WORK ON A SINGLE TASK.
+
+  - id: spec-conformance-review
+    name: 差分を仕様と突き合わせ、抜け・頼まれていない変更・誤りを分けて出す
+    layer: loop
+    stage: [review]
+    problem: 規約や品質だけを見るレビューは、頼まれたものが揃っているか、頼まれていない変更が紛れていないかを見落とす
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 頼まれていない変更（範囲の膨張）と要件の抜けを、人が読む前に拾える
+    cost: 統合のときに依頼文と差分を突き合わせる手順を core-dispatch に 1 段足す
+    note: coordinator は報告ファイルを読むが、依頼文と差分を突き合わせる手順は無い
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md
+        evidence: "(a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep)"
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/review/SKILL.md
+        evidence: "did they build what was requested — nothing more, nothing less?"
+
+  - id: deterministic-review-scaffold
+    name: レビューの対象選び・分担・網羅の記録はコードで決め、判断だけ LLM にさせる
+    layer: graph
+    stage: [review]
+    problem: 大きな差分では、LLM のレビューが一部のファイルだけ見て済ませ、指摘の行番号もずれる。1 回で網羅できたかも分からない
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 見落としたファイルと、網羅できていない範囲が記録に残る
+    cost: Open Code Review を CLI で呼ぶか（委任モードなら API キー不要）、網羅の台帳と検証スクリプトを書く
+    sources:
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: For review steps that *must not go wrong*, engineering logic — not the language model — guarantees correctness
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Each bundle runs as a sub-agent with isolated context — a divide-and-conquer strategy that stays stable on very large changesets
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: In our test runs, a single run found roughly half of the vulnerabilities that repeated runs found in total.
+
+  - id: verify-findings-before-report
+    name: レビューの所見は、見つけたのとは別のエージェントが反証してから出す
+    layer: loop
+    stage: [review]
+    problem: レビュアーの指摘にも実在しない行や誤った前提が混ざり、そのまま直すと手戻りになる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 実在しない指摘を人や実装者に渡す前に落とせる
+    cost: レビューの手順に「所見ごとに別のサブエージェントが引用箇所を読み直して反証を試みる」を 1 段足す
+    note: 書いた人とレビューする人を分ける（fresh-context-review）の次の段。レビュアーの所見も同じ理由で疑う
+    sources:
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: The agent that checks a finding is never the agent that found it.
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Independent comment-positioning and comment-reflection modules systematically improve both the location accuracy and content accuracy of AI feedback.
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/receiving-code-review/SKILL.md
+        evidence: Verify before implementing. Ask before assuming.
+    reports:
+      - article: devto:4576085
+        polarity: positive
+        quote: "I checked before touching anything: the line, and the code it described, simply didn't exist in the repo."
+        note: 独立レビュアーの行番号付きの指摘を、直す前に確かめたら該当コードが実在しなかった。確かめる段が誤修正を止めた
+
+  - id: machine-readable-findings
+    name: 所見をスキーマ付きの JSON で出し、検証スクリプトに通す
+    layer: harness
+    stage: [review]
+    problem: 散文の所見は重複を除けず、確定・未確定・却下の区別も読み手に任される
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 所見の重複除去と、確定か未確定かの区別を機械に任せられる
+    cost: 所見のスキーマと検証スクリプトを書き、レビューの出力をそれに合わせる
+    sources:
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/skills/security-audit/SKILL.md
+        evidence: Emitting prose-only hunter results that cannot be deduplicated or verified.
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: write `confirmed`, `needs_validation`, and `rejected` records to `findings.json` and validate them against `report-schema.json`
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: "ocr review --format json --output result.json"
+
+  - id: severity-first-findings
+    name: 指摘に重大度を付け、確度の高いものに絞って先頭に置く
+    layer: prompt
+    stage: [review]
+    problem: 長い指摘の一覧に本当の問題が埋もれ、読む側が止めるべきものと任意のものを仕分ける羽目になる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 人が読むのは止めるべき指摘だけで済み、誤検知の仕分けが減る
+    cost: レビューを頼む手順に、重大度の段階と「確度の低い指摘は出さない」を 1 段落足す
+    sources:
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/code-review-and-quality/SKILL.md
+        evidence: Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list.
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/SKILL.md
+        evidence: Fix Critical issues immediately
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Note that its Recall is lower than general-purpose agents — a deliberate trade-off favoring precision over noise.
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: Severity requires impact.
+
+  - id: blast-radius-proof
+    name: 差分の外で壊れうる所を探し、安全の根拠を 1 つ実行で示す
+    layer: loop
+    stage: [review]
+    problem: 差分だけを見るレビューは、呼び出し側など差分の外の破損を見ない。もっともらしい影響分析の文章は、正しくなくても正しく読める
+    state: missing
+    impact: 2
+    effort: 1
+    gain: レビュアーは「この事実があるから安全」という 1 点と、その実行結果だけを確かめればよくなる
+    cost: blast-radius 相当のスキルを 1 つ依存に足す
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/blast-radius/SKILL.md
+        evidence: Find the one or two facts the whole thing depends on and prove them by running code.
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: "**Blast Radius:** <one-word description>"
+
+  - id: pr-evidence-and-risk
+    name: PR 本文に検証の前後と、戻せるかを書く
+    layer: prompt
+    stage: [ship]
+    problem: 人のレビュアーが差分を頭から読まないと、何が変わり、どう確かめ、戻せるのかが分からない
+    state: partial
+    impact: 3
+    effort: 1
+    gain: 人は PR 本文の要約の図・検証結果・戻せるかを見て、読む深さを決められる
+    cost: PR 本文の型（要約の図・検証の前後・戻せるか・影響範囲）を core-dispatch か core-communication に足す
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md（2. 振り分け）, core-principal/apm.yml（show-me）]
+    note: 決めたことと積み残しはコミットメッセージと PR 本文に書く、とある。検証の前後と取り消せるかを書く型は無い
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: Execution-based evidence is A-tier. Test results, console output.
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: Describe whether it's a one-way or two-way door.
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md
+        evidence: Call out risky behavior changes, migration order, rollout plan, and test coverage.
+
+  - id: core-vs-mechanical-diff
+    name: 中身の変更と機械的な変更を分けて見せ、読む入口を示す
+    layer: prompt
+    stage: [review, ship]
+    problem: 生成物や一括置換の行が中身の変更に混ざり、人がどこから読めばよいか分からない
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 人は中身の変更だけを読み、機械的な変更は件数と種類で済ませられる
+    cost: PR 本文の型に「中身のファイル / 機械的なファイル」の欄を足す。コミットも同じ境目で分ける
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/pr-review-canvas/SKILL.md
+        evidence: categorizes files into core vs mechanical changes, adds reviewer annotations, and renders diffs with moved-code detection
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md
+        evidence: Separate core files from generated or mechanical files.
+
 
 # AI slop 対策。ハーネスの 4 層とは別の軸で、AI が書いた文章・コード・UI の質の低さを
 # 防ぐ・消す型。4 層の件数や「次に取り込む候補」には数えない。形式は patterns と同じで、
@@ -1427,6 +1768,7 @@ slop_patterns:
   - id: code-deslop
     name: ブランチの差分から、コードの slop を消す
     target: コード
+    stage: [review]
     problem: 不要なコメント、信頼できる経路での防御的チェック、型を黙らせるキャストなどが差分に紛れ込む
     state: partial
     impact: 2
@@ -1454,6 +1796,7 @@ slop_patterns:
   - id: design-anti-slop
     name: UI の AI 臭を、デザイン規範のスキルで避ける
     target: UI
+    stage: [implement]
     problem: 指定なしで UI を作らせると、紫のグラデーションやガラス風の、典型的な AI 生成の見た目になる
     state: missing
     impact: 1
@@ -1485,6 +1828,7 @@ slop_patterns:
   - id: read-before-share
     name: AI の出力は人が読んで削ってから共有し、使ったことを明かす
     target: 文章・コード
+    stage: [ship]
     problem: 読まずに貼った AI の出力が、確認の手間を受け手（レビュアー、コミュニティ）に押し付ける
     state: missing
     impact: 1
@@ -1509,6 +1853,7 @@ slop_patterns:
   - id: verify-incoming-slop
     name: 外から来た AI 生成の報告は、再現と実在確認で弾く
     target: コード・報告
+    stage: [review]
     problem: もっともらしい脆弱性報告や PR が大量に届き、どれが実在する問題か見分けられない
     state: missing
     impact: 1

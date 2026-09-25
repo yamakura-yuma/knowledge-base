@@ -173,8 +173,8 @@ Reddit の 1 本は last30days-skill を試したときに拾ったもので、�
 """
 
 
-def slop_section(cat: dict) -> str:
-    """AI slop の軸。4 層とは別の表にし、層の件数や上位 5 には数えない。"""
+def slop_section(cat: dict, stage_label) -> str:
+    """AI slop の軸。4 層とは別の表にし、層の件数や上位 5 には数えない。段階の表記は呼び出し側から受け取る。"""
     srcs = {s["id"]: s for s in cat.get("sources", [])}
     arts = {a["id"]: a for a in cat.get("articles", [])}
     rows = []
@@ -183,7 +183,8 @@ def slop_section(cat: dict) -> str:
                        for r in p.get("sources") or [])
         selfs = "".join(f"<li><code>{esc(x)}</code></li>" for x in p.get("self") or [])
         note = f'<br><small>{esc(p["note"])}</small>' if p.get("note") else ""
-        rows.append(f'<tr><td><strong>{esc(p["name"])}</strong></td><td>{esc(p.get("target"))}</td>'
+        rows.append(f'<tr id="p-{esc(p["id"])}"><td><strong>{esc(p["name"])}</strong>'
+                    f'<br><span class="ly">{stage_label(p)}</span></td><td>{esc(p.get("target"))}</td>'
                     f'<td>{("<ul>" + refs + "</ul>") if refs else "<small>記事のみ</small>"}</td>'
                     f'<td>{esc(p.get("problem"))}</td>'
                     f'<td><span class="st st-{esc(p["state"])}">{STATE_JA[p["state"]]}</span></td>'
