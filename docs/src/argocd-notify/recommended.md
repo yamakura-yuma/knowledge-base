@@ -2,6 +2,34 @@
 
 > 概要ページの結論の中身。構成の各部、デプロイ完了と削除完了の取り方、採らない案、基盤側の負荷、通信規格、運用保守。**できること:** 基盤側の設定を触らずに、デプロイ完了と削除完了を取る。**できないこと:** 受信役が、ある Namespace の生存期間中ずっと止まっていた場合は、その削除を取れない。
 
+```grareco
+title: 推奨構成：基盤の設定に触らず、外から見張る
+say:
+- 通知を足したいけど、
+- argocd の ConfigMap は基盤の持ち物で触れない…
+panels:
+- icon: eye
+  head: 外から見張る
+  lines:
+  - ApiServerSource が
+  - Application と Namespace を watch
+  - 止まった間は PingSource で突き合わせ
+- icon: flow
+  head: 入口は Broker 1 つ
+  lines:
+  - 同じ変化には同じ id
+  - （deployed も deleted も決定的）
+  - 重複は受け手が id で消す
+- icon: people
+  head: 線を引く
+  lines:
+  - 利用者は自分の namespace の
+  - Trigger・Secret・受け手だけ
+  - 基盤は登録時の転送 1 本だけ
+bottom: 基盤は部品を守り、利用者は自分の namespace で通知を組む
+```
+
+
 [グラレコ（1 枚で読む要約）](index.html#grareco) は概要ページにある。
 
 ## 推奨構成のアーキテクチャ

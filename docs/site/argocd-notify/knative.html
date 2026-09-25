@@ -126,6 +126,12 @@
   .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
   .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
 
+  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
+  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
+  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -151,6 +157,8 @@
 <blockquote>
 <p>ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。<strong>検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。</strong> 6 方式の中で配送層が最も強い。</p>
 </blockquote>
+<div class="dgm gr"><div class="cap">グラレコ: このページを 1 枚で</div><svg class="fig" viewBox="0 0 1000 430" role="img" aria-label="グラレコ: ③ Knative：配送は強い、検知は watch 頼み"><defs><marker id="grm-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker></defs><path class="gr-hl" d="M40,22 C260,12 620,30 960,18 L962,52 C640,62 300,46 38,58 Z"/><text class="gr-title" x="500" y="46" text-anchor="middle">③ Knative：配送は強い、検知は watch 頼み</text><rect class="gr-body" x="50" y="92" width="80" height="70" rx="12"/><circle class="gr-dot" cx="75" cy="118" r="4"/><circle class="gr-dot" cx="105" cy="118" r="4"/><path class="gr-line" d="M76,140 Q90,132 104,140"/><path class="gr-bubble" d="M170,78 h560 a12,12 0 0 1 12,12 v58 a12,12 0 0 1 -12,12 h-530 l-34,16 l10,-16 h-6 a12,12 0 0 1 -12,-12 v-58 a12,12 0 0 1 12,-12 z"/><text class="gr-m" x="190" y="110">Knative に任せれば、</text><text class="gr-m" x="190" y="134">全部安心？</text><rect class="gr-panel" x="30" y="190" width="290" height="150" rx="10" transform="rotate(-1 175 265)"/><circle class="gr-okc" cx="288" cy="218" r="16"/><path class="gr-ok" d="M280,218 L286,225 L297,211"/><text class="gr-h" x="46" y="222">Broker の先は強い</text><text class="gr-s" x="46" y="254">retry・backoff・DLQ を宣言</text><text class="gr-s" x="46" y="276">永続化した土台を選べる</text><path class="gr-arrow" d="M324,265 C335,255 342,255 352,265" marker-end="url(#grm-ar)"/><rect class="gr-panel" x="355" y="190" width="290" height="150" rx="10" transform="rotate(0.8 500 265)"/><circle class="gr-ngc" cx="613" cy="218" r="16"/><path class="gr-ng" d="M606,211 L620,225 M620,211 L606,225"/><text class="gr-h" x="371" y="222">Source は見逃す</text><text class="gr-s" x="371" y="254">止まっている間の DELETE は来ない</text><text class="gr-s" x="371" y="276">キャッシュが無く、再 list でも</text><text class="gr-s" x="371" y="298">削除イベントを作らない</text><path class="gr-arrow" d="M649,265 C660,255 667,255 677,265" marker-end="url(#grm-ar)"/><rect class="gr-panel" x="680" y="190" width="290" height="150" rx="10" transform="rotate(-0.6 825 265)"/><circle class="gr-okc" cx="938" cy="218" r="16"/><path class="gr-arrow" d="M930,218 L946,218 M940,212 L946,218 L940,224"/><text class="gr-h" x="696" y="222">穴は突き合わせで</text><text class="gr-s" x="696" y="254">PingSource で uid 一覧と比べる</text><text class="gr-s" x="696" y="276">同じ id で Broker へ</text><ellipse class="gr-pill" cx="500" cy="388" rx="470" ry="30"/><text class="gr-m gr-b" x="500" y="393" text-anchor="middle">推奨構成の中心。取りこぼしの穴だけ別の部品で埋める</text></svg></div>
+
 <h2>Knative が保証する範囲</h2>
 <p><strong>Knative の保証は、Broker に入ったあとの配送まで。</strong> 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを<strong>作る</strong>部分は別物で、取りこぼしはこちらで起きる。</p>
 <ul>

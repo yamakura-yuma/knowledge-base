@@ -126,6 +126,12 @@
   .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
   .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
 
+  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
+  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
+  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -148,49 +154,6 @@
   <p class="sub">Argo CD の <code>Application</code> について、デプロイ完了（Synced かつ Healthy）と削除完了（finalizer の処理が終わってオブジェクトと管理リソースが実際に消えた時点）を検知し、外部へ送る 6 つの方式を比べる。根拠は kind 上の Argo CD v3.5.3 での実測と、各プロジェクトのソース・公式ドキュメント。方式ごとの詳細は各ページに分けた。</p>
 </header>
 <nav class="nav"><a href="index.html" class="on">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
-<h2>結論</h2>
-<p><strong>前提:</strong> Knative Eventing を導入する。Namespace は基盤側の Job が消す。基盤側の設定（Argo CD 本体、<code>argocd-notifications-cm</code>、Namespace を消す Job）は、通知を足したり変えたりするときに触らない。</p>
-<p><strong>推奨: 基盤側の設定に手を入れず、Knative で外から観測する。入口は Broker 1 つ。</strong></p>
-<table>
-<thead>
-<tr>
-<th>何を</th>
-<th>どう取るか</th>
-<th>CloudEvents の id</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>デプロイ完了</td>
-<td>ApiServerSource で Application を watch し、観測 Service が「Synced かつ Healthy で、operation が Succeeded」を判定して送る。条件は Notifications の <code>on-deployed</code> と同じ式</td>
-<td><code>&lt;uid&gt;:&lt;revision&gt;:deployed</code></td>
-</tr>
-<tr>
-<td>削除完了</td>
-<td>ApiServerSource でラベル付きの Namespace を watch する。DELETE（完全に消えた時点）を EventTransform で変換する</td>
-<td><code>&lt;Namespace の uid&gt;:deleted</code></td>
-</tr>
-<tr>
-<td>安全網（両方）</td>
-<td>PingSource が毎分、観測 Service に突き合わせをさせる。止まっていた間の変化を拾い、同じ id で送る</td>
-<td>同上</td>
-</tr>
-<tr>
-<td>配送</td>
-<td>宛先ごとの Trigger・retry・DLQ はアプリ側の namespace に置く。受け手は id で重複を消す</td>
-<td>—</td>
-</tr>
-</tbody>
-</table>
-<p><strong>選んだ理由:</strong></p>
-<ol>
-<li>通知の追加・変更がすべて通知側（obs とアプリの namespace）で済み、基盤側の設定を一度も触らない（<a href="criteria.html#change">採点表</a>）。</li>
-<li>必要な権限は、applications と namespaces の get/list/watch だけ。Application の annotation も、Argo CD の RBAC も使わない。</li>
-<li>削除は Namespace が完全に消えた時点で取れる。watch の取りこぼしは突き合わせが拾う（<a href="report.html#run15">報告書 run15</a>）。</li>
-<li>同じ変化が複数の経路から届いても、決定的な id で受け手が 1 通にできる（<a href="report.html#run19">報告書 run13・run19</a>）。</li>
-</ol>
-<p>詳しい構成、実装仕様、採らない案は <a href="recommended.html">推奨構成の詳細</a> に書いた。</p>
-<hr />
 <h2 id="grareco">グラレコ</h2>
 <div class="dgm gr">
 <div class="cap">グラレコ: この調査を 1 枚で</div>
@@ -286,6 +249,49 @@
 </svg>
 </div>
 
+<hr />
+<h2>結論</h2>
+<p><strong>前提:</strong> Knative Eventing を導入する。Namespace は基盤側の Job が消す。基盤側の設定（Argo CD 本体、<code>argocd-notifications-cm</code>、Namespace を消す Job）は、通知を足したり変えたりするときに触らない。</p>
+<p><strong>推奨: 基盤側の設定に手を入れず、Knative で外から観測する。入口は Broker 1 つ。</strong></p>
+<table>
+<thead>
+<tr>
+<th>何を</th>
+<th>どう取るか</th>
+<th>CloudEvents の id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>デプロイ完了</td>
+<td>ApiServerSource で Application を watch し、観測 Service が「Synced かつ Healthy で、operation が Succeeded」を判定して送る。条件は Notifications の <code>on-deployed</code> と同じ式</td>
+<td><code>&lt;uid&gt;:&lt;revision&gt;:deployed</code></td>
+</tr>
+<tr>
+<td>削除完了</td>
+<td>ApiServerSource でラベル付きの Namespace を watch する。DELETE（完全に消えた時点）を EventTransform で変換する</td>
+<td><code>&lt;Namespace の uid&gt;:deleted</code></td>
+</tr>
+<tr>
+<td>安全網（両方）</td>
+<td>PingSource が毎分、観測 Service に突き合わせをさせる。止まっていた間の変化を拾い、同じ id で送る</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>配送</td>
+<td>宛先ごとの Trigger・retry・DLQ はアプリ側の namespace に置く。受け手は id で重複を消す</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>選んだ理由:</strong></p>
+<ol>
+<li>通知の追加・変更がすべて通知側（obs とアプリの namespace）で済み、基盤側の設定を一度も触らない（<a href="criteria.html#change">採点表</a>）。</li>
+<li>必要な権限は、applications と namespaces の get/list/watch だけ。Application の annotation も、Argo CD の RBAC も使わない。</li>
+<li>削除は Namespace が完全に消えた時点で取れる。watch の取りこぼしは突き合わせが拾う（<a href="report.html#run15">報告書 run15</a>）。</li>
+<li>同じ変化が複数の経路から届いても、決定的な id で受け手が 1 通にできる（<a href="report.html#run19">報告書 run13・run19</a>）。</li>
+</ol>
+<p>詳しい構成、実装仕様、採らない案は <a href="recommended.html">推奨構成の詳細</a> に書いた。</p>
 <hr />
 <h2>全体の比較</h2>
 <h3>評価マトリクス</h3>

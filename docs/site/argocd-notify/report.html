@@ -126,6 +126,12 @@
   .gr .gr-head { fill:color-mix(in srgb, var(--l1) 30%, var(--bg)); stroke:var(--ink); stroke-width:2; }
   .gr .gr-head2 { fill:color-mix(in srgb, var(--l3) 30%, var(--bg)); }
 
+  .gr .gr-ok { fill:none; stroke:var(--ok); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .gr .gr-ng { fill:none; stroke:var(--hot); stroke-width:3; stroke-linecap:round; }
+  .gr .gr-okc { fill:color-mix(in srgb, var(--ok) 18%, var(--bg)); stroke:var(--ok); stroke-width:2.2; }
+  .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
+  .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -148,6 +154,8 @@
   <p class="sub">kind 上で行った run1〜run19 の記録。各 run の数字は、scratchpad に保存したログ（<code>runs/</code>）から取り直した。ログが保存されていない数字は、その旨を書いた。</p>
 </header>
 <nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="on">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<div class="dgm gr"><div class="cap">グラレコ: このページを 1 枚で</div><svg class="fig" viewBox="0 0 1000 430" role="img" aria-label="グラレコ: 実測：kind で 19 回ためした"><defs><marker id="grm-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker></defs><path class="gr-hl" d="M40,22 C260,12 620,30 960,18 L962,52 C640,62 300,46 38,58 Z"/><text class="gr-title" x="500" y="46" text-anchor="middle">実測：kind で 19 回ためした</text><rect class="gr-body" x="50" y="92" width="80" height="70" rx="12"/><circle class="gr-dot" cx="75" cy="118" r="4"/><circle class="gr-dot" cx="105" cy="118" r="4"/><path class="gr-line" d="M76,140 Q90,132 104,140"/><path class="gr-bubble" d="M170,78 h560 a12,12 0 0 1 12,12 v58 a12,12 0 0 1 -12,12 h-530 l-34,16 l10,-16 h-6 a12,12 0 0 1 -12,-12 v-58 a12,12 0 0 1 12,-12 z"/><text class="gr-m" x="190" y="110">本当に「消えた」ときに</text><text class="gr-m" x="190" y="134">届くのか、試してみた</text><rect class="gr-panel" x="30" y="190" width="290" height="150" rx="10" transform="rotate(-1 175 265)"/><circle class="gr-ngc" cx="288" cy="218" r="16"/><path class="gr-ng" d="M281,211 L295,225 M295,211 L281,225"/><text class="gr-h" x="46" y="222">on-deleted は早すぎ</text><text class="gr-s" x="46" y="254">削除要求から 0.05 秒で鳴る</text><text class="gr-s" x="46" y="276">まだ何も消えていない</text><text class="gr-s" x="46" y="298">（Application の消滅は 6.8 秒後）</text><path class="gr-arrow" d="M324,265 C335,255 342,255 352,265" marker-end="url(#grm-ar)"/><rect class="gr-panel" x="355" y="190" width="290" height="150" rx="10" transform="rotate(0.8 500 265)"/><path class="gr-warn" d="M613,201 L631,232 L595,232 Z"/><text class="gr-h gr-red" x="613" y="228" text-anchor="middle">!</text><text class="gr-h" x="371" y="222">watch は寝ると見逃す</text><text class="gr-s" x="371" y="254">止まっている間の削除は</text><text class="gr-s" x="371" y="276">復旧しても届かない</text><text class="gr-s" x="371" y="298">突き合わせと finalizer は拾う</text><path class="gr-arrow" d="M649,265 C660,255 667,255 677,265" marker-end="url(#grm-ar)"/><rect class="gr-panel" x="680" y="190" width="290" height="150" rx="10" transform="rotate(-0.6 825 265)"/><circle class="gr-okc" cx="938" cy="218" r="16"/><path class="gr-ok" d="M930,218 L936,225 L947,211"/><text class="gr-h" x="696" y="222">Broker の先は強い</text><text class="gr-s" x="696" y="254">宛先が 500 でも</text><text class="gr-s" x="696" y="276">retry のあと DLQ へ</text><text class="gr-s" x="696" y="298">削除は止まらない</text><ellipse class="gr-pill" cx="500" cy="388" rx="470" ry="30"/><text class="gr-m gr-b" x="500" y="393" text-anchor="middle">問い Q1〜Q8 と run の対応は 5 章の表にまとめた</text></svg></div>
+
 <h2>1. 目的</h2>
 <p>次の問いに答えるために測った。</p>
 <table>

@@ -2,6 +2,31 @@
 
 > Argo CD の API server が公開している `/api/v1/stream/applications` を、常駐クライアントが購読する。API server の broadcaster が informer のイベントを中継するので DELETED も届く。**ただし、消費者の受け取りが遅れているとイベントを捨てる。切断していた間のイベントも取り戻せない。**
 
+```grareco
+title: ⑥ API stream：速いが、落とす
+say:
+- API から直接
+- 流してもらえば？
+panels:
+- icon: ok
+  head: 2 ms で届く
+  lines:
+  - argocd-server が
+  - DELETED を中継する
+- icon: bad
+  head: 詰まると捨てる
+  lines:
+  - 受け取りが遅れると
+  - broadcaster が drop
+- icon: warn
+  head: 全部自前
+  lines:
+  - retry・HA・重複除去を
+  - 自分で書く
+bottom: 常駐クライアントとしては勧めない
+```
+
+
 ## アーキテクチャ
 
 ```diagram

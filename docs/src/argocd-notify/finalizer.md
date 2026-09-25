@@ -4,6 +4,32 @@
 >
 > Application に自分の finalizer を付けておき、**残っている finalizer が自分だけ**になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。
 
+```grareco
+title: ⑤ finalizer：消えない約束で確実に
+say:
+- 送り終わるまで、
+- 消えないで待って！
+panels:
+- icon: key
+  head: 確実に取れる
+  lines:
+  - 自分の finalizer だけ残ったら送る
+  - 止まっていても
+  - Application が待ってくれる
+- icon: bad
+  head: 止まると全員止まる
+  lines:
+  - 全チームの削除が待たされる
+  - Application への書き込み権限
+- icon: people
+  head: 作るなら
+  lines:
+  - Metacontroller で hook 1 つ
+  - 自作は見積もり 560〜900 行
+bottom: Namespace を基盤が消す前提なら、推奨構成で足りる
+```
+
+
 ## アーキテクチャ
 
 ```diagram

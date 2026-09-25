@@ -2,6 +2,32 @@
 
 > resource EventSource が Application を informer で監視し、イベントを EventBus（JetStream など）に書き込む。Sensor がそれを購読し、フィルタを通ったものだけ trigger（HTTP など）で送る。**削除完了は 7 ms で届く。ただし検知層は、停止中に起きた削除を取りこぼす。配送層は、設定しないと at-most-once で動く。**
 
+```grareco
+title: ④ Argo Events：EventBus から先は永続
+say:
+- Argo の仲間なら
+- 相性がいいかな？
+panels:
+- icon: ok
+  head: DELETE は 7 ms
+  lines:
+  - informer の DeleteFunc で
+  - 消滅の直後に届く
+- icon: warn
+  head: 既定は at-most-once
+  lines:
+  - atLeastOnce と
+  - policy.status.allow が要る
+  - 無いと 500 も成功扱い
+- icon: bad
+  head: 寝ると見逃す
+  lines:
+  - EventSource が止まっている間の
+  - 削除は届かない
+bottom: 運用中なら配送に使える。検知の穴は別で埋める
+```
+
+
 ## アーキテクチャ
 
 ```diagram

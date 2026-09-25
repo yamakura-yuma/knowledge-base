@@ -2,6 +2,31 @@
 
 > application-controller が、アプリのマニフェストに入っている hook（Job）を、sync の後や削除の途中で作って実行する。Job の中から送信先へ HTTP で送る。**PostDelete が捉えるのは、管理リソースは消えたが Application はまだ残っている時点。**
 
+```grareco
+title: ② PostSync / PostDelete：アプリの中の Job が送る
+say:
+- hook で送れば
+- 確実じゃない？
+panels:
+- icon: ok
+  head: 部品が増えない
+  lines:
+  - application-controller が実行
+  - 通知系が止まっていても送る
+- icon: warn
+  head: CR が消える前
+  lines:
+  - PostDelete は管理リソースの後
+  - Application はまだ残っている
+- icon: bad
+  head: 削除が詰まる
+  lines:
+  - 宛先が落ちると hook が失敗
+  - 全アプリに Job を書く
+bottom: 送信先の障害が、そのまま削除の障害になる
+```
+
+
 ## アーキテクチャ
 
 ```diagram

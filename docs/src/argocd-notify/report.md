@@ -2,6 +2,34 @@
 
 > kind 上で行った run1〜run19 の記録。各 run の数字は、scratchpad に保存したログ（`runs/`）から取り直した。ログが保存されていない数字は、その旨を書いた。
 
+```grareco
+title: 実測：kind で 19 回ためした
+say:
+- 本当に「消えた」ときに
+- 届くのか、試してみた
+panels:
+- icon: bad
+  head: on-deleted は早すぎ
+  lines:
+  - 削除要求から 0.05 秒で鳴る
+  - まだ何も消えていない
+  - （Application の消滅は 6.8 秒後）
+- icon: warn
+  head: watch は寝ると見逃す
+  lines:
+  - 止まっている間の削除は
+  - 復旧しても届かない
+  - 突き合わせと finalizer は拾う
+- icon: ok
+  head: Broker の先は強い
+  lines:
+  - 宛先が 500 でも
+  - retry のあと DLQ へ
+  - 削除は止まらない
+bottom: 問い Q1〜Q8 と run の対応は 5 章の表にまとめた
+```
+
+
 ## 1. 目的
 
 次の問いに答えるために測った。

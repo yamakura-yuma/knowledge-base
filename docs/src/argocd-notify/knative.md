@@ -4,6 +4,32 @@
 >
 > ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。**検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。** 6 方式の中で配送層が最も強い。
 
+```grareco
+title: ③ Knative：配送は強い、検知は watch 頼み
+say:
+- Knative に任せれば、
+- 全部安心？
+panels:
+- icon: ok
+  head: Broker の先は強い
+  lines:
+  - retry・backoff・DLQ を宣言
+  - 永続化した土台を選べる
+- icon: bad
+  head: Source は見逃す
+  lines:
+  - 止まっている間の DELETE は来ない
+  - キャッシュが無く、再 list でも
+  - 削除イベントを作らない
+- icon: flow
+  head: 穴は突き合わせで
+  lines:
+  - PingSource で uid 一覧と比べる
+  - 同じ id で Broker へ
+bottom: 推奨構成の中心。取りこぼしの穴だけ別の部品で埋める
+```
+
+
 ## Knative が保証する範囲
 
 **Knative の保証は、Broker に入ったあとの配送まで。** 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを**作る**部分は別物で、取りこぼしはこちらで起きる。

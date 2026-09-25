@@ -4,6 +4,32 @@
 >
 > Argo CD に同梱の `argocd-notifications-controller` が、Application を informer で見て trigger の条件式を評価し、template で組んだ本文を service（webhook・Slack など）で送る。**デプロイ完了は取れるが、削除完了は原理的に取れない。**
 
+```grareco
+title: ① Notifications：同梱で手軽、でも設定は基盤側
+say:
+- on-deleted って、
+- 消えたときに鳴るんじゃないの？
+panels:
+- icon: ok
+  head: デプロイ完了は得意
+  lines:
+  - oncePer で
+  - 1 リビジョンに 1 回だけ
+- icon: bad
+  head: 削除完了は取れない
+  lines:
+  - 条件は deletionTimestamp != nil
+  - ＝削除の開始
+  - 消滅を拾う経路が無い
+- icon: warn
+  head: 設定は argocd にある
+  lines:
+  - cm と Secret を基盤に編集してもらう
+  - 4 回失敗すると再送しない
+bottom: Argo CD の設定を持つチームが通知も持つなら、代替になる
+```
+
+
 ## アーキテクチャ
 
 ```diagram
