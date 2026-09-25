@@ -4,31 +4,7 @@
 
 <p class="eli5">Argo Events は、駅とバスにたとえられます。停留所（EventSource）で変化を拾い、バス（EventBus）に乗せ、終点の係（Sensor）が条件に合うものだけを届けます。バスに乗ったあとは、席（保管）が確保されるので安心です。危ないのは二か所で、停留所の Pod が止まっている間の乗客は乗れません。もう一つは、終点の係が初期設定では一回しか届けようとせず、宛先がエラーを返しても「届けた」と扱うことです。</p>
 
-<figure class="dd">
-<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-ae-title dd-ae-desc">
-<title id="dd-ae-title">Argo Events の 3 段：EventBus に乗る前が危ない</title>
-<desc id="dd-ae-desc">EventSource が変化を拾い、EventBus に保管され、Sensor が条件を満たすものを送る。EventBus から先は保管されるが、既定では 1 回しか送らない。</desc>
-<defs><marker id="dd-ae-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
-<path class="dd-line" d="M200,120 L260,120" marker-end="url(#dd-ae-ar)"/>
-<path class="dd-line" d="M500,120 L560,120" marker-end="url(#dd-ae-ar)"/>
-<path class="dd-line" d="M740,120 L800,120" marker-end="url(#dd-ae-ar)"/>
-<rect class="dd-node" x="40" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="120" y="116" text-anchor="middle">EventSource</text>
-<text class="dd-sub" x="120" y="134" text-anchor="middle">変化を拾う</text>
-<rect class="dd-focal" x="264" y="84" width="236" height="72" rx="6"/>
-<text class="dd-name" x="382" y="116" text-anchor="middle">EventBus</text>
-<text class="dd-sub" x="382" y="134" text-anchor="middle">ここから先は保管される</text>
-<rect class="dd-node" x="564" y="92" width="176" height="56" rx="6"/>
-<text class="dd-name" x="652" y="116" text-anchor="middle">Sensor</text>
-<text class="dd-sub" x="652" y="134" text-anchor="middle">条件で絞る</text>
-<rect class="dd-ext" x="804" y="92" width="116" height="56" rx="6"/>
-<text class="dd-name" x="862" y="125" text-anchor="middle">宛先</text>
-<text class="dd-name dd-red-t" x="40" y="188" text-anchor="start">止まっている間の変化は乗れない</text>
-<text class="dd-name dd-red-t" x="564" y="188" text-anchor="start">既定は 1 回だけ送る</text>
-<text class="dd-sub" x="564" y="208" text-anchor="start">atLeastOnce の設定で直る</text>
-</svg>
-</figure>
+<!-- archify: argo-events.dataflow -->
 
 
 

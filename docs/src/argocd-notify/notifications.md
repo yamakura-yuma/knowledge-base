@@ -6,34 +6,7 @@
 
 <p class="eli5">Argo CD には通知係（Notifications）が付いていて、アプリの状態が変わるとメッセージを送ってくれます。ただし、誰に・いつ・何を送るかの決まりは、基盤チームの部屋（argocd という Namespace）にある ConfigMap に書く決まりです。アプリの開発者は自分の Namespace から手が届かないので、変えるたびに頼むことになります。もう一つの落とし穴は、削除の知らせ（on-deleted）が「片づけを始めた」瞬間に鳴ることです。Pod がまだ動いているうちに「消えました」と届きます。</p>
 
-<figure class="dd">
-<svg viewBox="0 30 960 190" role="img" aria-labelledby="dd-notif-title dd-notif-desc">
-<title id="dd-notif-title">Notifications で通知を足すとき、利用者は基盤の設定を頼む</title>
-<desc id="dd-notif-desc">Notifications の設定は argocd namespace の ConfigMap と Secret にあり、利用者は基盤チームに編集を頼む。コントローラはそれを読んで送る。</desc>
-<defs><marker id="dd-notif-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="30" width="960" height="190"/>
-<line class="dd-bound" x1="640" y1="38" x2="640" y2="210"/>
-<path class="dd-line dd-red" d="M720,120 L560,120" marker-end="url(#dd-notif-arr)"/>
-<path class="dd-line" d="M412,120 L352,120" marker-end="url(#dd-notif-ar)"/>
-<path class="dd-line" d="M212,120 L160,120" marker-end="url(#dd-notif-ar)"/>
-<text class="dd-eyebrow" x="624" y="52" text-anchor="end">argocd namespace（基盤）</text>
-<text class="dd-eyebrow" x="656" y="52" text-anchor="start">あなた</text>
-<rect class="dd-mask" x="603" y="96" width="74" height="16" rx="2"/>
-<text class="dd-lbl dd-red-t" x="640" y="108" text-anchor="middle">編集を頼む</text>
-<rect class="dd-store" x="420" y="92" width="140" height="56" rx="6"/>
-<text class="dd-name" x="490" y="116" text-anchor="middle">ConfigMap</text>
-<text class="dd-sub" x="490" y="134" text-anchor="middle">trigger・template</text>
-<rect class="dd-node" x="212" y="92" width="140" height="56" rx="6"/>
-<text class="dd-name" x="282" y="116" text-anchor="middle">通知コントローラ</text>
-<text class="dd-sub" x="282" y="134" text-anchor="middle">設定を読む</text>
-<rect class="dd-ext" x="40" y="92" width="120" height="56" rx="6"/>
-<text class="dd-name" x="100" y="125" text-anchor="middle">宛先</text>
-<rect class="dd-ext" x="728" y="92" width="176" height="56" rx="6"/>
-<text class="dd-name" x="816" y="116" text-anchor="middle">アプリの開発者</text>
-<text class="dd-sub" x="816" y="134" text-anchor="middle">Slack に欲しい</text>
-<text class="dd-aside" x="420" y="196" text-anchor="start">変えるたびに頼む</text>
-</svg>
-</figure>
+<!-- archify: notifications.architecture -->
 
 <figure class="dd">
 <svg viewBox="0 36 960 100" role="img" aria-labelledby="dd-notif-t-title dd-notif-t-desc">

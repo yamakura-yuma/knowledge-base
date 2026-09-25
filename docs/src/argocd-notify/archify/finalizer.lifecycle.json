@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "finalizer の札が外れる順番",
+    "quality_profile": "showcase",
+    "viewBox": [
+      760,
+      566
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "削除の進み方"
+    },
+    {
+      "id": "waiting",
+      "label": "送れないとき"
+    }
+  ],
+  "states": [
+    {
+      "id": "requested",
+      "type": "start",
+      "label": "削除を依頼",
+      "sublabel": "札が 4 枚",
+      "lane": "main",
+      "col": 0,
+      "step": "01"
+    },
+    {
+      "id": "argo",
+      "type": "active",
+      "label": "Argo CD の札",
+      "sublabel": "Pod などを片づけ",
+      "lane": "main",
+      "col": 1,
+      "step": "02"
+    },
+    {
+      "id": "mine",
+      "type": "decision",
+      "label": "自分の札だけ",
+      "sublabel": "通知を送る",
+      "lane": "main",
+      "col": 2,
+      "step": "03"
+    },
+    {
+      "id": "gone",
+      "type": "success",
+      "label": "Application 消滅",
+      "sublabel": "札を外した",
+      "lane": "main",
+      "col": 3,
+      "step": "04"
+    },
+    {
+      "id": "retry",
+      "type": "failure",
+      "label": "送れない",
+      "sublabel": "札を残して待つ",
+      "lane": "waiting",
+      "col": 0
+    }
+  ],
+  "transitions": [
+    {
+      "id": "fail",
+      "from": "mine",
+      "to": "retry",
+      "variant": "security"
+    },
+    {
+      "id": "again",
+      "from": "retry",
+      "to": "mine",
+      "variant": "emphasis"
+    }
+  ]
+}

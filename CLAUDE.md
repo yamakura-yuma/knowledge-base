@@ -29,7 +29,10 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   ほかの話題とは独立していて、専用の `docs/build_argocd_notify.py` が生成する。
   `build.py` の PAGES・ナビ・CSS には載せず、既存の話題とのリンクも張らない。
   図は md の中の ```diagram ブロック（YAML）に書き、ビルド時に SVG になる。各ページの冒頭は
-  「たとえ話 1 段落（eli5）＋図（diagram-design、基本 1 枚）」で、生の SVG を md に書く
+  「たとえ話 1 段落（eli5）＋図」。図は diagram-design の生の SVG を md に書くか、
+  仕組みを見せるページ（notifications・knative・argo-events・finalizer・recommended）は
+  archify の JSON（`docs/src/argocd-notify/archify/`）を `<!-- archify: 名前 -->` で参照する。
+  ビルドが `apm_modules` の archify で描き、JS を含まない `<svg>` 要素だけを埋め込む（要 Node と `apm install`）
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
@@ -67,7 +70,7 @@ git の差分が出ないことが、正しく終わった証拠になる。
   対象はこのディレクトリ
   - `update-landscape` — ランドスケープを実測値で更新する手順。スキル側は入口で、
     手順の正本は `docs/src/landscape/UPDATE_PROMPT.md`
-- `eli5`・`diagram-design`・`impeccable` — 外部の公開スキル。コミット固定で取り込む。
+- `eli5`・`diagram-design`・`archify`・`impeccable` — 外部の公開スキル。コミット固定で取り込む。
   ページ冒頭のたとえ話（eli5）、図（diagram-design）、出す前の批評（impeccable の critique）に使う
 - `core-principal` — 共有ハーネス（ルール、git のガードフック、`core-*` スキル）。
   [dotfiles](https://github.com/yamakura-yuma/dotfiles) リポジトリからコミットで

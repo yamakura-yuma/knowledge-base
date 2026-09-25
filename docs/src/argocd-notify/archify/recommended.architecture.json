@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "通知を足すとき、触るのは自分の Namespace だけ", "quality_profile": "showcase" },
+  "components": [
+    { "id": "watch", "type": "security", "label": "見張り役", "sublabel": "Namespace を watch", "pos": [40, 200], "size": [160, 64] },
+    { "id": "broker", "type": "messagebus", "label": "Broker", "sublabel": "全チーム共通", "pos": [280, 200], "size": [160, 64] },
+    { "id": "trigger", "type": "backend", "label": "Trigger", "sublabel": "条件・再送", "pos": [580, 200], "size": [160, 64] },
+    { "id": "recv", "type": "frontend", "label": "受け手", "sublabel": "Slack へ送る", "pos": [820, 200], "size": [160, 64] },
+    { "id": "secret", "type": "database", "label": "Secret", "sublabel": "Slack の鍵", "pos": [820, 360], "size": [160, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "基盤チーム（obs）", "wraps": ["watch", "broker"] },
+    { "kind": "security-group", "label": "あなたの Namespace", "wraps": ["trigger", "recv", "secret"] }
+  ],
+  "connections": [
+    { "id": "in", "from": "watch", "to": "broker", "label": "1 通" },
+    { "id": "fwd", "from": "broker", "to": "trigger", "label": "転送 1 本", "variant": "emphasis" },
+    { "id": "deliver", "from": "trigger", "to": "recv", "label": "配る" },
+    { "id": "key", "from": "secret", "to": "recv", "label": "鍵", "variant": "dashed", "fromSide": "top", "toSide": "bottom" }
+  ]
+}

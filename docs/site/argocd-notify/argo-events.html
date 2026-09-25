@@ -127,6 +127,45 @@
   .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
   .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
 
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -151,31 +190,138 @@
 <nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="on">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
 <p class="eli5">Argo Events は、駅とバスにたとえられます。停留所（EventSource）で変化を拾い、バス（EventBus）に乗せ、終点の係（Sensor）が条件に合うものだけを届けます。バスに乗ったあとは、席（保管）が確保されるので安心です。危ないのは二か所で、停留所の Pod が止まっている間の乗客は乗れません。もう一つは、終点の係が初期設定では一回しか届けようとせず、宛先がエラーを返しても「届けた」と扱うことです。</p>
 
-<figure class="dd">
-<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-ae-title dd-ae-desc">
-<title id="dd-ae-title">Argo Events の 3 段：EventBus に乗る前が危ない</title>
-<desc id="dd-ae-desc">EventSource が変化を拾い、EventBus に保管され、Sensor が条件を満たすものを送る。EventBus から先は保管されるが、既定では 1 回しか送らない。</desc>
-<defs><marker id="dd-ae-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-ae-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
-<path class="dd-line" d="M200,120 L260,120" marker-end="url(#dd-ae-ar)"/>
-<path class="dd-line" d="M500,120 L560,120" marker-end="url(#dd-ae-ar)"/>
-<path class="dd-line" d="M740,120 L800,120" marker-end="url(#dd-ae-ar)"/>
-<rect class="dd-node" x="40" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="120" y="116" text-anchor="middle">EventSource</text>
-<text class="dd-sub" x="120" y="134" text-anchor="middle">変化を拾う</text>
-<rect class="dd-focal" x="264" y="84" width="236" height="72" rx="6"/>
-<text class="dd-name" x="382" y="116" text-anchor="middle">EventBus</text>
-<text class="dd-sub" x="382" y="134" text-anchor="middle">ここから先は保管される</text>
-<rect class="dd-node" x="564" y="92" width="176" height="56" rx="6"/>
-<text class="dd-name" x="652" y="116" text-anchor="middle">Sensor</text>
-<text class="dd-sub" x="652" y="134" text-anchor="middle">条件で絞る</text>
-<rect class="dd-ext" x="804" y="92" width="116" height="56" rx="6"/>
-<text class="dd-name" x="862" y="125" text-anchor="middle">宛先</text>
-<text class="dd-name dd-red-t" x="40" y="188" text-anchor="start">止まっている間の変化は乗れない</text>
-<text class="dd-name dd-red-t" x="564" y="188" text-anchor="start">既定は 1 回だけ送る</text>
-<text class="dd-sub" x="564" y="208" text-anchor="start">atLeastOnce の設定で直る</text>
-</svg>
-</figure>
+<figure class="arch"><svg viewBox="0 0 1080 420" role="img" lang="en" aria-labelledby="ax-argo-events-dataflow-archify-diagram-title ax-argo-events-dataflow-archify-diagram-description">
+        <title id="ax-argo-events-dataflow-archify-diagram-title">Argo Events の 3 段</title>
+        <desc id="ax-argo-events-dataflow-archify-diagram-description">A diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-argo-events-dataflow-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-argo-events-dataflow-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-argo-events-dataflow-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-argo-events-dataflow-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-argo-events-dataflow-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-argo-events-dataflow-grid)" />
+        <rect x="16" y="46" width="168" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="100" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">01 / 変化</text>
+        <rect x="231" y="46" width="168" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="315" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">02 / 拾う</text>
+        <rect x="446" y="46" width="168" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="530" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">03 / 保管</text>
+        <rect x="661" y="46" width="168" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="745" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">04 / 絞る</text>
+        <rect x="876" y="46" width="168" height="300" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="960" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">05 / 宛先</text>
+        <path d="M 156 157 L 259 157" class="a-default" stroke-width="1.4" marker-end="url(#ax-argo-events-dataflow-arrowhead)"/>
+        <path d="M 371 157 L 474 157" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-dataflow-arrowhead-emphasis)"/>
+        <path d="M 586 157 L 689 157" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-dataflow-arrowhead-emphasis)"/>
+        <path d="M 801 157 L 904 157" class="a-security" stroke-width="1.4" marker-end="url(#ax-argo-events-dataflow-arrowhead-security)"/>
+        <g id="ax-argo-events-dataflow-node-ns" tabindex="0" role="button" aria-label="Focus Namespace, Pod の入れ物, 01 / 変化" aria-pressed="false">
+          <title>Namespace · Pod の入れ物 · 01 / 変化</title>
+          <rect x="44" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="44" y="128" width="112" height="58" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(50 134) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="100" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Namespace</text>
+          <text x="100" y="165" class="t-muted" font-size="7" text-anchor="middle">Pod の入れ物</text>
+        </g>
+        <g id="ax-argo-events-dataflow-node-es" tabindex="0" role="button" aria-label="Focus EventSource, 変化を拾う, 02 / 拾う" aria-pressed="false">
+          <title>EventSource · 変化を拾う · 02 / 拾う · 止まると乗れない</title>
+          <rect x="259" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="259" y="128" width="112" height="58" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(265 134) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="315" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">EventSource</text>
+          <text x="315" y="165" class="t-muted" font-size="7" text-anchor="middle">変化を拾う</text>
+        <text x="315" y="175" class="t-security" font-size="7" text-anchor="middle">止まると乗れない</text>
+        </g>
+        <g id="ax-argo-events-dataflow-node-bus" tabindex="0" role="button" aria-label="Focus EventBus, ここから先は保管, 03 / 保管" aria-pressed="false">
+          <title>EventBus · ここから先は保管 · 03 / 保管 · JetStream</title>
+          <rect x="474" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="474" y="128" width="112" height="58" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(480 134) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="530" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">EventBus</text>
+          <text x="530" y="165" class="t-muted" font-size="7" text-anchor="middle">ここから先は保管</text>
+        <text x="530" y="175" class="t-messagebus" font-size="7" text-anchor="middle">JetStream</text>
+        </g>
+        <g id="ax-argo-events-dataflow-node-sensor" tabindex="0" role="button" aria-label="Focus Sensor, 条件で絞る, 04 / 絞る" aria-pressed="false">
+          <title>Sensor · 条件で絞る · 04 / 絞る · 既定は 1 回</title>
+          <rect x="689" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="689" y="128" width="112" height="58" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(695 134) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="745" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Sensor</text>
+          <text x="745" y="165" class="t-muted" font-size="7" text-anchor="middle">条件で絞る</text>
+        <text x="745" y="175" class="t-backend" font-size="7" text-anchor="middle">既定は 1 回</text>
+        </g>
+        <g id="ax-argo-events-dataflow-node-dest" tabindex="0" role="button" aria-label="Focus 宛先, HTTP, 05 / 宛先" aria-pressed="false">
+          <title>宛先 · HTTP · 05 / 宛先</title>
+          <rect x="904" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="904" y="128" width="112" height="58" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(910 134) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="960" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">宛先</text>
+          <text x="960" y="165" class="t-muted" font-size="7" text-anchor="middle">HTTP</text>
+        </g>
+        <g>
+          <rect x="181.9" y="136" width="51.2" height="27" rx="4" class="c-mask"/>
+          <text x="207.5" y="147" class="t-muted" font-size="8" text-anchor="middle">watch</text>
+        <text x="207.5" y="158" class="t-dim" font-size="7" text-anchor="middle">informer</text>
+        </g>
+        <g>
+          <rect x="399.35" y="136" width="46.3" height="27" rx="4" class="c-mask"/>
+          <text x="422.5" y="147" class="t-backend" font-size="8" text-anchor="middle">publish</text>
+        <text x="422.5" y="158" class="t-dim" font-size="7" text-anchor="middle">event</text>
+        </g>
+        <g>
+          <rect x="609.45" y="136" width="56.1" height="27" rx="4" class="c-mask"/>
+          <text x="637.5" y="147" class="t-backend" font-size="8" text-anchor="middle">subscribe</text>
+        <text x="637.5" y="158" class="t-dim" font-size="7" text-anchor="middle">durable</text>
+        </g>
+        <g>
+          <rect x="802.4" y="136" width="100.2" height="27" rx="4" class="c-mask"/>
+          <text x="852.5" y="147" class="t-security" font-size="8" text-anchor="middle">trigger</text>
+        <text x="852.5" y="158" class="t-dim" font-size="7" text-anchor="middle">atLeastOnce 要設定</text>
+        </g>
+        <g>
+          <text x="40" y="364" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g>
+            <path d="M 40 381 L 74 381" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-dataflow-arrowhead-emphasis)"/>
+            <text x="83" y="384" class="t-muted" font-size="10" font-weight="500">primary data</text>
+          </g>
+          <g>
+            <path d="M 165 381 L 199 381" class="a-security" stroke-width="1.4" marker-end="url(#ax-argo-events-dataflow-arrowhead-security)"/>
+            <text x="208" y="384" class="t-muted" font-size="10" font-weight="500">policy / PII</text>
+          </g>
+          <g>
+            <path d="M 290 381 L 324 381" class="a-default" stroke-width="1.4" marker-end="url(#ax-argo-events-dataflow-arrowhead)"/>
+            <text x="333" y="384" class="t-muted" font-size="10" font-weight="500">data flow</text>
+          </g>
+        </g>
+      </svg></figure>
 
 <h2>アーキテクチャ</h2>
 <div class="dgm"><div class="cap">EventBus が検知層と配送層の間に入り、そこから先は永続化される</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="Argo Events のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="220" height="150" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="250" y="30" width="510" height="330" rx="8"/><text class="t-zone" x="260" y="46">argo-events namespace</text><rect class="zone zone-ext" x="780" y="30" width="210" height="330" rx="8"/><text class="t-zone" x="790" y="46">外部</text><rect class="nd nd-app" x="25" y="60" width="190" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-comp" x="265" y="60" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="79">EventSource の Pod</text><text class="" x="275" y="95">informer（Add/Update/Delete）</text><text class="t-mono" x="275" y="111">Active-Passive・状態なし</text><rect class="nd nd-state" x="265" y="170" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="189">EventBus（JetStream）</text><text class="" x="275" y="205">3 レプリカ・PV 推奨</text><text class="t-mono" x="275" y="221">ここから先は永続化</text><rect class="nd nd-comp" x="265" y="275" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="294">Sensor の Pod</text><text class="" x="275" y="310">filter（data / Lua script）</text><text class="t-mono" x="275" y="326">retryStrategy・dlqTrigger</text><rect class="nd nd-comp" x="560" y="60" width="185" height="70" rx="6"/><text class="t-ink" x="570" y="79">controller-manager</text><text class="t-mono" x="570" y="95">ES / Sensor / EventBus</text><text class="t-mono" x="570" y="111">を Deployment にする</text><rect class="nd nd-ext" x="795" y="275" width="180" height="44" rx="6"/><text class="t-ink" x="805" y="294">HTTP trigger</text><rect class="nd nd-ext" x="795" y="170" width="180" height="44" rx="6"/><text class="t-ink" x="805" y="189">dlqTrigger</text><path class="ln ln-watch" d="M265,89 L215,86" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="218" y="76" width="44" height="15" rx="3"/><text class="t-mono" x="240" y="87" text-anchor="middle">watch</text><path class="ln ln-ce" d="M405,130 L405,170" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="376" y="139" width="58" height="15" rx="3"/><text class="t-mono" x="405" y="150" text-anchor="middle">publish</text><path class="ln ln-ce" d="M405,240 L405,275" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="369" y="246" width="73" height="15" rx="3"/><text class="t-mono" x="405" y="258" text-anchor="middle">subscribe</text><path class="ln ln-http" d="M545,306 L795,299" marker-end="url(#a-http)"/><path class="ln ln-http" d="M545,302 L770,290 L770,192 L795,192" marker-end="url(#a-http)"/><rect class="lbl-bg" x="702" y="230" width="56" height="15" rx="3"/><text class="t-mono" x="730" y="241" text-anchor="middle">上限超過</text><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M112.0,390 L140.0,390" marker-end="url(#a-http)"/><text class="t-mono" x="146.0" y="394">HTTP</text><path class="ln ln-ce" d="M196.8,390 L224.8,390" marker-end="url(#a-ce)"/><text class="t-mono" x="230.8" y="394">CloudEvent</text><rect class="nd nd-state" x="324.8" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="346.8" y="394">状態を持つ場所</text></svg></div>

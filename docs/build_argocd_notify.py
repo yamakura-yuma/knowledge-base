@@ -17,6 +17,8 @@ md の中の ```diagram ブロック（YAML）は、ビルド時に SVG へ描�
 from __future__ import annotations
 
 import html
+import subprocess
+import tempfile
 import pathlib
 import re
 import sys
@@ -166,6 +168,45 @@ CSS = """
   .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
   .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
 
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -302,10 +343,54 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
     return f'<div class="dgm">{cap_html}{"".join(out)}</div>'
 
 
+ARCHIFY = HERE.parent / "apm_modules" / "tt-a1i" / "archify" / "archify" / "bin" / "archify.mjs"
+ARCHIFY_TYPES = {"architecture", "workflow", "sequence", "dataflow", "lifecycle"}
+
+
+def archify_svg(name: str, warnings: list[str], where: str) -> str:
+    """docs/src/argocd-notify/archify/<name>.<type>.json を archify で描き、<svg> 要素だけを取り出す。
+
+    archify は検査と描画の道具としてだけ使う。出力の HTML（ビューアの JS を含む）はページに入れず、
+    JS を含まない <svg> 要素だけを埋め込む。色はページの CSS（.arch の節）が当てる。
+    check-update.mjs（ネットワークで更新を確かめる）は render からは呼ばれない。
+    """
+    src = SRC / "archify" / f"{name}.json"
+    kind = name.rsplit(".", 1)[-1]
+    if kind not in ARCHIFY_TYPES or not src.exists():
+        warnings.append(f"{where}: archify の原稿が無い: {src.name}")
+        return ""
+    if not ARCHIFY.exists():
+        warnings.append(f"{where}: archify が無い（apm install を流すこと）: {ARCHIFY}")
+        return ""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = pathlib.Path(tmp) / "diagram.html"
+        r = subprocess.run(["node", str(ARCHIFY), "render", kind, str(src), str(out),
+                            "--quality", "showcase"], capture_output=True, text=True)
+        if r.returncode != 0 or not out.exists():
+            warnings.append(f"{where}: archify render に失敗: {src.name}: {r.stderr.strip()[:200]}")
+            return ""
+        page_html = out.read_text(encoding="utf-8")
+    svgs = re.findall(r"<svg\b.*?</svg>", page_html, re.S)
+    svg = max(svgs, key=len) if svgs else ""
+    if "<script" in svg or re.search(r'(?:href|src)="(?!#)', svg):
+        warnings.append(f"{where}: archify の SVG に script か外部参照がある: {src.name}")
+        return ""
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower())
+    ids = set(re.findall(r' id="([^"]+)"', svg))
+    for i in sorted(ids, key=len, reverse=True):
+        svg = re.sub(rf'(?<=[" #(]){re.escape(i)}(?=[")\s])', f"ax-{slug}-{i}", svg)
+    svg = re.sub(r"\s(data-[\w-]+(?:=\"[^\"]*\")?|style=\"--step:\d+\")", "", svg)
+    svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S)
+    svg = re.sub(r"\n\s*\n", "\n", svg)
+    return f'<figure class="arch">{svg}</figure>'
+
+
 def render_diagrams(text: str, warnings: list[str], where: str) -> str:
     def sub(m):
         return diagram(yaml.safe_load(m.group(1)), warnings, where)
 
+    text = re.sub(r"^<!--\s*archify:\s*([\w.-]+)\s*-->$",
+                  lambda m: archify_svg(m.group(1), warnings, where), text, flags=re.M)
     return re.sub(r"^```diagram\n(.*?)^```\n", sub, text, flags=re.S | re.M)
 
 

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Knative の配送路",
+    "viewBox": [1080, 520],
+    "quality_profile": "showcase"
+  },
+  "stages": [
+    { "label": "変化" },
+    { "label": "受付" },
+    { "label": "保管" },
+    { "label": "振り分け" },
+    { "label": "宛先" }
+  ],
+  "nodes": [
+    { "id": "ns", "type": "external", "label": "Namespace", "sublabel": "Pod の入れ物", "stage": 0, "row": 0 },
+    { "id": "src", "type": "security", "label": "ApiServerSource", "sublabel": "変化を見る係", "stage": 1, "row": 0, "tag": "止まると取りこぼす" },
+    { "id": "broker", "type": "messagebus", "label": "Broker", "sublabel": "保管・再送", "stage": 2, "row": 0, "tag": "入口は 1 つ" },
+    { "id": "trigger", "type": "backend", "label": "Trigger", "sublabel": "条件で振り分け", "stage": 3, "row": 0 },
+    { "id": "dest", "type": "frontend", "label": "宛先", "sublabel": "Slack など", "stage": 4, "row": 0 },
+    { "id": "dlq", "type": "database", "label": "DLQ", "sublabel": "届かなかった分", "stage": 3, "row": 2 }
+  ],
+  "flows": [
+    { "from": "ns", "to": "src", "label": "watch", "classification": "Kubernetes API", "variant": "default", "route": "straight" },
+    { "from": "src", "to": "broker", "label": "CloudEvent", "classification": "id = uid:deleted", "variant": "emphasis", "route": "straight" },
+    { "from": "broker", "to": "trigger", "label": "配る", "classification": "永続化した土台", "variant": "emphasis", "route": "straight" },
+    { "from": "trigger", "to": "dest", "label": "HTTP", "classification": "retry・backoff", "variant": "emphasis", "route": "straight" },
+    { "from": "trigger", "to": "dlq", "label": "上限超過", "classification": "dead letter", "variant": "security", "route": "vertical-channel" }
+  ]
+}

@@ -6,37 +6,7 @@
 
 <p class="eli5">Knative Eventing は、クラスタの中の郵便局のようなものです。受付係（ApiServerSource）が Kubernetes の変化（Namespace ができた・消えた）を見て手紙にし、郵便局（Broker）に預けます。郵便局は手紙を保管し、宛先が留守なら時間をおいて配り直し、それでもだめなら保管箱（DLQ）に入れます。弱点は受付係です。受付係の Pod が再起動している間に起きた変化は、手紙にならず、あとから思い出すこともありません。</p>
 
-<figure class="dd">
-<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-kn-title dd-kn-desc">
-<title id="dd-kn-title">Knative の配送路：入口が止まると、その間の変化は入らない</title>
-<desc id="dd-kn-desc">ApiServerSource が Kubernetes の変化を見て Broker に入れ、Trigger が宛先に配る。Broker から先は再送と DLQ があるが、ApiServerSource が止まっている間の変化は Broker に入らない。</desc>
-<defs><marker id="dd-kn-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
-<path class="dd-line" d="M172,120 L212,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line" d="M376,120 L420,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line dd-acc" d="M584,120 L628,120" marker-end="url(#dd-kn-ara)"/>
-<path class="dd-line" d="M752,120 L796,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line dd-red dd-dash" d="M690,148 L690,188 Q690,196 698,196 L716,196" marker-end="url(#dd-kn-arr)"/>
-<rect class="dd-store" x="40" y="92" width="132" height="56" rx="6"/>
-<text class="dd-name" x="106" y="116" text-anchor="middle">Namespace</text>
-<text class="dd-sub" x="106" y="134" text-anchor="middle">Pod の入れ物</text>
-<rect class="dd-node" x="216" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="296" y="116" text-anchor="middle">ApiServerSource</text>
-<text class="dd-sub" x="296" y="134" text-anchor="middle">変化を見る係</text>
-<rect class="dd-focal" x="424" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="504" y="116" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="504" y="134" text-anchor="middle">保管・再送</text>
-<rect class="dd-node" x="632" y="92" width="120" height="56" rx="6"/>
-<text class="dd-name" x="692" y="116" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="692" y="134" text-anchor="middle">振り分け</text>
-<rect class="dd-ext" x="800" y="92" width="120" height="56" rx="6"/>
-<text class="dd-name" x="860" y="125" text-anchor="middle">宛先</text>
-<rect class="dd-ext" x="720" y="176" width="120" height="40" rx="6"/>
-<text class="dd-name" x="780" y="201" text-anchor="middle">DLQ</text>
-<text class="dd-name dd-red-t" x="216" y="196" text-anchor="start">ここが止まると取りこぼす</text>
-<text class="dd-aside" x="424" y="196" text-anchor="start">ここから先は再送できる</text>
-</svg>
-</figure>
+<!-- archify: knative.dataflow -->
 
 
 

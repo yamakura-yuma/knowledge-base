@@ -30,6 +30,12 @@ dependencies:
     alias: diagram-design
     targets:
     - claude
+  - git: https://github.com/tt-a1i/archify.git
+    path: archify
+    ref: 9e35d2b0b39b155553ba9fcfe0b4f2a5198dd993
+    alias: archify
+    targets:
+    - claude
   - git: https://github.com/pbakaus/impeccable.git
     path: .claude/skills/impeccable
     ref: 9d715cc4f5564a990ca8345abfdd5df6dc9b41c8

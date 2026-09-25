@@ -4,37 +4,7 @@
 
 <p class="eli5">これまでの方法では、通知を一つ足すたびに、基盤チームの Namespace（argocd）にある設定を書き換えてもらう必要がありました。推奨構成では線を引き直します。基盤チームは「見張り役」と「郵便局（Broker）」と、チームごとの転送を一本だけ持ちます。あなたは自分の Namespace に、振り分けの決まり（Trigger）と、Slack の鍵を入れた Secret と、受け手の Pod を置くだけです。宛先を足すのも、条件を変えるのも、自分の Namespace の中で終わります。</p>
 
-<figure class="dd">
-<svg viewBox="0 30 960 200" role="img" aria-labelledby="dd-rec-title dd-rec-desc">
-<title id="dd-rec-title">通知を足すとき、あなたが触るのは自分の Namespace だけ</title>
-<desc id="dd-rec-desc">基盤チームは見張り役と Broker と転送を 1 本持つ。あなたは自分の Namespace に Trigger・Secret・受け手を置くだけで通知を足せる。</desc>
-<defs><marker id="dd-rec-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rec-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rec-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="30" width="960" height="200"/>
-<line class="dd-bound" x1="520" y1="38" x2="520" y2="226"/>
-<path class="dd-line dd-acc" d="M472,120 L560,120" marker-end="url(#dd-rec-ara)"/>
-<path class="dd-line" d="M700,120 L740,120" marker-end="url(#dd-rec-ar)"/>
-<path class="dd-line" d="M240,120 L268,120" marker-end="url(#dd-rec-ar)"/>
-<text class="dd-eyebrow" x="504" y="52" text-anchor="end">基盤チームが持つ</text>
-<text class="dd-eyebrow" x="536" y="52" text-anchor="start">あなたの Namespace</text>
-<rect class="dd-mask" x="473" y="96" width="86" height="16" rx="2"/>
-<text class="dd-lbl dd-acc-t" x="516" y="108" text-anchor="middle">転送 1 本</text>
-<rect class="dd-node" x="40" y="92" width="200" height="56" rx="6"/>
-<text class="dd-name" x="140" y="116" text-anchor="middle">見張り役</text>
-<text class="dd-sub" x="140" y="134" text-anchor="middle">Namespace を watch</text>
-<rect class="dd-store" x="272" y="92" width="200" height="56" rx="6"/>
-<text class="dd-name" x="372" y="116" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="372" y="134" text-anchor="middle">全チーム共通</text>
-<rect class="dd-focal" x="564" y="92" width="136" height="56" rx="6"/>
-<text class="dd-name" x="632" y="116" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="632" y="134" text-anchor="middle">条件・再送</text>
-<rect class="dd-ext" x="744" y="92" width="176" height="56" rx="6"/>
-<text class="dd-name" x="832" y="116" text-anchor="middle">受け手</text>
-<text class="dd-sub" x="832" y="134" text-anchor="middle">Slack へ送る</text>
-<rect class="dd-store" x="564" y="176" width="136" height="44" rx="6"/>
-<text class="dd-name" x="632" y="194" text-anchor="middle">Secret</text>
-<text class="dd-sub" x="632" y="212" text-anchor="middle">Slack の鍵</text>
-</svg>
-</figure>
+<!-- archify: recommended.architecture -->
 
 
 

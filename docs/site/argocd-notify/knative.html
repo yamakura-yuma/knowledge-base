@@ -127,6 +127,45 @@
   .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
   .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
 
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -154,37 +193,158 @@
 </blockquote>
 <p class="eli5">Knative Eventing は、クラスタの中の郵便局のようなものです。受付係（ApiServerSource）が Kubernetes の変化（Namespace ができた・消えた）を見て手紙にし、郵便局（Broker）に預けます。郵便局は手紙を保管し、宛先が留守なら時間をおいて配り直し、それでもだめなら保管箱（DLQ）に入れます。弱点は受付係です。受付係の Pod が再起動している間に起きた変化は、手紙にならず、あとから思い出すこともありません。</p>
 
-<figure class="dd">
-<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-kn-title dd-kn-desc">
-<title id="dd-kn-title">Knative の配送路：入口が止まると、その間の変化は入らない</title>
-<desc id="dd-kn-desc">ApiServerSource が Kubernetes の変化を見て Broker に入れ、Trigger が宛先に配る。Broker から先は再送と DLQ があるが、ApiServerSource が止まっている間の変化は Broker に入らない。</desc>
-<defs><marker id="dd-kn-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-kn-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
-<path class="dd-line" d="M172,120 L212,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line" d="M376,120 L420,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line dd-acc" d="M584,120 L628,120" marker-end="url(#dd-kn-ara)"/>
-<path class="dd-line" d="M752,120 L796,120" marker-end="url(#dd-kn-ar)"/>
-<path class="dd-line dd-red dd-dash" d="M690,148 L690,188 Q690,196 698,196 L716,196" marker-end="url(#dd-kn-arr)"/>
-<rect class="dd-store" x="40" y="92" width="132" height="56" rx="6"/>
-<text class="dd-name" x="106" y="116" text-anchor="middle">Namespace</text>
-<text class="dd-sub" x="106" y="134" text-anchor="middle">Pod の入れ物</text>
-<rect class="dd-node" x="216" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="296" y="116" text-anchor="middle">ApiServerSource</text>
-<text class="dd-sub" x="296" y="134" text-anchor="middle">変化を見る係</text>
-<rect class="dd-focal" x="424" y="92" width="160" height="56" rx="6"/>
-<text class="dd-name" x="504" y="116" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="504" y="134" text-anchor="middle">保管・再送</text>
-<rect class="dd-node" x="632" y="92" width="120" height="56" rx="6"/>
-<text class="dd-name" x="692" y="116" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="692" y="134" text-anchor="middle">振り分け</text>
-<rect class="dd-ext" x="800" y="92" width="120" height="56" rx="6"/>
-<text class="dd-name" x="860" y="125" text-anchor="middle">宛先</text>
-<rect class="dd-ext" x="720" y="176" width="120" height="40" rx="6"/>
-<text class="dd-name" x="780" y="201" text-anchor="middle">DLQ</text>
-<text class="dd-name dd-red-t" x="216" y="196" text-anchor="start">ここが止まると取りこぼす</text>
-<text class="dd-aside" x="424" y="196" text-anchor="start">ここから先は再送できる</text>
-</svg>
-</figure>
+<figure class="arch"><svg viewBox="0 0 1080 520" role="img" lang="en" aria-labelledby="ax-knative-dataflow-archify-diagram-title ax-knative-dataflow-archify-diagram-description">
+        <title id="ax-knative-dataflow-archify-diagram-title">Knative の配送路</title>
+        <desc id="ax-knative-dataflow-archify-diagram-description">A diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-knative-dataflow-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-knative-dataflow-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-knative-dataflow-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-knative-dataflow-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-knative-dataflow-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-knative-dataflow-grid)" />
+        <rect x="16" y="46" width="168" height="400" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="100" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">01 / 変化</text>
+        <rect x="231" y="46" width="168" height="400" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="315" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">02 / 受付</text>
+        <rect x="446" y="46" width="168" height="400" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="530" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">03 / 保管</text>
+        <rect x="661" y="46" width="168" height="400" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="745" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">04 / 振り分け</text>
+        <rect x="876" y="46" width="168" height="400" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="960" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">05 / 宛先</text>
+        <path d="M 156 157 L 259 157" class="a-default" stroke-width="1.4" marker-end="url(#ax-knative-dataflow-arrowhead)"/>
+        <path d="M 371 157 L 474 157" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-dataflow-arrowhead-emphasis)"/>
+        <path d="M 586 157 L 689 157" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-dataflow-arrowhead-emphasis)"/>
+        <path d="M 801 157 L 904 157" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-dataflow-arrowhead-emphasis)"/>
+        <path d="M 745 186 L 701 186 L 701 356 L 745 356" class="a-security" stroke-width="1.4" marker-end="url(#ax-knative-dataflow-arrowhead-security)"/>
+        <g id="ax-knative-dataflow-node-ns" tabindex="0" role="button" aria-label="Focus Namespace, Pod の入れ物, 01 / 変化" aria-pressed="false">
+          <title>Namespace · Pod の入れ物 · 01 / 変化</title>
+          <rect x="44" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="44" y="128" width="112" height="58" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(50 134) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="100" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Namespace</text>
+          <text x="100" y="165" class="t-muted" font-size="7" text-anchor="middle">Pod の入れ物</text>
+        </g>
+        <g id="ax-knative-dataflow-node-src" tabindex="0" role="button" aria-label="Focus ApiServerSource, 変化を見る係, 02 / 受付" aria-pressed="false">
+          <title>ApiServerSource · 変化を見る係 · 02 / 受付 · 止まると取りこぼす</title>
+          <rect x="259" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="259" y="128" width="112" height="58" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(265 134) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="315" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">ApiServerSource</text>
+          <text x="315" y="165" class="t-muted" font-size="7" text-anchor="middle">変化を見る係</text>
+        <text x="315" y="175" class="t-security" font-size="7" text-anchor="middle">止まると取りこぼす</text>
+        </g>
+        <g id="ax-knative-dataflow-node-broker" tabindex="0" role="button" aria-label="Focus Broker, 保管・再送, 03 / 保管" aria-pressed="false">
+          <title>Broker · 保管・再送 · 03 / 保管 · 入口は 1 つ</title>
+          <rect x="474" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="474" y="128" width="112" height="58" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(480 134) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="530" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Broker</text>
+          <text x="530" y="165" class="t-muted" font-size="7" text-anchor="middle">保管・再送</text>
+        <text x="530" y="175" class="t-messagebus" font-size="7" text-anchor="middle">入口は 1 つ</text>
+        </g>
+        <g id="ax-knative-dataflow-node-trigger" tabindex="0" role="button" aria-label="Focus Trigger, 条件で振り分け, 04 / 振り分け" aria-pressed="false">
+          <title>Trigger · 条件で振り分け · 04 / 振り分け</title>
+          <rect x="689" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="689" y="128" width="112" height="58" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(695 134) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="745" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Trigger</text>
+          <text x="745" y="165" class="t-muted" font-size="7" text-anchor="middle">条件で振り分け</text>
+        </g>
+        <g id="ax-knative-dataflow-node-dest" tabindex="0" role="button" aria-label="Focus 宛先, Slack など, 05 / 宛先" aria-pressed="false">
+          <title>宛先 · Slack など · 05 / 宛先</title>
+          <rect x="904" y="128" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="904" y="128" width="112" height="58" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(910 134) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="960" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">宛先</text>
+          <text x="960" y="165" class="t-muted" font-size="7" text-anchor="middle">Slack など</text>
+        </g>
+        <g id="ax-knative-dataflow-node-dlq" tabindex="0" role="button" aria-label="Focus DLQ, 届かなかった分, 04 / 振り分け" aria-pressed="false">
+          <title>DLQ · 届かなかった分 · 04 / 振り分け</title>
+          <rect x="689" y="356" width="112" height="58" rx="6" class="c-mask"/>
+          <rect x="689" y="356" width="112" height="58" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(695 362) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="745" y="377" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">DLQ</text>
+          <text x="745" y="393" class="t-muted" font-size="7" text-anchor="middle">届かなかった分</text>
+        </g>
+        <g>
+          <rect x="167.2" y="136" width="80.6" height="27" rx="4" class="c-mask"/>
+          <text x="207.5" y="147" class="t-muted" font-size="8" text-anchor="middle">watch</text>
+        <text x="207.5" y="158" class="t-dim" font-size="7" text-anchor="middle">Kubernetes API</text>
+        </g>
+        <g>
+          <rect x="377.3" y="136" width="90.4" height="27" rx="4" class="c-mask"/>
+          <text x="422.5" y="147" class="t-backend" font-size="8" text-anchor="middle">CloudEvent</text>
+        <text x="422.5" y="158" class="t-dim" font-size="7" text-anchor="middle">id = uid:deleted</text>
+        </g>
+        <g>
+          <rect x="597.2" y="136" width="80.6" height="27" rx="4" class="c-mask"/>
+          <text x="637.5" y="147" class="t-backend" font-size="8" text-anchor="middle">配る</text>
+        <text x="637.5" y="158" class="t-dim" font-size="7" text-anchor="middle">永続化した土台</text>
+        </g>
+        <g>
+          <rect x="812.2" y="136" width="80.6" height="27" rx="4" class="c-mask"/>
+          <text x="852.5" y="147" class="t-backend" font-size="8" text-anchor="middle">HTTP</text>
+        <text x="852.5" y="158" class="t-dim" font-size="7" text-anchor="middle">retry・backoff</text>
+        </g>
+        <g>
+          <rect x="668.05" y="250" width="65.9" height="27" rx="4" class="c-mask"/>
+          <text x="701" y="261" class="t-security" font-size="8" text-anchor="middle">上限超過</text>
+        <text x="701" y="272" class="t-dim" font-size="7" text-anchor="middle">dead letter</text>
+        </g>
+        <g>
+          <text x="40" y="464" class="t-primary" font-size="12" font-weight="650">Legend</text>
+          <g>
+            <path d="M 40 481 L 74 481" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-dataflow-arrowhead-emphasis)"/>
+            <text x="83" y="484" class="t-muted" font-size="10" font-weight="500">primary data</text>
+          </g>
+          <g>
+            <path d="M 165 481 L 199 481" class="a-security" stroke-width="1.4" marker-end="url(#ax-knative-dataflow-arrowhead-security)"/>
+            <text x="208" y="484" class="t-muted" font-size="10" font-weight="500">policy / PII</text>
+          </g>
+          <g>
+            <rect x="290" y="476" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+            <text x="312" y="484" class="t-muted" font-size="10" font-weight="500">data store</text>
+          </g>
+          <g>
+            <path d="M 405 481 L 439 481" class="a-default" stroke-width="1.4" marker-end="url(#ax-knative-dataflow-arrowhead)"/>
+            <text x="448" y="484" class="t-muted" font-size="10" font-weight="500">data flow</text>
+          </g>
+        </g>
+      </svg></figure>
 
 <h2>Knative が保証する範囲</h2>
 <p><strong>Knative の保証は、Broker に入ったあとの配送まで。</strong> 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを<strong>作る</strong>部分は別物で、取りこぼしはこちらで起きる。</p>

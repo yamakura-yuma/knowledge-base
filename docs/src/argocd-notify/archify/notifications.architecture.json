@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Notifications の設定の置き場所", "quality_profile": "showcase" },
+  "components": [
+    { "id": "dev", "type": "external", "label": "アプリの開発者", "sublabel": "Slack に欲しい", "pos": [820, 200], "size": [160, 64] },
+    { "id": "cm", "type": "security", "label": "ConfigMap", "sublabel": "trigger・template", "pos": [560, 200], "size": [160, 64], "tag": "argocd ns" },
+    { "id": "ctl", "type": "backend", "label": "通知コントローラ", "sublabel": "設定を読んで送る", "pos": [300, 200], "size": [160, 64] },
+    { "id": "dest", "type": "frontend", "label": "宛先", "sublabel": "Slack など", "pos": [40, 200], "size": [160, 64] }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "argocd namespace（基盤チーム）", "wraps": ["cm", "ctl"] }
+  ],
+  "connections": [
+    { "id": "ask", "from": "dev", "to": "cm", "label": "編集を頼む", "variant": "security" },
+    { "id": "read", "from": "cm", "to": "ctl", "label": "読む" },
+    { "id": "send", "from": "ctl", "to": "dest", "label": "送る", "variant": "emphasis" }
+  ]
+}
