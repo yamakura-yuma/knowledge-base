@@ -9,3 +9,4 @@ apm_modules/
 
 # graphify の知識グラフ。機械ローカルの生成物
 graphify-out/
+__pycache__/

@@ -13,13 +13,15 @@ docs/
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
-    data/               # 取得物・状態（metrics.json / status.json）
+    patterns/           # 話題③ ハーネスのパターン・カタログ
+    data/               # 取得物・状態（metrics.json / status.json / candidates.json）
   site/                 # 生成物。直接編集しない
-    landscape/  tool-research/
+    landscape/  tool-research/  patterns/
 ```
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
+uv run docs/collect_candidates.py  # パターンの出典候補を集める（話題③）
 uv run docs/build.py           # HTML を生成する
 ```
 
@@ -50,3 +52,16 @@ uv run docs/build.py           # HTML を生成する
 ハーネスそのもの（何をどこへ配り、どう検証しているか）の説明はここには置かない。
 正本は dotfiles リポジトリの [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)
 （手元では `~/dotfiles/docs/`）で、ハーネスを変えたときに一緒に変わるものはすべてそちらに書く。
+
+### 話題③ ハーネスのパターン・カタログ
+
+各ハーネス・スキル集から学べる**型**（ツールではなく）を、プロンプト ⊂ ハーネス ⊂ ループ ⊂ グラフ
+の 4 層に分けて並べ、自作ハーネス（`~/dotfiles` の core-principal）での状態（採用済・部分的・
+未採用・観察）を付けたもの。出典は公式ドキュメントか README の原文だけ。
+
+- 読む: [`docs/site/patterns/index.html`](./docs/site/patterns/index.html)（先頭の図で、どの層が薄いか分かる）
+- 正本: [`docs/src/patterns/catalog.yaml`](./docs/src/patterns/catalog.yaml)
+- 出典候補: `docs/collect_candidates.py` が GitHub の topic 検索と awesome 系リストから、
+  LLM を使わずに star/日で上位を集める（[`docs/src/data/candidates.json`](./docs/src/data/candidates.json)）。
+  ランドスケープの母集団には入れない
+- 更新: [`UPDATE_PROMPT.md`](./docs/src/landscape/UPDATE_PROMPT.md) の 7、または `/update-landscape`

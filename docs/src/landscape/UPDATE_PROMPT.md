@@ -90,7 +90,25 @@ uv run docs/build.py
 
 **警告が残っている状態で終わらせない。** 警告は「確認日が無い」「出典が無い」「本文が無い」のいずれか。
 
-### 7. 変更点をまとめる
+### 7. パターン・カタログの出典を見直す（話題③）
+
+ランドスケープとは別の話題だが、同じ回に回す。候補はパターンの出典としてだけ使い、
+`registry.yaml` には入れない。
+
+```bash
+uv run docs/collect_candidates.py   # docs/src/data/candidates.json を更新する
+```
+
+1. 上位 10 件のうち `docs/src/patterns/catalog.yaml` の `sources` に無いものを読む。
+   読むのは README と、リポジトリ内の公式ドキュメント・SKILL.md だけ
+2. そこにあるパターン（ツールではなく型）を 4 層（prompt / harness / loop / graph）の
+   どれかに置き、既存の行と同じ働きなら行を増やさず `sources` に足す。`evidence` には
+   原文を短く引く。引けない主張は載せない
+3. `~/dotfiles` を読んで `state` を決める（基準は `catalog.yaml` の `state_criteria`）。
+   採用済・部分的には `self` に根拠のファイルを書く。dotfiles 側は変更しない
+4. `uv run docs/build.py` を流し、パターンの警告が出ないことを確かめる
+
+### 8. 変更点をまとめる
 
 最後に、この回で何が変わったかを報告する。形式は「やらないこと」の下に示す。
 
