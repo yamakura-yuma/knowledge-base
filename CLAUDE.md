@@ -39,9 +39,13 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
 - `docs/build.py` / `docs/fetch_metrics.py` / `docs/collect_candidates.py` /
-  `docs/patterns_page.py` — 生成系。このリポジトリのコードはこれだけ。
+  `docs/collect_articles.py` / `docs/patterns_page.py` / `docs/patterns_reports.py` —
+  生成系。このリポジトリのコードはこれだけ。
   `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
-  候補はランドスケープの母集団（`registry.yaml`）には入れない
+  候補はランドスケープの母集団（`registry.yaml`）には入れない。
+  `collect_articles.py` は Zenn・Qiita・Hacker News・dev.to の人気記事を
+  `data/articles.json` に落とす。記事はパターンの使用報告の候補で、読んで
+  `catalog.yaml` に反映するのは人（またはエージェント）の仕事
 - `.apm/skills/` — このリポジトリ固有のエージェント設定
 
 ## コマンド
@@ -49,6 +53,7 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る。認証は gh に任せる
 uv run docs/collect_candidates.py  # パターンの出典候補を集める。gh の認証が必須
+uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める。認証は不要
 uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```

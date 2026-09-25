@@ -6,6 +6,7 @@
 
 正本:  docs/src/patterns/catalog.yaml（パターンと出典）
        docs/src/data/candidates.json（collect_candidates.py が集めた出典候補）
+       docs/src/data/articles.json（collect_articles.py が集めた記事。描くのは patterns_reports.py）
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ import pathlib
 
 import markdown as md_lib
 import yaml
+
+import patterns_reports as reports
 
 LAYERS = ["prompt", "harness", "loop", "graph"]
 LAYER_JA = {"prompt": "プロンプト", "harness": "ハーネス", "loop": "ループ", "graph": "グラフ"}
@@ -111,7 +114,7 @@ def check(cat: dict, warnings: list[str]) -> None:
         if p.get("state") not in STATES:
             warnings.append(f"パターンの状態が不正: {pid} {p.get('state')}")
         refs = p.get("sources") or []
-        if not refs:
+        if not refs and not p.get("reports"):
             warnings.append(f"パターンに出典が無い: {pid}")
         for r in refs:
             if r.get("source") not in srcs:
@@ -255,9 +258,10 @@ EFFORT_JA = {1: "小", 2: "中", 3: "大"}
 
 
 def next_picks(pats: list[dict], n: int = 5) -> list[dict]:
-    """未採用・部分的の行を 効果 − 手間 → 効果 → 出典数 の順に並べる（基準は catalog.yaml の priority_criteria）。"""
+    """未採用・部分的の行を 効果 − 手間 → 効果 → 使用報告（肯定 − 否定）→ 出典数 の順に並べる（基準は catalog.yaml の priority_criteria）。"""
     rated = [p for p in pats if p.get("state") in ("missing", "partial") and p.get("impact") and p.get("effort")]
-    rated.sort(key=lambda p: (-(p["impact"] - p["effort"]), -p["impact"], -len(p.get("sources") or []), p["id"]))
+    rated.sort(key=lambda p: (-(p["impact"] - p["effort"]), -p["impact"], -reports.net(p),
+                              -len(p.get("sources") or []), p["id"]))
     return rated[:n]
 
 
@@ -395,6 +399,7 @@ def fig_whiteboard(c: dict, picks: list[dict]) -> str:
 def catalog_table(cat: dict, layer: str) -> str:
     """1 つの層の行だけを描く。層は節見出しに出すので列には持たない。"""
     srcs = {s["id"]: s for s in cat.get("sources", [])}
+    arts = {a["id"]: a for a in cat.get("articles", [])}
     sorder = {"missing": 0, "partial": 1, "watch": 2, "adopted": 3}
     rows = []
     pats = sorted((p for p in cat.get("patterns", []) if p.get("layer") == layer),
@@ -414,12 +419,13 @@ def catalog_table(cat: dict, layer: str) -> str:
         rows.append(
             f'<tr class="r s-{esc(p.get("state"))}">'
             f'<td><strong>{esc(p.get("name"))}</strong></td>'
-            f'<td><ul>{refs}</ul></td>'
+            f'<td>{("<ul>" + refs + "</ul>") if refs else "<small>記事のみ</small>"}</td>'
             f'<td>{esc(p.get("problem"))}</td>'
             f'<td>{gc}</td>'
             f'<td><span class="st st-{esc(p.get("state"))}">{esc(STATE_JA.get(p.get("state"), p.get("state")))}</span></td>'
             f'<td>{("<ul>" + selfs + "</ul>") if selfs else "—"}{note}</td>'
-            f'<td><ul>{mat}</ul></td></tr>')
+            f'<td><ul>{mat}</ul></td>'
+            f'<td>{reports.cell(p, arts)}</td></tr>')
     return "".join(rows)
 
 
@@ -573,6 +579,8 @@ def render_form(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
     cat, cand = load(src)
     check(cat, warnings)
+    reports.check(cat, warnings)
+    art_data = reports.load(src)
     pats = cat.get("patterns", [])
     c = counts(pats)
     crit = "".join(f'<span class="st st-{s}">{STATE_JA[s]}</span><span>{esc(cat["state_criteria"][s])}</span>'
@@ -592,7 +600,7 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <p><small>{tally}</small></p>
 <div class="tablewrap"><table>
 <thead><tr><th>パターン</th><th>出典</th><th>解く問題</th><th>取り込んだ場合（効果 / 手間）</th><th>自作での状態</th>
-<th>自作側の根拠（~/dotfiles）</th><th>出典の成熟度</th></tr></thead>
+<th>自作側の根拠（~/dotfiles）</th><th>出典の成熟度</th><th>記事の使用報告</th></tr></thead>
 <tbody>{catalog_table(cat, l)}</tbody></table></div>""")
     picks = next_picks(pats)
     body = f"""
@@ -615,13 +623,14 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 1 行にまとめ、出典を並べた。各表は未採用 → 部分的 → 観察 → 採用済の順。</p>
 {radios}<div class="pt-fbar">{fbar}</div>
 {"".join(sections)}
+{reports.slop_section(cat)}
 
 <h2>出典（{len(cat.get("sources", []))}）</h2>
 <p>公式ドキュメントか README に書かれていることだけを根拠にした。版は GitHub のリリース、
 「日常利用」は作者自身が毎日使っていると README や公式ドキュメントに書いてあるかどうか。</p>
 <div class="tablewrap"><table><thead><tr><th>出典</th><th>種別</th><th>版</th><th>作者の日常利用</th>
 <th style="text-align:right">パターン</th></tr></thead><tbody>{source_table(cat)}</tbody></table></div>
-
+{reports.section(cat, art_data)}
 <h2>出典候補（上位 {len(cand.get("candidates", []))}）</h2>
 <p><code>docs/collect_candidates.py</code> が {esc(cand.get("fetched_at", "—"))} に集めたもの。
 直近 {esc(cand.get("push_days", "—"))} 日に push があり、アーカイブされていないリポジトリ
@@ -634,13 +643,14 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ハーネスのパターン・カタログ</title>
-<style>{base_css}{PAGE_CSS}</style></head>
+<style>{base_css}{PAGE_CSS}{reports.CSS}</style></head>
 <body><div class="wrap pt">
 <header><h1>ハーネスのパターン・カタログ</h1>
 <p class="sub">各ハーネス・スキル集から学べる型と、自作ハーネス（~/dotfiles の core-principal）に何が入っていて何が無いか。
 確認日 {esc(cat.get("verified", "—"))}。</p></header>
 {body}
-<footer><p>正本は <code>docs/src/patterns/catalog.yaml</code> と <code>docs/src/data/candidates.json</code>。
+<footer><p>正本は <code>docs/src/patterns/catalog.yaml</code>、<code>docs/src/data/candidates.json</code>、
+<code>docs/src/data/articles.json</code>。
 HTML は <code>docs/build.py</code> が生成する。更新手順は <code>docs/src/landscape/UPDATE_PROMPT.md</code> の
 「パターン・カタログ」節。</p></footer>
 </div></body></html>

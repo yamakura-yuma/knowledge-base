@@ -106,7 +106,13 @@ uv run docs/collect_candidates.py   # docs/src/data/candidates.json を更新す
    原文を短く引く。引けない主張は載せない
 3. `~/dotfiles` を読んで `state` を決める（基準は `catalog.yaml` の `state_criteria`）。
    採用済・部分的には `self` に根拠のファイルを書く。dotfiles 側は変更しない
-4. `uv run docs/build.py` を流し、パターンの警告が出ないことを確かめる
+4. 記事の使用報告を見直す。`uv run docs/collect_articles.py` が
+   `docs/src/data/articles.json` を更新する（Qiita は未認証で 60 req/h。1 回の実行で 12 回呼ぶので、1 時間に 5 回まで）。
+   `catalog.yaml` の `articles` に無い記事を読み、筆者自身の使用結果が書かれていれば、
+   当てはまるパターンの `reports` に原文を短く引いて足す（`polarity` は positive / negative /
+   mixed）。どの型にも当てはまらなければ、既存と同じ形式で行を足す。ハーネスの型の話で
+   なければ `verdict: irrelevant` と理由だけ残す。記事は `sources` には入れない
+5. `uv run docs/build.py` を流し、パターンの警告が出ないことを確かめる
 
 ### 8. 変更点をまとめる
 
