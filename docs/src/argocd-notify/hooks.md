@@ -3,57 +3,24 @@
 > application-controller が、アプリのマニフェストに入っている hook（Job）を、sync の後や削除の途中で作って実行する。Job の中から送信先へ HTTP で送る。**PostDelete が捉えるのは、管理リソースは消えたが Application はまだ残っている時点。**
 
 <div class="grwb">
-<svg class="wb" viewBox="0 0 1000 620" role="img" aria-label="グラレコ：PostDelete hook が送るのは、管理リソースが消えたあと・Application が消える前。宛先が落ちると削除が詰まる">
-<path class="hl" d="M40,52 L620,48"/>
-<text class="th" x="40" y="58">送ったとき、まだ消えていない</text>
-<text class="ts" x="660" y="56">PostDelete hook の順番（run3）</text>
-
+<svg class="wb" viewBox="0 0 1000 520" role="img" aria-label="グラレコ：hook が送ったとき、Application はまだある。管理リソースが消えたあとで Job が手紙を送り、Application が消えるのはその 2.5 秒後。宛先が落ちると削除が止まる">
+<path class="hl" d="M48,62 C220,56 460,64 690,58"/>
+<text class="th" x="50" y="68">送ったとき、まだ消えていない</text>
 <g filter="url(#wob)">
-  <!-- 時間軸 0s=100, 3.45s=486, 4.29s=580, 6.80s=860 -->
-  <path class="wk" d="M90,440 L950,440" marker-end="url(#ak)"/>
-  <path class="wk thin" d="M100,430 L100,452 M486,430 L486,452 M580,430 L580,452 M860,430 L860,452"/>
-  <!-- 行1: 管理リソース -->
-  <rect class="wk fw" x="110" y="104" width="60" height="44" rx="4"/>
-  <rect class="wk fw" x="184" y="104" width="60" height="44" rx="4"/>
-  <path class="wk thin" d="M250,126 L470,126" />
-  <path class="wk" d="M466,106 L506,146 M506,106 L466,146"/>
-  <!-- 行2: Job が走って送る -->
-  <circle class="wb-b fw" cx="560" cy="196" r="12"/>
-  <path class="wb-b" d="M560,208 L556,238 M558,218 L538,230 M558,218 L580,212 M556,238 L540,260 M556,238 L574,258"/>
-  <path class="wb-b thin" d="M520,214 L532,214 M516,226 L530,226"/>
-  <path class="wb-b" d="M584,200 l30,0 l0,20 l-30,0 z M584,200 l15,11 l15,-11"/>
-  <path class="wb-b" d="M618,208 C680,190 720,176 780,178" marker-end="url(#ab)"/>
-  <path class="wk fw" d="M790,156 h110 a10,10 0 0 1 10,10 v32 a10,10 0 0 1 -10,10 h-86 l-16,14 l4,-14 h-12 a10,10 0 0 1 -10,-10 v-32 a10,10 0 0 1 10,-10 z"/>
-  <!-- 行3: Application はまだある -->
-  <rect class="wb-b fb" x="100" y="318" width="760" height="46" rx="10"/>
-  <path class="hl" d="M586,392 L852,392"/>
-  <path class="wk" d="M580,386 q0,14 14,14 L706,400 q14,0 14,14 q0,-14 14,-14 L846,400 q14,0 14,-14"/>
-  <path class="wk" d="M868,300 q18,-14 34,0 q18,-8 26,10 q16,6 4,22 q6,18 -16,18 q-12,14 -30,2 q-20,6 -22,-14 q-14,-14 4,-38 z"/>
-  <!-- 失敗したら -->
-  <path class="wr dash" d="M560,266 C560,470 500,500 470,520" marker-end="url(#ar)"/>
-  <circle class="wr fw" cx="430" cy="545" r="22"/>
-  <path class="wr" d="M416,531 L444,559 M444,531 L416,559"/>
-  <rect class="wr fr" x="140" y="520" width="200" height="50" rx="8"/>
-  <rect class="wk fw" x="100" y="530" width="30" height="24" rx="4"/>
-  <path class="wk" d="M106,530 v-8 a9,9 0 0 1 18,0 v8"/>
-  <path class="wr" d="M404,545 L352,545" marker-end="url(#ar)"/>
+  <path class="pen" d="M70,420 C300,414 600,424 930,416" marker-end="url(#pk)"/>
+  <path class="pen" d="M110,300 C300,294 600,302 820,298 C826,330 822,352 820,370 C600,376 300,372 110,370 C106,350 106,320 110,300"/>
+  <path class="pen" d="M860,318 C876,300 900,302 908,318 C926,322 928,344 912,352 C906,370 878,368 870,354 C852,350 850,326 860,318"/>
+  <path class="pen" d="M470,138 C488,132 500,148 494,160 C484,172 466,166 464,154 C462,146 464,140 470,138 M480,172 C482,200 480,220 478,244 M480,194 C498,186 512,184 526,182 M478,244 C470,262 464,274 458,288 M480,244 C488,262 494,274 500,288"/>
+  <path class="pen-b" d="M540,168 C560,164 580,164 600,166 C602,180 600,192 598,204 C578,206 558,206 540,204 C538,192 538,180 540,168 M542,170 C560,186 582,186 598,168"/>
+  <path class="pen-b" d="M612,184 C680,160 740,156 800,164" marker-end="url(#pb)"/>
+  <path class="pen-r" d="M600,420 C700,414 780,420 846,418"/>
 </g>
-
-<text class="ts" x="96" y="476">0 秒</text>
-<text class="ts" x="468" y="476">3.5 秒</text>
-<text class="ts" x="564" y="476">4.3 秒</text>
-<text class="ts" x="840" y="476">6.8 秒</text>
-<text class="ts" x="40" y="96">管理リソース</text>
-<text x="518" y="100">消えた</text>
-<text class="ts tb" x="440" y="192">hook の Job</text>
-<text x="820" y="190">通知</text>
-<text class="ts" x="40" y="310">Application</text>
-<text class="tb" x="140" y="348">まだある</text>
-<text class="ts" x="640" y="428">あと 2.5 秒</text>
-<text x="868" y="376">消滅</text>
-<text class="ts tr" x="468" y="600">宛先が落ちると</text>
-<text class="tr" x="152" y="552">削除が詰まる</text>
-<text class="ts" x="150" y="600">DeletionError のまま残る</text>
+<text x="140" y="344">Application、まだある</text>
+<text x="400" y="118">hook の Job</text>
+<text x="830" y="160">通知</text>
+<text x="870" y="298">消滅</text>
+<text class="tr" x="640" y="468">あと 2.5 秒</text>
+<text class="tr" x="60" y="490">宛先が落ちると、削除が止まる</text>
 </svg>
 </div>
 

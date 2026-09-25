@@ -788,6 +788,24 @@ deployments:
   content_hash: sha256:6ef187280006ff43a5fec623bbcccfcc86e53571cb156b770ddae63bf9c490cd
 - kind: project-relative
   target: claude
+  value: .claude/skills/draw-page-grareco
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/draw-page-grareco/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - .
+  active_owner: .
+  content_hash: sha256:b12d150d4b556224ab1cd299547a713fc648a9d453ec3a27c885990a61bb07ef
+- kind: project-relative
+  target: claude
   value: .claude/skills/find-skills
   runtime: null
   scope: project
@@ -1372,7 +1390,10 @@ deployments:
   active_owner: mattpocock/skills/skills/productivity/writing-for-agents
   content_hash: sha256:eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b
 local_deployed_files:
+- .claude/skills/draw-page-grareco
+- .claude/skills/draw-page-grareco/SKILL.md
 - .claude/skills/update-landscape
 - .claude/skills/update-landscape/SKILL.md
 local_deployed_file_hashes:
+  .claude/skills/draw-page-grareco/SKILL.md: sha256:b12d150d4b556224ab1cd299547a713fc648a9d453ec3a27c885990a61bb07ef
   .claude/skills/update-landscape/SKILL.md: sha256:8142eba7fd0245da285112ee07dad27a806d236da9f4bd388ef1776e5270a893

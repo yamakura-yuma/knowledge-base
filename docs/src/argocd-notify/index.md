@@ -5,80 +5,26 @@
 ## グラレコ {#grareco}
 
 <div class="grwb">
-<svg class="wb" viewBox="0 0 1000 600" role="img" aria-label="グラレコ：Namespace の消滅を、基盤に触らず外から見張って届ける">
-<path class="hl" d="M40,52 L560,48"/>
-<text class="th" x="40" y="58">消えたら、ちゃんと知らせる</text>
-<text class="ts" x="600" y="56">基盤に触らず、外から見張る</text>
-
+<svg class="wb" viewBox="0 0 1000 540" role="img" aria-label="グラレコ：消えたら、外から見て知らせる。基盤の箱には手を入れず、目で見張り、消えたことを壁の向こうの利用者へ手紙で届ける">
+<path class="hl" d="M48,62 C220,56 420,64 620,58"/>
+<text class="th" x="50" y="68">消えたら、外から見て知らせる</text>
 <g filter="url(#wob)">
-  <!-- 境界線 -->
-  <path class="wk" d="M662,92 C656,180 668,260 660,340 C654,420 666,500 660,580"/>
-  <!-- Namespace が消える -->
-  <rect class="wk dash" x="40" y="120" width="150" height="96" rx="8"/>
-  <path class="wk thin" d="M58,140 L100,140 M58,158 L130,158 M58,176 L112,176"/>
-  <g transform="rotate(-28 170 214)"><rect class="wk fr" x="146" y="198" width="56" height="30" rx="4"/><path class="wk thin" d="M146,212 L202,212"/></g>
-  <path class="wk thin" d="M112,236 q12,8 24,0 q12,8 24,0"/>
-  <!-- 見張る目 -->
-  <path class="wb-b fb" d="M250,166 Q300,122 350,166 Q300,210 250,166 Z"/>
-  <circle class="fk" cx="300" cy="166" r="11"/>
-  <path class="wb-b thin dash" d="M248,166 L194,168"/>
-  <!-- 寝ている間に落ちる封筒 -->
-  <path class="wr thin" d="M258,252 l30,0 l0,20 l-30,0 z M258,252 l15,11 l15,-11"/>
-  <path class="wr dash thin" d="M273,218 L273,248"/>
-  <!-- 安全網 -->
-  <path class="wb-b" d="M190,320 Q280,360 370,320"/>
-  <path class="wb-b thin" d="M205,327 L225,343 M235,335 L250,350 M265,340 L275,352 M295,340 L300,352 M325,336 L322,350 M352,328 L345,344 M215,338 L360,334"/>
-  <circle class="wk fw" cx="120" cy="330" r="30"/>
-  <path class="wk" d="M120,330 L120,310 M120,330 L134,338"/>
-  <!-- Broker -->
-  <path class="wb-b fb" d="M430,210 L600,210 L600,300 L430,300 Z"/>
-  <path class="wb-b" d="M430,210 Q515,186 600,210"/>
-  <path class="wb-b thick" d="M354,166 C400,166 420,200 440,222" marker-end="url(#ab)"/>
-  <path class="wb-b" d="M372,322 C410,318 420,290 440,282" marker-end="url(#ab)"/>
-  <!-- 同じ id の封筒 2 通 → 1 通 -->
-  <path class="wk thin" d="M452,236 l26,0 l0,17 l-26,0 z M452,236 l13,9 l13,-9"/>
-  <path class="wk thin" d="M452,262 l26,0 l0,17 l-26,0 z M452,262 l13,9 l13,-9"/>
-  <path class="wk thin" d="M486,256 L520,256" marker-end="url(#ak)"/>
-  <path class="wk thin" d="M530,246 l30,0 l0,20 l-30,0 z M530,246 l15,11 l15,-11"/>
-  <!-- 境界を越えて利用者側へ -->
-  <path class="wb-b" d="M604,254 C640,254 660,230 700,226" marker-end="url(#ab)"/>
-  <!-- 利用者の Trigger（じょうご） -->
-  <path class="wk fw" d="M704,190 L800,190 L770,240 L770,272 L734,272 L734,240 Z"/>
-  <path class="wk" d="M752,276 C752,320 800,330 840,318" marker-end="url(#ak)"/>
-  <path class="wk" d="M752,276 C752,360 780,400 830,408" marker-end="url(#ak)"/>
-  <!-- 宛先 -->
-  <path class="wk fw" d="M846,292 h110 a10,10 0 0 1 10,10 v36 a10,10 0 0 1 -10,10 h-86 l-16,14 l4,-14 h-12 a10,10 0 0 1 -10,-10 v-36 a10,10 0 0 1 10,-10 z"/>
-  <rect class="wk fw" x="838" y="388" width="120" height="44" rx="6"/>
-  <!-- 利用者 -->
-  <circle class="wk fw" cx="890" cy="482" r="18"/>
-  <path class="wk" d="M890,500 L890,548 M890,516 L862,534 M890,516 L920,504 M890,548 L872,576 M890,548 L906,576"/>
-  <path class="wk" d="M922,496 l12,-8 l4,6 M934,488 l8,-4"/>
-  <!-- 触らない ConfigMap -->
-  <path class="wk fw" d="M430,420 l120,0 l0,90 l-120,0 z"/>
-  <path class="wk thin" d="M446,446 l80,0 M446,466 l90,0 M446,486 l60,0"/>
-  <path class="wr" d="M420,410 L560,520 M560,410 L420,520"/>
-  <!-- on-deleted は早すぎ -->
-  <circle class="wr" cx="90" cy="460" r="34"/>
-  <path class="wr" d="M66,436 L114,484"/>
+  <path class="pen dash" d="M80,236 C84,200 90,188 118,190 C170,186 196,192 212,196 C220,236 214,300 208,332 C170,336 120,334 86,330 C82,300 80,270 80,236"/>
+  <path class="pen" d="M296,258 C330,210 390,206 430,256 C392,306 334,306 296,258"/>
+  <path class="pen" d="M356,248 C366,244 372,256 362,264 C350,266 346,252 356,248"/>
+  <path class="pen-b" d="M292,258 C262,256 244,254 226,256" marker-end="url(#pb)"/>
+  <path class="pen" d="M580,110 C586,220 574,340 584,470"/>
+  <path class="pen-b" d="M436,258 C444,256 448,254 450,252" marker-end="url(#pb)"/>
+  <path class="pen" d="M454,244 C470,236 506,236 520,240 C522,254 520,268 516,280 C494,284 472,282 456,278 C452,266 452,254 454,244 M456,246 C478,262 500,262 518,244"/>
+  <path class="pen-b" d="M530,258 C590,230 660,232 716,250" marker-end="url(#pb)"/>
+  <path class="pen" d="M790,226 C808,222 818,238 812,250 C802,262 784,256 782,244 C780,234 784,228 790,226 M798,262 C800,300 798,320 796,348 M796,284 C780,292 766,300 752,302 M798,284 C816,290 830,296 842,304 M796,348 C786,370 778,386 772,404 M798,348 C808,370 818,386 826,404"/>
 </g>
-
-<text class="ts" x="54" y="112">Namespace</text>
-<text class="ts" x="40" y="264">消える</text>
-<text class="ts tb" x="276" y="110">watch</text>
-<text class="ts tr" x="296" y="268">止まってる間…</text>
-<text class="ts tb" x="208" y="386">突き合わせで拾う</text>
-<text class="ts" x="96" y="378">毎分</text>
-<text class="tb" x="480" y="190">Broker</text>
-<text class="ts" x="452" y="352">同じ id → 1 通</text>
-<text class="ts" x="808" y="220">Trigger</text>
-<text x="866" y="324">Slack</text>
-<text class="ts" x="852" y="416">社内 API</text>
-<text class="tb" x="440" y="110">基盤</text>
-<text x="690" y="110">利用者</text>
-<text class="ts" x="740" y="560">自分の ns だけ</text>
-<text class="ts tr" x="416" y="540">notifications-cm は触らない</text>
-<text class="ts tr" x="40" y="522">on-deleted は</text>
-<text class="ts tr" x="40" y="542">「消え始め」</text>
+<text x="98" y="268">Namespace</text>
+<text class="tb" x="300" y="336">watch</text>
+<text x="404" y="440">基盤</text>
+<text x="700" y="440">利用者</text>
+<text x="80" y="370">消えていく</text>
+<text class="tr" x="60" y="490">on-deleted は消え始めで鳴る。完了を見る</text>
 </svg>
 </div>
 
