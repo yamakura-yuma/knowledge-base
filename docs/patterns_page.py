@@ -55,16 +55,9 @@ PAGE_CSS = """
   .pt-fbar label { font-family:var(--mono); font-size:11.5px; padding:3px 10px; border-radius:5px;
                    border:1px solid var(--line); background:var(--surface); cursor:pointer; color:var(--ink-2); }
   #pf-all:checked ~ .pt-fbar label[for=pf-all],
-  #pf-prompt:checked ~ .pt-fbar label[for=pf-prompt],
-  #pf-harness:checked ~ .pt-fbar label[for=pf-harness],
-  #pf-loop:checked ~ .pt-fbar label[for=pf-loop],
-  #pf-graph:checked ~ .pt-fbar label[for=pf-graph],
   #pf-missing:checked ~ .pt-fbar label[for=pf-missing] { background:var(--ink); color:var(--bg); border-color:var(--ink); }
-  #pf-prompt:checked ~ .tablewrap tr.r:not(.l-prompt),
-  #pf-harness:checked ~ .tablewrap tr.r:not(.l-harness),
-  #pf-loop:checked ~ .tablewrap tr.r:not(.l-loop),
-  #pf-graph:checked ~ .tablewrap tr.r:not(.l-graph),
   #pf-missing:checked ~ .tablewrap tr.r:not(.s-missing) { display:none; }
+  .pt .finding { color:var(--ink); margin:4px 0 12px; }
   .legend-crit { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px;
                  color:var(--ink-2); margin:8px 0 0; }
 """
@@ -82,6 +75,9 @@ def load(src: pathlib.Path) -> tuple[dict, dict]:
 
 
 def check(cat: dict, warnings: list[str]) -> None:
+    for l in LAYERS:
+        if not (cat.get("layer_findings") or {}).get(l):
+            warnings.append(f"層の要約（layer_findings）が無い: {l}")
     srcs = {s["id"] for s in cat.get("sources", [])}
     seen = set()
     for p in cat.get("patterns", []):
@@ -279,13 +275,13 @@ def fig_flow(cat: dict, cand: dict, c: dict) -> str:
 
 # ---------------------------------------------------------------- 表
 
-def catalog_table(cat: dict) -> str:
+def catalog_table(cat: dict, layer: str) -> str:
+    """1 つの層の行だけを描く。層は節見出しに出すので列には持たない。"""
     srcs = {s["id"]: s for s in cat.get("sources", [])}
-    order = {l: i for i, l in enumerate(LAYERS)}
     sorder = {"missing": 0, "partial": 1, "watch": 2, "adopted": 3}
     rows = []
-    pats = sorted(cat.get("patterns", []),
-                  key=lambda p: (order.get(p.get("layer"), 9), sorder.get(p.get("state"), 9), p.get("name", "")))
+    pats = sorted((p for p in cat.get("patterns", []) if p.get("layer") == layer),
+                  key=lambda p: (sorder.get(p.get("state"), 9), p.get("name", "")))
     for p in pats:
         refs = "".join(
             f'<li><a href="{esc(r["url"])}">{esc(srcs.get(r["source"], {}).get("name", r["source"]))}</a></li>'
@@ -297,9 +293,8 @@ def catalog_table(cat: dict) -> str:
         selfs = "".join(f"<li><code>{esc(s)}</code></li>" for s in p.get("self") or [])
         note = f'<br><small>{esc(p["note"])}</small>' if p.get("note") else ""
         rows.append(
-            f'<tr class="r l-{esc(p.get("layer"))} s-{esc(p.get("state"))}">'
+            f'<tr class="r s-{esc(p.get("state"))}">'
             f'<td><strong>{esc(p.get("name"))}</strong></td>'
-            f'<td class="ly">{esc(LAYER_JA.get(p.get("layer"), p.get("layer")))}</td>'
             f'<td><ul>{refs}</ul></td>'
             f'<td>{esc(p.get("problem"))}</td>'
             f'<td><span class="st st-{esc(p.get("state"))}">{esc(STATE_JA.get(p.get("state"), p.get("state")))}</span></td>'
@@ -345,11 +340,22 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
     crit = "".join(f'<span class="st st-{s}">{STATE_JA[s]}</span><span>{esc(cat["state_criteria"][s])}</span>'
                    for s in STATES)
     thinnest = max(LAYERS, key=lambda l: (c[l]["missing"] / max(1, sum(c[l][s] for s in BAR_STATES))))
-    fbar = "".join(f'<label for="pf-{k}">{v}</label>' for k, v in
-                   [("all", "すべて"), ("prompt", "プロンプト"), ("harness", "ハーネス"),
-                    ("loop", "ループ"), ("graph", "グラフ"), ("missing", "未採用だけ")])
+    fbar = "".join(f'<label for="pf-{k}">{v}</label>' for k, v in [("all", "すべて"), ("missing", "未採用だけ")])
     radios = "".join(f'<input type="radio" name="pf" id="pf-{k}" class="pt-filters"{" checked" if k == "all" else ""}>'
-                     for k in ["all", "prompt", "harness", "loop", "graph", "missing"])
+                     for k in ["all", "missing"])
+    findings = cat.get("layer_findings") or {}
+    sections = []
+    for l in LAYERS:
+        n = sum(c[l].values())
+        tally = "・".join(f"{STATE_JA[s]} {c[l][s]}" for s in STATES if c[l][s])
+        sections.append(f"""
+<h2>{LAYER_JA[l]}層 — {LAYER_NOTE[l]}（{n} 件）</h2>
+<p class="finding"><strong>{esc(findings.get(l, ""))}</strong></p>
+<p><small>{tally}</small></p>
+<div class="tablewrap"><table>
+<thead><tr><th>パターン</th><th>出典</th><th>解く問題</th><th>自作での状態</th>
+<th>自作側の根拠（~/dotfiles）</th><th>出典の成熟度</th></tr></thead>
+<tbody>{catalog_table(cat, l)}</tbody></table></div>""")
     body = f"""
 <figure class="pt-fig">{fig_counts(c)}
 <figcaption>{len(pats)} パターンを層 × 自作ハーネスでの状態で数えたもの。未採用の割合がいちばん高いのは
@@ -363,13 +369,10 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <h2>カタログの作り方</h2>
 <figure class="pt-fig">{fig_flow(cat, cand, c)}</figure>
 
-<h2>パターン一覧（{len(pats)} 件）</h2>
-<p>行はパターンで、ツールではない。同じ働きを複数の出典が持つときは 1 行にまとめ、出典を並べた。</p>
+<p>以下、層ごとに節を分けて並べる。行はパターンで、ツールではない。同じ働きを複数の出典が持つときは
+1 行にまとめ、出典を並べた。各表は未採用 → 部分的 → 観察 → 採用済の順。</p>
 {radios}<div class="pt-fbar">{fbar}</div>
-<div class="tablewrap"><table>
-<thead><tr><th>パターン</th><th>層</th><th>出典</th><th>解く問題</th><th>自作での状態</th>
-<th>自作側の根拠（~/dotfiles）</th><th>出典の成熟度</th></tr></thead>
-<tbody>{catalog_table(cat)}</tbody></table></div>
+{"".join(sections)}
 
 <h2>出典（{len(cat.get("sources", []))}）</h2>
 <p>公式ドキュメントか README に書かれていることだけを根拠にした。版は GitHub のリリース、
