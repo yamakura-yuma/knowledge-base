@@ -1,8 +1,13 @@
 # knowledge-base
 
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
-HTML はそこから生成する。いま入っているのは AI ツールのランドスケープと、dotfiles の
-構成検討の2つ。
+HTML はそこから生成する。いま入っているのは AI ツールのランドスケープと、ハーネスに
+入れる外部ツールの調査の2つ。
+
+ハーネス（エージェント設定）そのものの説明はここに書かない。正本は dotfiles リポジトリの
+[`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)（手元では
+`~/dotfiles/docs/`）。線引きは、ハーネスを変えたときに一緒に変わるものは dotfiles、
+変わらないものはここ。
 
 実測値で裏を取れたものだけを書く、というのがこのリポジトリの縛り。星の数や直近リリース
 のような数字は GitHub API から取り、取れなかったものは空欄のままにする。推測で埋めない。
@@ -21,9 +26,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 - `docs/src/landscape/` — 話題① AI コーディングツールのランドスケープ。
   `registry.yaml` が全項目の正本、`tools/<slug>.md` が詳細ティアの本文、
   `index.md` が分類軸と母集団の決め方、`UPDATE_PROMPT.md` が更新手順の正本
-- `docs/src/dotfiles/` — 話題② dotfiles の構成検討。`dotfiles.md`（このホストの
-  エージェント環境の組み立て）と `context-optimization.md`（Headroom / CodeGraph /
-  graphify の比較）
+- `docs/src/tool-research/` — 話題② ハーネスに入れる外部ツールの調査。
+  `context-optimization.md`（Headroom / CodeGraph / graphify を対抗馬と比較）
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない

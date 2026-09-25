@@ -12,10 +12,10 @@ docs/
   build.py  fetch_metrics.py
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
-    dotfiles/           # 話題② dotfiles の構成検討
+    tool-research/      # 話題② ハーネスに入れる外部ツールの調査
     data/               # 取得物・状態（metrics.json / status.json）
   site/                 # 生成物。直接編集しない
-    landscape/  dotfiles/
+    landscape/  tool-research/
 ```
 
 ```bash
@@ -38,13 +38,15 @@ uv run docs/build.py           # HTML を生成する
 「いまホットか」の判定はすべてその数字から機械的に出している。
 裏が取れなかった値は空欄のままにしてあり、推測では埋めていない。
 
-### 話題② dotfiles の構成検討
+### 話題② ハーネスに入れる外部ツールの調査
 
-ランドスケープで並べたツールのうち、実際に手元で使っているものの話。
+ランドスケープで並べたツールのうち、手元のハーネスに入れているもの・入れるか検討したものを、
+対抗馬と並べて調べた話。ハーネスを変えても書き換わらない、ツールそのものについての調査だけを置く。
 
-- [`docs/site/dotfiles/dotfiles.html`](./docs/site/dotfiles/dotfiles.html)
-  — このホストのエージェント環境が、どう組み立てられているか
-  （正本 [`docs/src/dotfiles/dotfiles.md`](./docs/src/dotfiles/dotfiles.md)）
-- [`docs/site/dotfiles/context-optimization.html`](./docs/site/dotfiles/context-optimization.html)
+- [`docs/site/tool-research/context-optimization.html`](./docs/site/tool-research/context-optimization.html)
   — Headroom / CodeGraph / graphify を対抗馬と並べて比較する
-  （正本 [`docs/src/dotfiles/context-optimization.md`](./docs/src/dotfiles/context-optimization.md)）
+  （正本 [`docs/src/tool-research/context-optimization.md`](./docs/src/tool-research/context-optimization.md)）
+
+ハーネスそのもの（何をどこへ配り、どう検証しているか）の説明はここには置かない。
+正本は dotfiles リポジトリの [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)
+（手元では `~/dotfiles/docs/`）で、ハーネスを変えたときに一緒に変わるものはすべてそちらに書く。
