@@ -2,6 +2,55 @@
 
 > 概要ページの結論の中身。構成の各部、デプロイ完了と削除完了の取り方、採らない案、基盤側の負荷、通信規格、運用保守。**できること:** 基盤側の設定を触らずに、デプロイ完了と削除完了を取る。**できないこと:** 受信役が、ある Namespace の生存期間中ずっと止まっていた場合は、その削除を取れない。
 
+[グラレコ（1 枚で読む要約）](index.html#grareco) は概要ページにある。
+
+## 推奨構成のアーキテクチャ
+
+```diagram
+title: 推奨構成のアーキテクチャ
+caption: 図 1 推奨構成（概要ページの図 1 と同じ構成）。基盤側の既存部品には手を入れず、通知基盤が観測して Broker に送る。宛先への配送は利用者側が持つ
+height: 640
+zones:
+  - {label: "基盤側：既存の部品（通知のために変更しない）", kind: plain, box: [10, 30, 300, 560]}
+  - {label: "基盤側：通知基盤（obs / knative-eventing）", kind: platform, box: [330, 30, 330, 560]}
+  - {label: "利用者側（アプリの namespace）", kind: app, box: [680, 30, 310, 560]}
+nodes:
+  - {id: argo, label: "Argo CD", mono: ["application-controller"], box: [25, 60, 270, 54]}
+  - {id: app, kind: app, label: "Application", mono: ["Synced / Healthy / revision"], box: [25, 140, 270, 54]}
+  - {id: job, label: "Namespace 削除の Job", mono: ["delete ns --wait"], box: [25, 240, 270, 54]}
+  - {id: ns, kind: app, label: "Namespace（ラベル付き）", mono: ["Terminating → 消滅"], box: [25, 320, 270, 54]}
+  - {id: unused, kind: crd, label: "使わない部品（代替として残す）", mono: ["Notifications（① の代替）", "Metacontroller / finalizer（⑤）"], box: [25, 480, 270, 70]}
+  - {id: src, label: "ApiServerSource", mono: ["Application と Namespace を watch"], box: [345, 60, 300, 54]}
+  - {id: obs, label: "観測 Service", mono: ["デプロイ完了の判定・突き合わせ"], box: [345, 150, 300, 54]}
+  - {id: ping, label: "PingSource（毎分）", box: [345, 235, 140, 44]}
+  - {id: inv, kind: state, label: "uid 一覧", mono: ["ConfigMap"], box: [505, 235, 140, 50]}
+  - {id: tf, label: "EventTransform", mono: ["delete → id = uid:deleted"], box: [345, 320, 300, 54]}
+  - {id: brk, kind: state, label: "Broker（入口 1 つ）", mono: ["永続化した土台"], box: [345, 420, 300, 60]}
+  - {id: abrk, label: "アプリの Broker", box: [695, 420, 280, 44]}
+  - {id: tr, label: "Trigger（宛先ごと）", mono: ["delivery: retry / DLQ"], box: [695, 300, 280, 54]}
+  - {id: rcv, kind: ext, label: "宛先（Slack / 社内 API）", mono: ["id で重複を消す"], box: [695, 180, 280, 54]}
+  - {id: dlq, kind: ext, label: "DLQ", box: [695, 60, 280, 44]}
+edges:
+  - {from: argo, to: app, kind: patch}
+  - {from: job, to: ns, kind: http, label: "削除"}
+  - {from: src, to: app, kind: watch, label: watch, dy: -8}
+  - {from: src, to: ns, kind: watch, via: [[320, 100], [320, 347]]}
+  - {from: brk, to: obs, kind: ce, via: [[655, 450], [655, 177]], label: "add / update", dx: 0}
+  - {from: ping, to: obs, kind: ce}
+  - {from: obs, to: inv, kind: patch}
+  - {from: obs, to: brk, kind: ce, via: [[365, 215], [365, 420]], label: "deployed / deleted", dx: 45}
+  - {from: brk, to: tf, kind: ce, via: [[560, 420], [560, 374]], label: "delete", dx: 18}
+  - {from: brk, to: abrk, kind: ce, label: "転送"}
+  - {from: abrk, to: tr, kind: ce}
+  - {from: tr, to: rcv, kind: ce}
+  - {from: tr, to: dlq, kind: ce, via: [[985, 327], [985, 82]]}
+notes:
+  - [345, 520, "デプロイ完了: Application の add/update → 観測 Service → id = uid:revision:deployed"]
+  - [345, 538, "削除完了: Namespace の delete → EventTransform → id = uid:deleted"]
+  - [345, 556, "安全網: PingSource → 観測 Service が list と uid 一覧を比べて同じ id で送る"]
+```
+
+
 ### 経路を 1 本にしたい場合
 
 2 経路（主経路と安全網）で送るのは、即時性と確実さの両方が要る場合に限る。どちらか一方でよければ、経路は 1 本にする。経路が 1 本のほうが、重複や取りこぼしの原因を追いやすい。

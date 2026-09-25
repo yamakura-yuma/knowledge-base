@@ -191,6 +191,102 @@
 </ol>
 <p>詳しい構成、実装仕様、採らない案は <a href="recommended.html">推奨構成の詳細</a> に書いた。</p>
 <hr />
+<h2 id="grareco">グラレコ</h2>
+<div class="dgm gr">
+<div class="cap">グラレコ: この調査を 1 枚で</div>
+<svg class="fig" viewBox="0 0 1000 760" role="img" aria-label="グラフィックレコーディング">
+  <defs>
+    <marker id="gr-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker>
+  </defs>
+  <!-- タイトル帯 -->
+  <path class="gr-hl" d="M40,52 C260,40 620,58 960,46 L962,78 C640,90 300,72 38,84 Z"/>
+  <text class="gr-title" x="500" y="74" text-anchor="middle">Argo CD の「できた！」「消えた！」を外に知らせるには？</text>
+
+  <!-- 1. 問い: Application くん -->
+  <g transform="translate(40,120)">
+    <rect class="gr-body" x="0" y="20" width="110" height="90" rx="14"/>
+    <circle class="gr-dot" cx="35" cy="55" r="5"/><circle class="gr-dot" cx="75" cy="55" r="5"/>
+    <path class="gr-line" d="M35,80 Q55,95 75,80"/>
+    <text class="gr-s" x="55" y="130" text-anchor="middle">Application</text>
+    <path class="gr-bubble" d="M130,0 h230 a12,12 0 0 1 12,12 v70 a12,12 0 0 1 -12,12 h-200 l-26,22 l4,-22 h-8 a12,12 0 0 1 -12,-12 v-70 a12,12 0 0 1 12,-12 z"/>
+    <text class="gr-m" x="148" y="30">デプロイできた！</text>
+    <text class="gr-m" x="148" y="54">Namespace 消えた！…を</text>
+    <text class="gr-m" x="148" y="78">Slack や社内 API に伝えたい</text>
+  </g>
+
+  <!-- 2. 落とし穴 -->
+  <g transform="translate(470,110)">
+    <path class="gr-warn" d="M0,150 L60,40 L120,150 Z"/>
+    <text class="gr-big gr-red" x="60" y="132" text-anchor="middle">!</text>
+    <text class="gr-h gr-red" x="140" y="40">落とし穴 ①</text>
+    <text class="gr-m" x="140" y="64"><tspan class="gr-code">on-deleted</tspan> は「消え始め」で鳴る</text>
+    <text class="gr-s" x="140" y="86">削除要求から 0.06 秒、まだ何も消えていない</text>
+    <text class="gr-h gr-red" x="140" y="118">落とし穴 ②</text>
+    <text class="gr-m" x="140" y="142">watch は止まっている間の DELETE を見逃す</text>
+    <text class="gr-s" x="140" y="164">Knative / Argo Events / API stream 共通</text>
+  </g>
+
+  <path class="gr-sep" d="M30,300 C300,292 700,308 970,298"/>
+
+  <!-- 3. 鍵: finalizer = 消えない約束 -->
+  <g transform="translate(40,330)">
+    <text class="gr-h" x="0" y="0">ひらめき：触らずに、外から見張る</text>
+    <!-- 錠前 -->
+    <rect class="gr-lock" x="10" y="40" width="80" height="64" rx="8"/>
+    <path class="gr-line2" d="M26,40 v-14 a24,24 0 0 1 48,0 v14"/>
+    <circle class="gr-dot" cx="50" cy="70" r="7"/>
+    <text class="gr-m" x="110" y="52">基盤の Job にも Namespace にも手を入れない</text>
+    <text class="gr-m" x="110" y="76">watch で即時、突き合わせで取りこぼしを拾う</text>
+    <text class="gr-s" x="110" y="100">→ 同じ id（uid:deleted）で届くので、受け手が重複を消す</text>
+    <!-- 付箋: Metacontroller -->
+    <g transform="translate(470,20) rotate(-3)">
+      <rect class="gr-note" x="0" y="0" width="256" height="96" rx="4"/>
+      <text class="gr-h" x="14" y="28">finalizer は付けない</text>
+      <text class="gr-s" x="14" y="52">付けると基盤の Job が通知を待つ</text>
+      <text class="gr-s" x="14" y="72">＝密結合。権限も強くなる</text>
+    </g>
+    <g transform="translate(750,26) rotate(2)">
+      <rect class="gr-note2" x="0" y="0" width="200" height="90" rx="4"/>
+      <text class="gr-h" x="14" y="28">入口は Broker 1 つ</text>
+      <text class="gr-s" x="14" y="52">Trigger はアプリ側に置く</text>
+      <text class="gr-s" x="14" y="72">Kafka / RabbitMQ / NATS</text>
+    </g>
+  </g>
+
+  <path class="gr-sep" d="M30,470 C300,478 700,462 970,472"/>
+
+  <!-- 4. おすすめの流れ -->
+  <text class="gr-h" x="40" y="505">おすすめの流れ</text>
+  <g transform="translate(40,525)">
+    <ellipse class="gr-pill" cx="95" cy="40" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="36" text-anchor="middle">デプロイ完了</text>
+    <text class="gr-s" x="95" y="56" text-anchor="middle">Application を観測</text>
+    <ellipse class="gr-pill" cx="95" cy="135" rx="95" ry="36"/>
+    <text class="gr-m" x="95" y="131" text-anchor="middle">削除完了</text>
+    <text class="gr-s" x="95" y="151" text-anchor="middle">ApiServerSource＋突き合わせ</text>
+    <path class="gr-arrow" d="M195,45 C290,40 330,80 400,85" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M195,130 C290,135 330,100 400,95" marker-end="url(#gr-ar)"/>
+    <rect class="gr-env" x="410" y="55" width="190" height="70" rx="10"/>
+    <path class="gr-line" d="M410,58 L505,100 L600,58"/>
+    <text class="gr-s" x="505" y="146" text-anchor="middle">Broker（永続化）→ Trigger</text>
+    <text class="gr-s" x="505" y="164" text-anchor="middle">ID = uid で重複を除く</text>
+    <path class="gr-arrow" d="M605,90 C680,70 720,40 780,40" marker-end="url(#gr-ar)"/>
+    <path class="gr-arrow" d="M605,95 C680,110 720,140 780,140" marker-end="url(#gr-ar)"/>
+    <text class="gr-m" x="790" y="45">Slack</text>
+    <text class="gr-m" x="790" y="145">社内 API</text>
+  </g>
+
+  <!-- 5. 役割分担 -->
+  <g transform="translate(40,700)">
+    <circle class="gr-head" cx="14" cy="8" r="10"/><path class="gr-line2" d="M14,18 v22 M0,28 h28"/>
+    <text class="gr-m" x="40" y="22"><tspan class="gr-b">基盤チーム</tspan>：Knative と観測部品を守る</text>
+    <circle class="gr-head gr-head2" cx="534" cy="8" r="10"/><path class="gr-line2" d="M534,18 v22 M520,28 h28"/>
+    <text class="gr-m" x="560" y="22"><tspan class="gr-b">利用者</tspan>：Trigger と受け手を持つ</text>
+  </g>
+</svg>
+</div>
+
+<hr />
 <h2>全体の比較</h2>
 <h3>評価マトリクス</h3>
 <div class="tblwrap">
@@ -350,7 +446,7 @@
 </tr>
 <tr>
 <td><a href="report.html">実測の報告書</a></td>
-<td>run1〜run19 の目的・手順・結果・解釈、検証環境、グラレコ、問いと run の対応</td>
+<td>run1〜run19 の目的・手順・結果・解釈、検証環境、問いと run の対応</td>
 </tr>
 <tr>
 <td><a href="notifications.html">① Argo CD Notifications</a></td>
