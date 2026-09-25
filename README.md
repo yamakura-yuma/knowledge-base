@@ -61,6 +61,8 @@ uv run docs/build.py           # HTML を生成する
 
 - 読む: [`docs/site/patterns/index.html`](./docs/site/patterns/index.html)（先頭の図で、どの層が薄いか分かる）
 - 正本: [`docs/src/patterns/catalog.yaml`](./docs/src/patterns/catalog.yaml)
+- 見立て（意見）: どういう形式のハーネスがよいか。[`docs/site/patterns/harness-form.html`](./docs/site/patterns/harness-form.html)
+  （正本 [`docs/src/patterns/harness-form.md`](./docs/src/patterns/harness-form.md)。件数は catalog.yaml から生成時に数える）
 - 出典候補: `docs/collect_candidates.py` が GitHub の topic 検索と awesome 系リストから、
   LLM を使わずに star/日で上位を集める（[`docs/src/data/candidates.json`](./docs/src/data/candidates.json)）。
   ランドスケープの母集団には入れない

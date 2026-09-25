@@ -14,6 +14,7 @@ import html
 import json
 import pathlib
 
+import markdown as md_lib
 import yaml
 
 LAYERS = ["prompt", "harness", "loop", "graph"]
@@ -76,6 +77,8 @@ PAGE_CSS = """
   .picks .why { color:var(--ink-2); font-size:13.5px; }
   .pick-crit { font-size:12px; color:var(--ink-3); }
   .gc { font-family:var(--mono); font-size:11px; color:var(--ink-3); white-space:nowrap; }
+  .opinion { font-size:11.5px; font-weight:600; color:var(--missing); border:1px solid currentColor;
+             border-radius:10px; padding:1px 8px; margin-left:6px; vertical-align:middle; }
   .legend-crit { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px;
                  color:var(--ink-2); margin:8px 0 0; }
 """
@@ -447,6 +450,122 @@ def candidate_table(cand: dict, cat: dict) -> str:
     return "".join(rows)
 
 
+# ---------------------------------------------------------------- 見立てのページ（harness-form.md）
+
+FORM_SRC = "harness-form.md"
+
+
+def _md(text: str) -> str:
+    return md_lib.Markdown(extensions=["tables", "attr_list"]).convert(text)
+
+
+def _form_sections(src: pathlib.Path, cat: dict) -> tuple[str, str, dict[str, str]]:
+    """harness-form.md を読み、数を catalog.yaml から埋めて (題, 副題, {節見出し: 本文}) を返す。"""
+    raw = (src / "patterns" / FORM_SRC).read_text(encoding="utf-8")
+    gap = [p for p in cat.get("patterns", []) if p.get("state") in ("missing", "partial")]
+    n = {e: [p for p in gap if p.get("effort") == e] for e in (1, 2, 3)}
+    fill = {"gap_total": len(gap), "effort_1": len(n[1]), "effort_2": len(n[2]), "effort_3": len(n[3]),
+            "effort_3_names": "、".join(f"「{p['name']}」" for p in n[3])}
+    for k, v in fill.items():
+        raw = raw.replace("{{" + k + "}}", str(v))
+    head, _, rest = raw.partition("\n")
+    title = head.lstrip("# ").strip()
+    sub, _, rest = rest.lstrip().partition("\n")
+    secs, cur = {"": []}, ""
+    for line in rest.splitlines():
+        if line.startswith("## "):
+            cur = line[3:].strip()
+            secs[cur] = []
+        else:
+            secs[cur].append(line)
+    return title, sub.lstrip("> ").strip(), {k: "\n".join(v).strip() for k, v in secs.items()}
+
+
+def fig_form() -> str:
+    """見立ての構図: 各社のループ（借りる）の上に、薄い自作の層（検証・境界・知識）を載せる。
+    自作ループには×。乗り換えても層は持ち運べる。"""
+    W, H = 1000, 380
+    out = [f'<svg class="wb" viewBox="0 0 {W} {H}" role="img" '
+           f'aria-label="ループは借り、検証・境界・知識の薄い層だけを自分で持つ（手描き図）">',
+           '<defs><filter id="wb-rough" x="-3%" y="-3%" width="106%" height="106%">'
+           '<feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7" result="n"/>'
+           '<feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/></filter>'
+           '<marker id="wb-ah" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="9" markerHeight="9" orient="auto">'
+           '<path d="M1,1 L10,6 L1,11" class="wb-red" stroke-width="2.2"/></marker></defs>',
+           f'<rect x="4" y="4" width="{W-8}" height="{H-8}" rx="14" class="wb-board"/>']
+    g, t = ['<g filter="url(#wb-rough)">'], []
+    # 下: 各社のループ（借りる）を 2 つ並べる
+    for i, (x, name) in enumerate([(60, "Claude Code"), (330, "Codex CLI")]):
+        g.append(f'<path d="{wobble_rect(x, 220, 230, 110, i + 3)}" class="wb-line" stroke-width="2.4"/>')
+        g.append(_icon("loop", x + 34, 262))
+        t.append(f'<text x="{x + 60}" y="{270}" class="wb-t" font-size="20">{name}</text>')
+        t.append(f'<text x="{x + 60}" y="{300}" class="wb-t" font-size="15">のループ＝借りる</text>')
+    # 上: 薄い自作の層。3 本柱
+    g.append(f'<path d="{wobble_rect(60, 70, 500, 120, 9)}" class="wb-note"/>')
+    t.append('<text x="80" y="58" class="wb-t" font-size="22">自分で持つのは 薄い層 だけ</text>')
+    for i, (lab, ic) in enumerate([("検証", "loop"), ("境界", "harness"), ("知識", "prompt")]):
+        x = 110 + i * 160
+        g.append(_icon(ic, x, 118))
+        t.append(f'<text x="{x + 22}" y="{126}" class="wb-t" font-size="24">{lab}</text>')
+    t.append('<text x="90" y="170" class="wb-t" font-size="15">SKILL.md ・ hook ・ MCP の形で書く</text>')
+    # 層から下の 2 つへ矢印（乗せ替えられる）
+    for x in (175, 445):
+        g.append(f'<path class="wb-red" stroke-width="2.2" marker-end="url(#wb-ah)" d="M{x},{192} q10,12 0,{24}"/>')
+    t.append('<text x="585" y="232" class="wb-t wb-tr" font-size="19">乗り換えても 残る!</text>')
+    g.append('<path class="wb-red" stroke-width="2" d="M580,240 q-10,6 -14,14"/>')
+    # 右: 自作ループに ×
+    g.append(f'<path d="{wobble_rect(700, 90, 240, 110, 4)}" class="wb-line" stroke-width="2.2" stroke-dasharray="8 7"/>')
+    g.append(_icon("loop", 740, 130))
+    t.append('<text x="768" y="138" class="wb-t" font-size="20">自作のループ</text>')
+    t.append('<text x="720" y="178" class="wb-t" font-size="15">モデルの版で 古びる</text>')
+    g.append('<path class="wb-red" stroke-width="5" d="M712,100 L928,192 M928,100 L712,192"/>')
+    # 右下: 信じる ＞ 書く
+    t.append('<text x="700" y="290" class="wb-t" font-size="22">書く → <tspan class="wb-tr">信じる</tspan></text>')
+    t.append('<text x="700" y="320" class="wb-t" font-size="15">ボトルネックの移動</text>')
+    g.append('<path class="wb-red" stroke-width="10" opacity=".22" d="M770,292 h80"/>')
+    g.append("</g>")
+    out += g + ['<g>'] + t + ['</g>', "</svg>"]
+    return "".join(out)
+
+
+def form_summary(src: pathlib.Path, cat: dict, warnings: list[str]) -> str:
+    """カタログのページ冒頭に置く要約。結論の 1 段落と形式の比較表だけを、見立てのページから抜く。"""
+    if not (src / "patterns" / FORM_SRC).exists():
+        warnings.append(f"見立ての原稿が無い: docs/src/patterns/{FORM_SRC}")
+        return ""
+    _, _, secs = _form_sections(src, cat)
+    concl = next((v for k, v in secs.items() if k.startswith("結論")), "").split("\n\n")[0]
+    comp = next((v for k, v in secs.items() if k.startswith("形式の比較")), "")
+    table = "\n".join(l for l in comp.splitlines() if l.startswith("|"))
+    return (f'<h2>どういう形式のハーネスがよいか <span class="opinion">意見</span></h2>'
+            f'<div class="finding">{_md(concl)}</div>'
+            f'<div class="tablewrap">{_md(table)}</div>'
+            f'<p><a href="harness-form.html">理由・自作ハーネスへの当てはめ・図を読む →</a></p>')
+
+
+def render_form(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
+    cat, _ = load(src)
+    if not (src / "patterns" / FORM_SRC).exists():
+        return ""
+    title, sub, secs = _form_sections(src, cat)
+    body = _md(secs.pop("", "")).replace("<p>{{figure}}</p>", f'<figure class="pt-fig">{fig_form()}</figure>')
+    for k, v in secs.items():
+        head = esc(k).replace("（意見）", '<span class="opinion">意見</span>')
+        body += f"<h2>{head}</h2>{_md(v)}"
+    return f"""<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(title)}</title>
+<style>{base_css}{PAGE_CSS}</style></head>
+<body><div class="wrap pt">
+<header><h1>{esc(title)}</h1><p class="sub">{_md(sub)[3:-4]}</p>
+<p class="sub"><a href="index.html">← ハーネスのパターン・カタログ</a></p></header>
+{body}
+<footer><p>正本は <code>docs/src/patterns/{FORM_SRC}</code>。件数は <code>catalog.yaml</code> から生成時に数える。</p></footer>
+</div></body></html>
+"""
+
+
 # ---------------------------------------------------------------- ページ
 
 def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
@@ -478,6 +597,8 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <figure class="pt-fig">{fig_whiteboard(c, picks)}</figure>
 <h2 class="first">次に取り込む候補 上位 5</h2>
 {picks_list(picks, cat.get("priority_criteria") or {})}
+
+{form_summary(src, cat, warnings)}
 
 <h2>層 × 採否の件数</h2>
 <figure class="pt-fig">{fig_counts(c)}

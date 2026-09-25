@@ -827,6 +827,7 @@ def main() -> int:
     STATIC_ROWS[:] = rows
     # 話題③ パターン・カタログ。PAGES にもナビにも入れない別系統（patterns_page.py）。
     emit("patterns", "index.html", patterns_page.render(SRC, CSS, warnings))
+    emit("patterns", "harness-form.html", patterns_page.render_form(SRC, CSS, warnings))
     emit("landscape", "index.html", page(reg, metrics, rows, warnings))
     for fname, label, sel, topic in PAGES:
         if sel is None:
