@@ -13,9 +13,10 @@ docs/
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
     dotfiles/           # 話題② dotfiles の構成検討
+    argocd-notify/      # 話題③ Argo CD の完了通知
     data/               # 取得物・状態（metrics.json / status.json）
   site/                 # 生成物。直接編集しない
-    landscape/  dotfiles/
+    landscape/  dotfiles/  argocd-notify/
 ```
 
 ```bash
@@ -48,3 +49,11 @@ uv run docs/build.py           # HTML を生成する
 - [`docs/site/dotfiles/context-optimization.html`](./docs/site/dotfiles/context-optimization.html)
   — Headroom / CodeGraph / graphify を対抗馬と並べて比較する
   （正本 [`docs/src/dotfiles/context-optimization.md`](./docs/src/dotfiles/context-optimization.md)）
+
+### 話題③ Argo CD Application の完了通知
+
+Argo CD の `Application` のデプロイ完了・削除完了を検知して外部へ送る方式を、
+kind 上の実測とソースを根拠に比べたもの。
+
+- [`docs/site/argocd-notify/argocd-notify.html`](./docs/site/argocd-notify/argocd-notify.html)
+  （正本 [`docs/src/argocd-notify/argocd-notify.md`](./docs/src/argocd-notify/argocd-notify.md)）

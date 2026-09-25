@@ -1,8 +1,8 @@
 # knowledge-base
 
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
-HTML はそこから生成する。いま入っているのは AI ツールのランドスケープと、dotfiles の
-構成検討の2つ。
+HTML はそこから生成する。いま入っているのは AI ツールのランドスケープ、dotfiles の
+構成検討、Argo CD の完了通知の方式比較の3つ。
 
 実測値で裏を取れたものだけを書く、というのがこのリポジトリの縛り。星の数や直近リリース
 のような数字は GitHub API から取り、取れなかったものは空欄のままにする。推測で埋めない。
@@ -24,6 +24,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 - `docs/src/dotfiles/` — 話題② dotfiles の構成検討。`dotfiles.md`（このホストの
   エージェント環境の組み立て）と `context-optimization.md`（Headroom / CodeGraph /
   graphify の比較）
+- `docs/src/argocd-notify/` — 話題③ Argo CD Application のデプロイ完了・削除完了を
+  外部へ通知する方式の比較。`argocd-notify.md` 1 本で、図は md の中に生の SVG で書く
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない

@@ -459,6 +459,34 @@ CSS = """
   .rail .v .yes { color:var(--ok); }
   .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
 
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .nd { fill:var(--bg); stroke:var(--line); stroke-width:1.2; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink-3); }
+  .fig .nd-out { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.3; fill:none; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l2 { stroke:var(--l2); }
+  .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); }
+  .fig .mk-mid { fill:var(--stale); } .fig .mk-dead { fill:var(--dead); }
+  .fig .t-ok { fill:var(--ok); } .fig .t-bad { fill:var(--hot); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx td, table.mx th { text-align:center; white-space:nowrap; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+
   .tblwrap { overflow-x:auto; }
   .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
   .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
@@ -537,6 +565,7 @@ PAGES = [
     ("l0.html",                  "モデル提供元",    ("L0", None),       "landscape"),
     ("context-optimization.html","文脈の最適化",    "static",           "dotfiles"),
     ("dotfiles.html",            "dotfiles 構成",   "static",           "dotfiles"),
+    ("argocd-notify.html",       "Argo CD 通知",    "static",           "argocd-notify"),
 ]
 
 
@@ -682,7 +711,9 @@ def page(reg, metrics, rows, warnings) -> str:
             desc = {"context-optimization.html":
                     "いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する",
                     "dotfiles.html":
-                    "このホストのエージェント環境が、どう組み立てられているか"}[fname]
+                    "このホストのエージェント環境が、どう組み立てられているか",
+                    "argocd-notify.html":
+                    "Argo CD Application のデプロイ完了・削除完了を検知して外へ通知する方式の比較"}[fname]
             links.append(f'<a class="pcard" href="{href(fname)}"><b>{esc(label)}</b>'
                          f'<span>{esc(desc)}</span></a>')
             continue
