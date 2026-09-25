@@ -4,30 +4,55 @@
 >
 > Application に自分の finalizer を付けておき、**残っている finalizer が自分だけ**になった時点で送信する。送信に成功してから finalizer を外す。6 方式の中で、削除完了を保証したうえで送れるのはこの方式だけ。finalizer の付け外しは Metacontroller の DecoratorController に任せ、自分で書くのは状態を持たない Webhook 1 つにとどめる。controller-runtime での自作は、得るものが少ない。
 
-```grareco
-title: ⑤ finalizer：消えない約束で確実に
-say:
-- 送り終わるまで、
-- 消えないで待って！
-panels:
-- icon: key
-  head: 確実に取れる
-  lines:
-  - 自分の finalizer だけ残ったら送る
-  - 止まっていても
-  - Application が待ってくれる
-- icon: bad
-  head: 止まると全員止まる
-  lines:
-  - 全チームの削除が待たされる
-  - Application への書き込み権限
-- icon: people
-  head: 作るなら
-  lines:
-  - Metacontroller で hook 1 つ
-  - 自作は見積もり 560〜900 行
-bottom: Namespace を基盤が消す前提なら、推奨構成で足りる
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：finalizer の札が 1 枚でも残っている限り Application は消えない。自分の札だけになったら送り、送れたら外す。止まると全チームの削除が待たされる">
+<path class="hl" d="M40,52 L560,48"/>
+<text class="th" x="40" y="58">札が残る限り、消えない</text>
+<text class="ts" x="600" y="56">finalizer（Metacontroller）</text>
+<g filter="url(#wob)">
+  <!-- Application と札 -->
+  <rect class="wb-b fb" x="80" y="120" width="220" height="150" rx="12"/>
+  <path class="wk" d="M300,150 L360,150 M300,190 L360,190 M300,230 L360,230"/>
+  <path class="wk fw" d="M360,138 l70,0 l14,12 l-14,12 l-70,0 z"/>
+  <path class="wk fw" d="M360,178 l70,0 l14,12 l-14,12 l-70,0 z"/>
+  <path class="wb-b fb" d="M360,218 l70,0 l14,12 l-14,12 l-70,0 z"/>
+  <path class="wk" d="M450,150 C500,140 510,120 540,112" marker-end="url(#ak)"/>
+  <path class="wk" d="M450,190 C500,190 520,170 540,160" marker-end="url(#ak)"/>
+  <!-- 送ってから外す -->
+  <circle class="wb-b fw" cx="640" cy="200" r="18"/>
+  <path class="wb-b" d="M640,218 L640,270 M640,236 L610,250 M640,236 L676,226 M640,270 L622,306 M640,270 L660,306"/>
+  <path class="wb-b" d="M680,214 l30,0 l0,20 l-30,0 z M680,214 l15,11 l15,-11"/>
+  <path class="wb-b" d="M714,222 C780,200 820,196 870,200" marker-end="url(#ab)"/>
+  <circle class="wb-b" cx="905" cy="202" r="24"/>
+  <path class="wb-b" d="M893,202 l8,10 l16,-18"/>
+  <path class="wb-b dash" d="M620,250 C560,260 500,250 452,236" marker-end="url(#ab)"/>
+  <!-- 止まると待たされる -->
+  <circle class="wk fw" cx="120" cy="420" r="18"/>
+  <path class="wk" d="M102,440 l36,0 l0,40 l-36,0 z"/>
+  <rect class="wk fw" x="220" y="410" width="80" height="60" rx="8"/>
+  <rect class="wk fw" x="320" y="410" width="80" height="60" rx="8"/>
+  <rect class="wk fw" x="420" y="410" width="80" height="60" rx="8"/>
+  <rect class="wk fw" x="520" y="410" width="80" height="60" rx="8"/>
+  <path class="wr" d="M200,500 L620,500" />
+  <circle class="wr fw" cx="680" cy="440" r="30"/>
+  <path class="wr" d="M680,440 L680,420 M680,440 L694,448"/>
+</g>
+<text class="tb" x="112" y="200">Application</text>
+<text class="ts" x="456" y="136">argocd</text>
+<text class="ts" x="456" y="184">argocd</text>
+<text class="ts tb" x="366" y="264">自分の札</text>
+<text class="ts" x="552" y="104">先に外れる</text>
+<text class="ts tb" x="720" y="190">送る</text>
+<text class="ts tb" x="506" y="290">送れたら外す</text>
+<text class="ts" x="690" y="340">Metacontroller が呼び直す</text>
+<text class="ts" x="84" y="392">zzz</text>
+<text class="ts tr" x="228" y="530">止まると、全チームの削除が待つ</text>
+<text class="ts" x="740" y="440">権限も強い</text>
+<text class="ts" x="740" y="464">（applications に書く）</text>
+</svg>
+</div>
+
+
 
 
 ## アーキテクチャ

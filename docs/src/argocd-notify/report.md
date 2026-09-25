@@ -2,32 +2,47 @@
 
 > kind 上で行った run1〜run19 の記録。各 run の数字は、scratchpad に保存したログ（`runs/`）から取り直した。ログが保存されていない数字は、その旨を書いた。
 
-```grareco
-title: 実測：kind で 19 回ためした
-say:
-- 本当に「消えた」ときに
-- 届くのか、試してみた
-panels:
-- icon: bad
-  head: on-deleted は早すぎ
-  lines:
-  - 削除要求から 0.05 秒で鳴る
-  - まだ何も消えていない
-  - （Application の消滅は 6.8 秒後）
-- icon: warn
-  head: watch は寝ると見逃す
-  lines:
-  - 止まっている間の削除は
-  - 復旧しても届かない
-  - 突き合わせと finalizer は拾う
-- icon: ok
-  head: Broker の先は強い
-  lines:
-  - 宛先が 500 でも
-  - retry のあと DLQ へ
-  - 削除は止まらない
-bottom: 問い Q1〜Q8 と run の対応は 5 章の表にまとめた
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 580" role="img" aria-label="グラレコ：run1 から run19 までの地図。赤い旗は問題が見つかった地点、青い丸は確かめられた地点、灰色の雲は未確認">
+<path class="hl" d="M40,52 L420,48"/>
+<text class="th" x="40" y="58">19 回の実測の地図</text>
+<text class="ts" x="600" y="56">実測の報告書（run1〜run19）</text>
+<g filter="url(#wob)">
+  <path class="wk dash" d="M70,150 C200,120 260,200 380,180 C500,160 540,110 660,140 C800,176 900,150 930,230 C960,320 800,330 700,320 C560,306 520,380 400,380 C280,380 200,330 110,380 C60,410 80,480 180,490 C300,500 420,470 540,490 C660,510 760,480 900,500"/>
+  <!-- 旗: 問題が見つかった地点 -->
+  <path class="wr" d="M200,146 l0,-50 M200,96 l34,10 l-34,12"/>
+  <path class="wr" d="M398,176 l0,-50 M398,126 l34,10 l-34,12"/>
+  <path class="wr" d="M700,318 l0,-50 M700,268 l34,10 l-34,12"/>
+  <path class="wr" d="M900,498 l0,-50 M900,448 l34,10 l-34,12"/>
+  <!-- 丸: 確かめられた地点 -->
+  <circle class="wb-b fb" cx="560" cy="126" r="14"/>
+  <circle class="wb-b fb" cx="880" cy="170" r="14"/>
+  <circle class="wb-b fb" cx="480" cy="360" r="14"/>
+  <circle class="wb-b fb" cx="260" cy="366" r="14"/>
+  <circle class="wb-b fb" cx="130" cy="376" r="14"/>
+  <circle class="wb-b fb" cx="400" cy="480" r="14"/>
+  <circle class="wb-b fb" cx="640" cy="500" r="14"/>
+  <!-- 雲: 未確認 -->
+  <path class="wk thin" d="M740,380 q14,-20 36,-8 q14,-16 34,-2 q22,0 18,22 q10,18 -12,24 q-10,18 -34,8 q-20,12 -34,-6 q-20,-4 -8,-38 z"/>
+</g>
+<text class="ts" x="54" y="140">スタート</text>
+<text class="ts tr" x="150" y="84">run3 on-deleted は早い</text>
+<text class="ts tr" x="400" y="110">run5 watch は見逃す</text>
+<text class="ts" x="570" y="104">run8 retry・DLQ</text>
+<text class="ts" x="812" y="140">run9 越境</text>
+<text class="ts tr" x="740" y="264">run9 偽装できる</text>
+<text class="ts" x="440" y="406">run13 同じ id</text>
+<text class="ts" x="210" y="410">run15 ns 観測</text>
+<text class="ts" x="80" y="416">run16</text>
+<text class="ts" x="340" y="522">run18 自前 informer</text>
+<text class="ts" x="600" y="540">run17</text>
+<text class="ts tr" x="640" y="440">run19 戻すと id が衝突</text>
+<text class="ts" x="756" y="410">410 Gone？</text>
+<text class="ts" x="60" y="560">赤い旗＝問題が見つかった　青い丸＝確かめた　雲＝未確認</text>
+</svg>
+</div>
+
+
 
 
 ## 1. 目的

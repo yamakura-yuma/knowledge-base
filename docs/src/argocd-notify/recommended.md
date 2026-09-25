@@ -2,32 +2,53 @@
 
 > 概要ページの結論の中身。構成の各部、デプロイ完了と削除完了の取り方、採らない案、基盤側の負荷、通信規格、運用保守。**できること:** 基盤側の設定を触らずに、デプロイ完了と削除完了を取る。**できないこと:** 受信役が、ある Namespace の生存期間中ずっと止まっていた場合は、その削除を取れない。
 
-```grareco
-title: 推奨構成：基盤の設定に触らず、外から見張る
-say:
-- 通知を足したいけど、
-- argocd の ConfigMap は基盤の持ち物で触れない…
-panels:
-- icon: eye
-  head: 外から見張る
-  lines:
-  - ApiServerSource が
-  - Application と Namespace を watch
-  - 止まった間は PingSource で突き合わせ
-- icon: flow
-  head: 入口は Broker 1 つ
-  lines:
-  - 同じ変化には同じ id
-  - （deployed も deleted も決定的）
-  - 重複は受け手が id で消す
-- icon: people
-  head: 線を引く
-  lines:
-  - 利用者は自分の namespace の
-  - Trigger・Secret・受け手だけ
-  - 基盤は登録時の転送 1 本だけ
-bottom: 基盤は部品を守り、利用者は自分の namespace で通知を組む
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：基盤と利用者の間に壁がある。推奨構成では、利用者は壁を越えずに自分の側だけで通知を組む">
+<path class="hl" d="M40,52 L520,48"/>
+<text class="th" x="40" y="58">壁を越えずに、通知を組む</text>
+<text class="ts" x="600" y="56">推奨構成の詳細</text>
+<g filter="url(#wob)">
+  <!-- 壁 -->
+  <path class="wk fw" d="M480,100 L520,100 L520,520 L480,520 Z"/>
+  <path class="wk thin" d="M480,140 l40,0 M480,180 l40,0 M480,220 l40,0 M480,260 l40,0 M480,300 l40,0 M480,340 l40,0 M480,380 l40,0 M480,420 l40,0 M480,460 l40,0 M500,100 l0,40 M500,180 l0,40 M500,260 l0,40 M500,340 l0,40 M500,420 l0,40"/>
+  <!-- 基盤側：道具箱 -->
+  <circle class="wb-b fw" cx="90" cy="170" r="18"/>
+  <path class="wb-b" d="M90,188 L90,240 M90,206 L60,222 M90,206 L122,214 M90,240 L72,276 M90,240 L108,276"/>
+  <rect class="wb-b fb" x="150" y="190" width="260" height="120" rx="10"/>
+  <path class="wb-b" d="M170,248 Q200,226 230,248 Q200,270 170,248 Z"/>
+  <circle class="fk" cx="200" cy="248" r="6"/>
+  <circle class="wk fw" cx="280" cy="248" r="20"/>
+  <path class="wk" d="M280,248 L280,234 M280,248 L290,254"/>
+  <path class="wb-b fw" d="M330,226 L390,226 L390,274 L330,274 Z"/>
+  <!-- 越えない、1 本の転送 -->
+  <path class="wb-b" d="M412,250 C450,200 550,200 590,250" marker-end="url(#ab)"/>
+  <!-- 利用者側 -->
+  <path class="wk fw" d="M600,230 L680,230 L656,270 L656,296 L624,296 L624,270 Z"/>
+  <path class="wk" d="M680,262 L760,262" marker-end="url(#ak)"/>
+  <rect class="wk fw" x="766" y="236" width="90" height="52" rx="6"/>
+  <rect class="wk fw" x="700" y="330" width="46" height="34" rx="4"/>
+  <path class="wk" d="M710,330 v-10 a13,13 0 0 1 26,0 v10"/>
+  <circle class="wk fw" cx="900" cy="370" r="18"/>
+  <path class="wk" d="M900,388 L900,440 M900,406 L870,420 M900,406 L930,396 M900,440 L882,476 M900,440 L918,476"/>
+  <!-- Before：壁をよじ登る -->
+  <path class="wr dash" d="M860,470 C760,520 600,510 530,470 C470,440 440,440 400,440" marker-end="url(#ar)"/>
+  <path class="wk fw" d="M300,410 l90,0 l0,70 l-90,0 z"/>
+  <path class="wr" d="M296,404 L396,488 M396,404 L296,488"/>
+</g>
+<text class="tb" x="60" y="130">基盤チーム</text>
+<text class="ts" x="160" y="340">見張り・突き合わせ・Broker</text>
+<text class="ts tb" x="540" y="196">転送 1 本</text>
+<text x="600" y="130">利用者</text>
+<text class="ts" x="606" y="220">Trigger</text>
+<text class="ts" x="780" y="268">宛先</text>
+<text class="ts" x="690" y="390">Secret</text>
+<text class="ts" x="780" y="520">自分の namespace だけ</text>
+<text class="ts tr" x="300" y="400">notifications-cm</text>
+<text class="ts tr" x="560" y="540">Before：壁を越えて頼む</text>
+</svg>
+</div>
+
+
 
 
 [グラレコ（1 枚で読む要約）](index.html#grareco) は概要ページにある。

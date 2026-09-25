@@ -2,30 +2,52 @@
 
 > resource EventSource が Application を informer で監視し、イベントを EventBus（JetStream など）に書き込む。Sensor がそれを購読し、フィルタを通ったものだけ trigger（HTTP など）で送る。**削除完了は 7 ms で届く。ただし検知層は、停止中に起きた削除を取りこぼす。配送層は、設定しないと at-most-once で動く。**
 
-```grareco
-title: ④ Argo Events：EventBus から先は永続
-say:
-- Argo の仲間なら
-- 相性がいいかな？
-panels:
-- icon: ok
-  head: DELETE は 7 ms
-  lines:
-  - informer の DeleteFunc で
-  - 消滅の直後に届く
-- icon: warn
-  head: 既定は at-most-once
-  lines:
-  - atLeastOnce と
-  - policy.status.allow が要る
-  - 無いと 500 も成功扱い
-- icon: bad
-  head: 寝ると見逃す
-  lines:
-  - EventSource が止まっている間の
-  - 削除は届かない
-bottom: 運用中なら配送に使える。検知の穴は別で埋める
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 540" role="img" aria-label="グラレコ：Argo Events は EventBus に乗ったあとは永続化される。既定では 1 回しか送らず、500 も成功扱いになる">
+<path class="hl" d="M40,52 L520,48"/>
+<text class="th" x="40" y="58">バスに乗れば安心、乗る前が危ない</text>
+<text class="ts" x="640" y="56">Argo Events</text>
+<g filter="url(#wob)">
+  <!-- アンテナ（EventSource） -->
+  <path class="wk" d="M100,300 L100,200 M80,200 L120,200 M100,200 L70,160 M100,200 L130,160"/>
+  <path class="wb-b thin" d="M140,170 q14,14 0,28 M154,160 q24,24 0,48"/>
+  <!-- バス（EventBus） -->
+  <rect class="wb-b fb" x="250" y="190" width="300" height="110" rx="18"/>
+  <path class="wb-b thin" d="M270,210 l50,0 l0,36 l-50,0 z M334,210 l50,0 l0,36 l-50,0 z M398,210 l50,0 l0,36 l-50,0 z M462,210 l60,0 l0,50 l-60,0 z"/>
+  <circle class="wk fw" cx="310" cy="304" r="20"/>
+  <circle class="wk fw" cx="490" cy="304" r="20"/>
+  <path class="wb-b" d="M170,250 L240,250" marker-end="url(#ab)"/>
+  <!-- ふるい（Sensor） -->
+  <path class="wk fw" d="M600,210 L720,210 L700,270 L620,270 Z"/>
+  <path class="wk thin" d="M620,230 l80,0 M626,250 l68,0 M640,210 l0,60 M660,210 l0,60 M680,210 l0,60"/>
+  <path class="wb-b" d="M554,245 L596,245" marker-end="url(#ab)"/>
+  <path class="wk" d="M722,240 L820,240" marker-end="url(#ak)"/>
+  <rect class="wk fw" x="826" y="212" width="120" height="56" rx="6"/>
+  <!-- 乗る前に落ちる -->
+  <path class="wr fr" d="M150,380 l30,0 l0,20 l-30,0 z M150,380 l15,11 l15,-11"/>
+  <path class="wr dash" d="M165,306 L165,374"/>
+  <!-- 既定は 1 回・500 も OK -->
+  <path class="wr fr" d="M830,330 h120 a10,10 0 0 1 10,10 v44 a10,10 0 0 1 -10,10 h-120 a10,10 0 0 1 -10,-10 v-44 a10,10 0 0 1 10,-10 z"/>
+  <path class="wr" d="M720,360 C760,330 790,330 818,350" marker-end="url(#ar)"/>
+  <!-- 鍵（設定で直す） -->
+  <rect class="wb-b fw" x="620" y="420" width="40" height="30" rx="4"/>
+  <path class="wb-b" d="M628,420 v-10 a12,12 0 0 1 24,0 v10"/>
+</g>
+<text class="ts" x="70" y="330">EventSource</text>
+<text class="tb" x="330" y="286">EventBus</text>
+<text class="ts" x="330" y="346">ここから先は永続</text>
+<text class="ts" x="616" y="196">Sensor</text>
+<text class="ts" x="846" y="246">HTTP</text>
+<text class="ts tr" x="120" y="430">止まってる間は</text>
+<text class="ts tr" x="120" y="450">乗れない</text>
+<text class="ts tr" x="840" y="360">既定は 1 回</text>
+<text class="ts tr" x="840" y="382">500 も成功</text>
+<text class="ts tb" x="676" y="432">atLeastOnce</text>
+<text class="ts tb" x="676" y="454">status.allow で直す</text>
+</svg>
+</div>
+
+
 
 
 ## アーキテクチャ

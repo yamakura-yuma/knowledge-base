@@ -4,30 +4,56 @@
 >
 > Argo CD に同梱の `argocd-notifications-controller` が、Application を informer で見て trigger の条件式を評価し、template で組んだ本文を service（webhook・Slack など）で送る。**デプロイ完了は取れるが、削除完了は原理的に取れない。**
 
-```grareco
-title: ① Notifications：同梱で手軽、でも設定は基盤側
-say:
-- on-deleted って、
-- 消えたときに鳴るんじゃないの？
-panels:
-- icon: ok
-  head: デプロイ完了は得意
-  lines:
-  - oncePer で
-  - 1 リビジョンに 1 回だけ
-- icon: bad
-  head: 削除完了は取れない
-  lines:
-  - 条件は deletionTimestamp != nil
-  - ＝削除の開始
-  - 消滅を拾う経路が無い
-- icon: warn
-  head: 設定は argocd にある
-  lines:
-  - cm と Secret を基盤に編集してもらう
-  - 4 回失敗すると再送しない
-bottom: Argo CD の設定を持つチームが通知も持つなら、代替になる
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：Notifications の設定は argocd namespace の中にあり、利用者は外から頼むしかない。on-deleted は消え始めで鳴り、4 回失敗すると諦める">
+<path class="hl" d="M40,52 L520,48"/>
+<text class="th" x="40" y="58">設定は基盤の部屋の中</text>
+<text class="ts" x="560" y="56">Argo CD Notifications</text>
+<g filter="url(#wob)">
+  <!-- 部屋 -->
+  <path class="wb-b fb" d="M40,110 L600,110 L600,500 L40,500 Z"/>
+  <rect class="wk fw" x="560" y="270" width="40" height="80"/>
+  <rect class="wk fw" x="572" y="296" width="22" height="18" rx="3"/>
+  <path class="wk" d="M577,296 v-7 a6,6 0 0 1 12,0 v7"/>
+  <!-- ConfigMap の紙 -->
+  <path class="wk fw" d="M80,150 l150,0 l0,120 l-150,0 z"/>
+  <path class="wk thin" d="M96,196 l110,0 M96,218 l90,0 M96,240 l116,0"/>
+  <!-- ベル（on-deleted） -->
+  <path class="wr fr" d="M320,230 q0,-50 40,-50 q40,0 40,50 l14,20 l-108,0 z"/>
+  <circle class="wr fw" cx="360" cy="262" r="8"/>
+  <path class="wr thin" d="M294,190 l-16,-10 M292,214 l-20,0 M426,190 l16,-10 M428,214 l20,0"/>
+  <!-- まだ消えていない Namespace -->
+  <rect class="wk fw" x="470" y="170" width="70" height="56" rx="6"/>
+  <!-- 4 回投げて諦める -->
+  <path class="wk" d="M120,360 l30,0 l0,20 l-30,0 z M120,360 l15,11 l15,-11"/>
+  <path class="wk thin" d="M156,372 C230,340 300,340 360,372" marker-end="url(#ak)"/>
+  <path class="wk thin" d="M156,378 C230,392 300,392 360,380" marker-end="url(#ak)"/>
+  <path class="wk thin" d="M156,384 C230,430 300,430 360,392" marker-end="url(#ak)"/>
+  <path class="wk thin" d="M156,388 C230,470 300,470 362,402" marker-end="url(#ak)"/>
+  <rect class="wr fr" x="370" y="352" width="46" height="70" rx="4"/>
+  <path class="wk" d="M440,420 l60,0 l-8,56 l-44,0 z M436,420 l68,0"/>
+  <!-- 利用者（部屋の外） -->
+  <circle class="wk fw" cx="800" cy="250" r="20"/>
+  <path class="wk" d="M800,270 L800,330 M800,290 L760,296 M800,290 L840,300 M800,330 L780,370 M800,330 L820,370"/>
+  <path class="wk" d="M700,300 l-60,0" marker-end="url(#ak)"/>
+  <path class="wk fw" d="M680,150 h240 a12,12 0 0 1 12,12 v44 a12,12 0 0 1 -12,12 h-120 l-20,18 l4,-18 h-104 a12,12 0 0 1 -12,-12 v-44 a12,12 0 0 1 12,-12 z"/>
+</g>
+<text class="tb" x="54" y="140">argocd namespace（基盤）</text>
+<text class="ts" x="96" y="176">notifications-cm</text>
+<text class="ts tr" x="310" y="300">on-deleted</text>
+<text class="ts tr" x="292" y="322">消え始めで鳴る</text>
+<text class="ts" x="468" y="246">まだある</text>
+<text class="ts" x="130" y="350">送信</text>
+<text class="ts tr" x="372" y="444">500</text>
+<text class="ts" x="428" y="530">4 回で諦める</text>
+<text x="700" y="190">cm を変えてください…</text>
+<text class="ts" x="760" y="400">利用者</text>
+<text class="ts" x="640" y="470">デプロイ完了は oncePer で 1 回だけ</text>
+<text class="ts" x="640" y="494">→ Argo CD を持つチームなら代替になる</text>
+</svg>
+</div>
+
+
 
 
 ## アーキテクチャ

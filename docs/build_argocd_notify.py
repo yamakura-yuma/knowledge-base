@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyyaml", "markdown"]
+# dependencies = ["pyyaml", "markdown", "fonttools", "brotli"]
 # ///
 """docs/src/argocd-notify/*.md から docs/site/argocd-notify/ 以下の HTML を組む。
 
@@ -16,7 +16,9 @@ md の中の ```diagram ブロック（YAML）は、ビルド時に SVG へ描�
 
 from __future__ import annotations
 
+import base64
 import html
+import io
 import pathlib
 import re
 import sys
@@ -171,6 +173,21 @@ CSS = """
   .gr .gr-ngc { fill:color-mix(in srgb, var(--hot) 16%, var(--bg)); stroke:var(--hot); stroke-width:2.2; }
   .gr .gr-panel { fill:var(--surface); stroke:var(--ink); stroke-width:1.8; }
 
+  /* ホワイトボードのグラレコ。背景は明暗どちらのテーマでも白、マーカーは黒・青・赤の 3 色 */
+  .grwb { margin:22px 0 26px; }
+  .grwb svg { display:block; width:100%; height:auto; }
+  .grwb .wbg { fill:#fdfdfb; stroke:#cfcfc8; stroke-width:2; }
+  .grwb text { font-family:'WB Yomogi','Klee One','Yomogi','Hiragino Maru Gothic ProN',sans-serif;
+               fill:#23232a; font-size:19px; }
+  .grwb .th { font-size:28px; }
+  .grwb .ts { font-size:15px; fill:#4a4a52; }
+  .grwb .tb { fill:#1d56c2; } .grwb .tr { fill:#d0342c; }
+  .grwb .wk, .grwb .wb-b, .grwb .wr { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+  .grwb .wk { stroke:#23232a; } .grwb .wb-b { stroke:#1d56c2; } .grwb .wr { stroke:#d0342c; }
+  .grwb .thin { stroke-width:2; } .grwb .dash { stroke-dasharray:7 7; }
+  .grwb .hl { fill:none; stroke:#ffe14d; stroke-width:16; stroke-linecap:round; opacity:.7; }
+  .grwb .fb { fill:#e6eefc; } .grwb .fr { fill:#fde6e3; } .grwb .fk { fill:#23232a; } .grwb .fw { fill:#fdfdfb; }
+
   /* 評価マトリクス。◎○△× を背景色でも分ける */
   table.mx { font-size:12.5px; }
   table.mx td, table.mx th { text-align:center; }
@@ -307,83 +324,49 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
     return f'<div class="dgm">{cap_html}{"".join(out)}</div>'
 
 
-def _icon(kind: str, x: float, y: float) -> str:
-    """パネル右上の小さな手描き風アイコン。"""
-    if kind == "ok":
-        return (f'<circle class="gr-okc" cx="{x}" cy="{y}" r="16"/>'
-                f'<path class="gr-ok" d="M{x-8},{y} L{x-2},{y+7} L{x+9},{y-7}"/>')
-    if kind == "bad":
-        return (f'<circle class="gr-ngc" cx="{x}" cy="{y}" r="16"/>'
-                f'<path class="gr-ng" d="M{x-7},{y-7} L{x+7},{y+7} M{x+7},{y-7} L{x-7},{y+7}"/>')
-    if kind == "warn":
-        return (f'<path class="gr-warn" d="M{x},{y-17} L{x+18},{y+14} L{x-18},{y+14} Z"/>'
-                f'<text class="gr-h gr-red" x="{x}" y="{y+10}" text-anchor="middle">!</text>')
-    if kind == "key":
-        return (f'<rect class="gr-lock" x="{x-14}" y="{y-4}" width="28" height="22" rx="4"/>'
-                f'<path class="gr-line2" d="M{x-8},{y-4} v-6 a8,8 0 0 1 16,0 v6"/>')
-    if kind == "eye":
-        return (f'<path class="gr-line2" d="M{x-18},{y} Q{x},{y-16} {x+18},{y} Q{x},{y+16} {x-18},{y} Z"/>'
-                f'<circle class="gr-dot" cx="{x}" cy="{y}" r="5"/>')
-    if kind == "people":
-        return (f'<circle class="gr-head" cx="{x-9}" cy="{y-6}" r="7"/><circle class="gr-head gr-head2" cx="{x+9}" cy="{y-6}" r="7"/>'
-                f'<path class="gr-line2" d="M{x-19},{y+14} q10,-12 20,0 M{x-1},{y+14} q10,-12 20,0"/>')
-    return (f'<circle class="gr-okc" cx="{x}" cy="{y}" r="16"/>'
-            f'<path class="gr-arrow" d="M{x-8},{y} L{x+8},{y} M{x+2},{y-6} L{x+8},{y} L{x+2},{y+6}"/>')
+WB_DEFS = """<defs>
+<filter id="wob" x="-5%" y="-5%" width="110%" height="110%">
+<feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+<feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+<marker id="ak" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wk"/></marker>
+<marker id="ab" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wb-b"/></marker>
+<marker id="ar" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1.5 L10.5,6 L1.5,10.5" class="wr"/></marker>
+</defs><rect class="wbg" x="0" y="0" width="100%" height="100%" rx="14"/>"""
+
+FONT_POOL = SRC / "fonts" / "yomogi-pool.woff2"
 
 
-def grareco(spec: dict, warnings: list[str], where: str) -> str:
-    """ページ冒頭のグラレコ。人物と吹き出し（問い）→ 3 枚のパネル → 結論の帯。"""
-    esc = html.escape
-    W, H = 1000, 430
-    o = [f'<svg class="fig" viewBox="0 0 {W} {H}" role="img" aria-label="グラレコ: {esc(spec["title"])}">',
-         '<defs><marker id="grm-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" '
-         'orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker></defs>',
-         '<path class="gr-hl" d="M40,22 C260,12 620,30 960,18 L962,52 C640,62 300,46 38,58 Z"/>',
-         f'<text class="gr-title" x="500" y="46" text-anchor="middle">{esc(spec["title"])}</text>']
-    if _w(spec["title"], 21) > 900:
-        warnings.append(f"{where}: グラレコの題がはみ出す")
-    # 人物と吹き出し
-    o.append('<rect class="gr-body" x="50" y="92" width="80" height="70" rx="12"/>'
-             '<circle class="gr-dot" cx="75" cy="118" r="4"/><circle class="gr-dot" cx="105" cy="118" r="4"/>'
-             '<path class="gr-line" d="M76,140 Q90,132 104,140"/>')
-    o.append('<path class="gr-bubble" d="M170,78 h560 a12,12 0 0 1 12,12 v58 a12,12 0 0 1 -12,12 h-530 '
-             'l-34,16 l10,-16 h-6 a12,12 0 0 1 -12,-12 v-58 a12,12 0 0 1 12,-12 z"/>')
-    for i, line in enumerate(spec["say"]):
-        o.append(f'<text class="gr-m" x="190" y="{110 + i * 24}">{esc(line)}</text>')
-        if _w(line, 14) > 540:
-            warnings.append(f"{where}: 吹き出しがはみ出す: {line}")
-    # 3 枚のパネル
-    for i, pnl in enumerate(spec["panels"]):
-        x = 30 + i * 325
-        o.append(f'<rect class="gr-panel" x="{x}" y="190" width="290" height="150" rx="10" '
-                 f'transform="rotate({(-1, 0.8, -0.6)[i % 3]} {x + 145} 265)"/>')
-        o.append(_icon(pnl.get("icon", "flow"), x + 258, 218))
-        o.append(f'<text class="gr-h" x="{x + 16}" y="222">{esc(pnl["head"])}</text>')
-        if _w(pnl["head"], 16) > 220:
-            warnings.append(f"{where}: パネルの見出しがはみ出す: {pnl['head']}")
-        for j, line in enumerate(pnl.get("lines", [])):
-            o.append(f'<text class="gr-s" x="{x + 16}" y="{254 + j * 22}">{esc(line)}</text>')
-            if _w(line, 12.5) > 262:
-                warnings.append(f"{where}: パネルの文がはみ出す: {line}")
-        if i < len(spec["panels"]) - 1:
-            o.append(f'<path class="gr-arrow" d="M{x + 294},265 C{x + 305},255 {x + 312},255 {x + 322},265" '
-                     'marker-end="url(#grm-ar)"/>')
-    # 結論の帯
-    o.append('<ellipse class="gr-pill" cx="500" cy="388" rx="470" ry="30"/>')
-    o.append(f'<text class="gr-m gr-b" x="500" y="393" text-anchor="middle">{esc(spec["bottom"])}</text>')
-    if _w(spec["bottom"], 14) > 880:
-        warnings.append(f"{where}: 結論の帯がはみ出す")
-    o.append("</svg>")
-    return f'<div class="dgm gr"><div class="cap">グラレコ: このページを 1 枚で</div>{"".join(o)}</div>'
+def whiteboard_font(body: str, warnings: list[str], where: str) -> str:
+    """ホワイトボード図で使う字だけをフォントから抜き出し、@font-face として返す。"""
+    from fontTools import subset
+    chars = set()
+    for svg in re.findall(r'<svg class="wb".*?</svg>', body, re.S):
+        for t in re.findall(r"<text[^>]*>(.*?)</text>", svg, re.S):
+            chars |= set(html.unescape(re.sub(r"<[^>]+>", "", t)))
+    if not chars:
+        return ""
+    opt = subset.Options()
+    opt.flavor = "woff2"
+    opt.layout_features = ["*"]
+    font = subset.load_font(str(FONT_POOL), opt)
+    cmap = font.getBestCmap()
+    missing = sorted(c for c in chars if ord(c) not in cmap and not c.isspace())
+    if missing:
+        warnings.append(f"{where}: 手書きフォントに無い字（代替フォントで出る）: {''.join(missing)}")
+    sub = subset.Subsetter(opt)
+    sub.populate(text="".join(sorted(chars)))
+    sub.subset(font)
+    buf = io.BytesIO()
+    subset.save_font(font, buf, opt)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    return f"@font-face {{ font-family:'WB Yomogi'; src:url(data:font/woff2;base64,{b64}) format('woff2'); }}"
 
 
 def render_diagrams(text: str, warnings: list[str], where: str) -> str:
     def sub(m):
         return diagram(yaml.safe_load(m.group(1)), warnings, where)
 
-    def sub_gr(m):
-        return grareco(yaml.safe_load(m.group(1)), warnings, where)
-    text = re.sub(r"^```grareco\n(.*?)^```\n", sub_gr, text, flags=re.S | re.M)
     return re.sub(r"^```diagram\n(.*?)^```\n", sub, text, flags=re.S | re.M)
 
 
@@ -430,6 +413,8 @@ def page(stem: str, label: str, warnings: list[str]) -> str:
     body_md = render_diagrams(body_md, warnings, src.name)
     conv = md_lib.Markdown(extensions=["tables", "fenced_code", "attr_list", "md_in_html"])
     body = grade_cells(conv.convert(body_md))
+    body = re.sub(r'(<svg class="wb"[^>]*>)', lambda m: m.group(1) + WB_DEFS, body)
+    font_css = whiteboard_font(body, warnings, src.name)
     sub_html = md_lib.markdown(sub).removeprefix("<p>").removesuffix("</p>")
     return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -437,7 +422,7 @@ def page(stem: str, label: str, warnings: list[str]) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
-<style>{CSS}</style>
+<style>{CSS}{font_css}</style>
 </head>
 <body>
 <div class="wrap">

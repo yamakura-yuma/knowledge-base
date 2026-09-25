@@ -2,31 +2,47 @@
 
 > 評価マトリクス（概要ページ）の軸の出典と、◎○△× の基準。方式の選定基準と、既存の推奨・事例の調査結果もここに置く。
 
-```grareco
-title: 評価軸：11 の物差しで測る
-say:
-- どれが良いかは、
-- 何で測るかしだい
-panels:
-- icon: key
-  head: 出典のある軸
-  lines:
-  - ISO/IEC 25010
-  - Azure Well-Architected
-  - microservices.io
-- icon: warn
-  head: 耐障害性は 2 つに
-  lines:
-  - 検知層：止まった間を拾えるか
-  - 配送層：retry・DLQ・永続化
-- icon: people
-  head: 基盤を触るか
-  lines:
-  - 宛先・条件・本文の 3 ケースで
-  - 変更のたびに基盤側の設定を
-  - 触る方式は大きな減点
-bottom: ◎○△× の基準は軸ごとに書いた
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 520" role="img" aria-label="グラレコ：11 本の物差しで測る。耐障害性は検知と配送の 2 層に分け、変更のたびに基盤を触る方式は大きく減点する">
+<path class="hl" d="M40,52 L460,48"/>
+<text class="th" x="40" y="58">11 本の物差しで測る</text>
+<text class="ts" x="600" y="56">評価軸と採点基準</text>
+<g filter="url(#wob)">
+  <!-- 物差し -->
+  <rect class="wk fw" x="60" y="110" width="880" height="60" rx="6"/>
+  <path class="wk thin" d="M140,110 l0,26 M220,110 l0,18 M300,110 l0,26 M380,110 l0,18 M460,110 l0,26 M540,110 l0,18 M620,110 l0,26 M700,110 l0,18 M780,110 l0,26 M860,110 l0,18"/>
+  <!-- 2 層 -->
+  <rect class="wb-b fb" x="60" y="230" width="380" height="60" rx="8"/>
+  <rect class="wb-b fw" x="60" y="300" width="380" height="60" rx="8"/>
+  <path class="wk" d="M40,236 q-18,60 0,120"/>
+  <!-- 減点ハンコ -->
+  <circle class="wr fr" cx="700" cy="310" r="80"/>
+  <circle class="wr" cx="700" cy="310" r="64"/>
+  <path class="wk" d="M600,420 l40,-40 l14,14 l-40,40 z M654,394 l20,-20"/>
+  <!-- 出典の本 -->
+  <path class="wk fw" d="M60,420 l80,0 l0,70 l-80,0 z M150,420 l80,0 l0,70 l-80,0 z M240,420 l80,0 l0,70 l-80,0 z"/>
+</g>
+<text class="ts" x="90" y="160">検知</text>
+<text class="ts" x="170" y="160">配送</text>
+<text class="ts" x="250" y="160">保証</text>
+<text class="ts" x="330" y="160">可用性</text>
+<text class="ts" x="420" y="160">疎結合</text>
+<text class="ts" x="520" y="160">…</text>
+<text class="ts" x="760" y="160">レイテンシ</text>
+<text class="tb" x="80" y="268">検知層：止まった間を拾えるか</text>
+<text x="80" y="338">配送層：retry・DLQ・永続化</text>
+<text class="ts" x="30" y="212">耐障害性は 2 つに分ける</text>
+<text class="tr" x="672" y="304">基盤を</text>
+<text class="tr" x="646" y="330">触ったら</text>
+<text class="tr" x="672" y="354">減点</text>
+<text class="ts" x="66" y="460">ISO</text>
+<text class="ts" x="160" y="460">Azure</text>
+<text class="ts" x="248" y="460">micro</text>
+<text class="ts" x="340" y="470">出典のある軸だけ</text>
+</svg>
+</div>
+
+
 
 
 ## 評価軸

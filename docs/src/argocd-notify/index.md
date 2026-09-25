@@ -4,97 +4,81 @@
 
 ## グラレコ {#grareco}
 
-<div class="dgm gr">
-<div class="cap">グラレコ: この調査を 1 枚で</div>
-<svg class="fig" viewBox="0 0 1000 760" role="img" aria-label="グラフィックレコーディング">
-  <defs>
-    <marker id="gr-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="gr-ink"/></marker>
-  </defs>
-  <!-- タイトル帯 -->
-  <path class="gr-hl" d="M40,52 C260,40 620,58 960,46 L962,78 C640,90 300,72 38,84 Z"/>
-  <text class="gr-title" x="500" y="74" text-anchor="middle">Argo CD の「できた！」「消えた！」を外に知らせるには？</text>
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 600" role="img" aria-label="グラレコ：Namespace の消滅を、基盤に触らず外から見張って届ける">
+<path class="hl" d="M40,52 L560,48"/>
+<text class="th" x="40" y="58">消えたら、ちゃんと知らせる</text>
+<text class="ts" x="600" y="56">基盤に触らず、外から見張る</text>
 
-  <!-- 1. 問い: Application くん -->
-  <g transform="translate(40,120)">
-    <rect class="gr-body" x="0" y="20" width="110" height="90" rx="14"/>
-    <circle class="gr-dot" cx="35" cy="55" r="5"/><circle class="gr-dot" cx="75" cy="55" r="5"/>
-    <path class="gr-line" d="M35,80 Q55,95 75,80"/>
-    <text class="gr-s" x="55" y="130" text-anchor="middle">Application</text>
-    <path class="gr-bubble" d="M130,0 h230 a12,12 0 0 1 12,12 v70 a12,12 0 0 1 -12,12 h-200 l-26,22 l4,-22 h-8 a12,12 0 0 1 -12,-12 v-70 a12,12 0 0 1 12,-12 z"/>
-    <text class="gr-m" x="148" y="30">デプロイできた！</text>
-    <text class="gr-m" x="148" y="54">Namespace 消えた！…を</text>
-    <text class="gr-m" x="148" y="78">Slack や社内 API に伝えたい</text>
-  </g>
+<g filter="url(#wob)">
+  <!-- 境界線 -->
+  <path class="wk" d="M662,92 C656,180 668,260 660,340 C654,420 666,500 660,580"/>
+  <!-- Namespace が消える -->
+  <rect class="wk dash" x="40" y="120" width="150" height="96" rx="8"/>
+  <path class="wk thin" d="M58,140 L100,140 M58,158 L130,158 M58,176 L112,176"/>
+  <g transform="rotate(-28 170 214)"><rect class="wk fr" x="146" y="198" width="56" height="30" rx="4"/><path class="wk thin" d="M146,212 L202,212"/></g>
+  <path class="wk thin" d="M112,236 q12,8 24,0 q12,8 24,0"/>
+  <!-- 見張る目 -->
+  <path class="wb-b fb" d="M250,166 Q300,122 350,166 Q300,210 250,166 Z"/>
+  <circle class="fk" cx="300" cy="166" r="11"/>
+  <path class="wb-b thin dash" d="M248,166 L194,168"/>
+  <!-- 寝ている間に落ちる封筒 -->
+  <path class="wr thin" d="M258,252 l30,0 l0,20 l-30,0 z M258,252 l15,11 l15,-11"/>
+  <path class="wr dash thin" d="M273,218 L273,248"/>
+  <!-- 安全網 -->
+  <path class="wb-b" d="M190,320 Q280,360 370,320"/>
+  <path class="wb-b thin" d="M205,327 L225,343 M235,335 L250,350 M265,340 L275,352 M295,340 L300,352 M325,336 L322,350 M352,328 L345,344 M215,338 L360,334"/>
+  <circle class="wk fw" cx="120" cy="330" r="30"/>
+  <path class="wk" d="M120,330 L120,310 M120,330 L134,338"/>
+  <!-- Broker -->
+  <path class="wb-b fb" d="M430,210 L600,210 L600,300 L430,300 Z"/>
+  <path class="wb-b" d="M430,210 Q515,186 600,210"/>
+  <path class="wb-b thick" d="M354,166 C400,166 420,200 440,222" marker-end="url(#ab)"/>
+  <path class="wb-b" d="M372,322 C410,318 420,290 440,282" marker-end="url(#ab)"/>
+  <!-- 同じ id の封筒 2 通 → 1 通 -->
+  <path class="wk thin" d="M452,236 l26,0 l0,17 l-26,0 z M452,236 l13,9 l13,-9"/>
+  <path class="wk thin" d="M452,262 l26,0 l0,17 l-26,0 z M452,262 l13,9 l13,-9"/>
+  <path class="wk thin" d="M486,256 L520,256" marker-end="url(#ak)"/>
+  <path class="wk thin" d="M530,246 l30,0 l0,20 l-30,0 z M530,246 l15,11 l15,-11"/>
+  <!-- 境界を越えて利用者側へ -->
+  <path class="wb-b" d="M604,254 C640,254 660,230 700,226" marker-end="url(#ab)"/>
+  <!-- 利用者の Trigger（じょうご） -->
+  <path class="wk fw" d="M704,190 L800,190 L770,240 L770,272 L734,272 L734,240 Z"/>
+  <path class="wk" d="M752,276 C752,320 800,330 840,318" marker-end="url(#ak)"/>
+  <path class="wk" d="M752,276 C752,360 780,400 830,408" marker-end="url(#ak)"/>
+  <!-- 宛先 -->
+  <path class="wk fw" d="M846,292 h110 a10,10 0 0 1 10,10 v36 a10,10 0 0 1 -10,10 h-86 l-16,14 l4,-14 h-12 a10,10 0 0 1 -10,-10 v-36 a10,10 0 0 1 10,-10 z"/>
+  <rect class="wk fw" x="838" y="388" width="120" height="44" rx="6"/>
+  <!-- 利用者 -->
+  <circle class="wk fw" cx="890" cy="482" r="18"/>
+  <path class="wk" d="M890,500 L890,548 M890,516 L862,534 M890,516 L920,504 M890,548 L872,576 M890,548 L906,576"/>
+  <path class="wk" d="M922,496 l12,-8 l4,6 M934,488 l8,-4"/>
+  <!-- 触らない ConfigMap -->
+  <path class="wk fw" d="M430,420 l120,0 l0,90 l-120,0 z"/>
+  <path class="wk thin" d="M446,446 l80,0 M446,466 l90,0 M446,486 l60,0"/>
+  <path class="wr" d="M420,410 L560,520 M560,410 L420,520"/>
+  <!-- on-deleted は早すぎ -->
+  <circle class="wr" cx="90" cy="460" r="34"/>
+  <path class="wr" d="M66,436 L114,484"/>
+</g>
 
-  <!-- 2. 落とし穴 -->
-  <g transform="translate(470,110)">
-    <path class="gr-warn" d="M0,150 L60,40 L120,150 Z"/>
-    <text class="gr-big gr-red" x="60" y="132" text-anchor="middle">!</text>
-    <text class="gr-h gr-red" x="140" y="40">落とし穴 ①</text>
-    <text class="gr-m" x="140" y="64"><tspan class="gr-code">on-deleted</tspan> は「消え始め」で鳴る</text>
-    <text class="gr-s" x="140" y="86">削除要求から 0.06 秒、まだ何も消えていない</text>
-    <text class="gr-h gr-red" x="140" y="118">落とし穴 ②</text>
-    <text class="gr-m" x="140" y="142">watch は止まっている間の DELETE を見逃す</text>
-    <text class="gr-s" x="140" y="164">Knative / Argo Events / API stream 共通</text>
-  </g>
-
-  <path class="gr-sep" d="M30,300 C300,292 700,308 970,298"/>
-
-  <!-- 3. 鍵: finalizer = 消えない約束 -->
-  <g transform="translate(40,330)">
-    <text class="gr-h" x="0" y="0">ひらめき：触らずに、外から見張る</text>
-    <!-- 錠前 -->
-    <rect class="gr-lock" x="10" y="40" width="80" height="64" rx="8"/>
-    <path class="gr-line2" d="M26,40 v-14 a24,24 0 0 1 48,0 v14"/>
-    <circle class="gr-dot" cx="50" cy="70" r="7"/>
-    <text class="gr-m" x="110" y="52">基盤の Job にも Namespace にも手を入れない</text>
-    <text class="gr-m" x="110" y="76">watch で即時、突き合わせで取りこぼしを拾う</text>
-    <text class="gr-s" x="110" y="100">→ 同じ id（uid:deleted）で届くので、受け手が重複を消す</text>
-    <!-- 付箋: Metacontroller -->
-    <g transform="translate(470,20) rotate(-3)">
-      <rect class="gr-note" x="0" y="0" width="256" height="96" rx="4"/>
-      <text class="gr-h" x="14" y="28">finalizer は付けない</text>
-      <text class="gr-s" x="14" y="52">付けると基盤の Job が通知を待つ</text>
-      <text class="gr-s" x="14" y="72">＝密結合。権限も強くなる</text>
-    </g>
-    <g transform="translate(750,26) rotate(2)">
-      <rect class="gr-note2" x="0" y="0" width="200" height="90" rx="4"/>
-      <text class="gr-h" x="14" y="28">入口は Broker 1 つ</text>
-      <text class="gr-s" x="14" y="52">Trigger はアプリ側に置く</text>
-      <text class="gr-s" x="14" y="72">Kafka / RabbitMQ / NATS</text>
-    </g>
-  </g>
-
-  <path class="gr-sep" d="M30,470 C300,478 700,462 970,472"/>
-
-  <!-- 4. おすすめの流れ -->
-  <text class="gr-h" x="40" y="505">おすすめの流れ</text>
-  <g transform="translate(40,525)">
-    <ellipse class="gr-pill" cx="95" cy="40" rx="95" ry="36"/>
-    <text class="gr-m" x="95" y="36" text-anchor="middle">デプロイ完了</text>
-    <text class="gr-s" x="95" y="56" text-anchor="middle">Application を観測</text>
-    <ellipse class="gr-pill" cx="95" cy="135" rx="95" ry="36"/>
-    <text class="gr-m" x="95" y="131" text-anchor="middle">削除完了</text>
-    <text class="gr-s" x="95" y="151" text-anchor="middle">ApiServerSource＋突き合わせ</text>
-    <path class="gr-arrow" d="M195,45 C290,40 330,80 400,85" marker-end="url(#gr-ar)"/>
-    <path class="gr-arrow" d="M195,130 C290,135 330,100 400,95" marker-end="url(#gr-ar)"/>
-    <rect class="gr-env" x="410" y="55" width="190" height="70" rx="10"/>
-    <path class="gr-line" d="M410,58 L505,100 L600,58"/>
-    <text class="gr-s" x="505" y="146" text-anchor="middle">Broker（永続化）→ Trigger</text>
-    <text class="gr-s" x="505" y="164" text-anchor="middle">ID = uid で重複を除く</text>
-    <path class="gr-arrow" d="M605,90 C680,70 720,40 780,40" marker-end="url(#gr-ar)"/>
-    <path class="gr-arrow" d="M605,95 C680,110 720,140 780,140" marker-end="url(#gr-ar)"/>
-    <text class="gr-m" x="790" y="45">Slack</text>
-    <text class="gr-m" x="790" y="145">社内 API</text>
-  </g>
-
-  <!-- 5. 役割分担 -->
-  <g transform="translate(40,700)">
-    <circle class="gr-head" cx="14" cy="8" r="10"/><path class="gr-line2" d="M14,18 v22 M0,28 h28"/>
-    <text class="gr-m" x="40" y="22"><tspan class="gr-b">基盤チーム</tspan>：Knative と観測部品を守る</text>
-    <circle class="gr-head gr-head2" cx="534" cy="8" r="10"/><path class="gr-line2" d="M534,18 v22 M520,28 h28"/>
-    <text class="gr-m" x="560" y="22"><tspan class="gr-b">利用者</tspan>：Trigger と受け手を持つ</text>
-  </g>
+<text class="ts" x="54" y="112">Namespace</text>
+<text class="ts" x="40" y="264">消える</text>
+<text class="ts tb" x="276" y="110">watch</text>
+<text class="ts tr" x="296" y="268">止まってる間…</text>
+<text class="ts tb" x="208" y="386">突き合わせで拾う</text>
+<text class="ts" x="96" y="378">毎分</text>
+<text class="tb" x="480" y="190">Broker</text>
+<text class="ts" x="452" y="352">同じ id → 1 通</text>
+<text class="ts" x="808" y="220">Trigger</text>
+<text x="866" y="324">Slack</text>
+<text class="ts" x="852" y="416">社内 API</text>
+<text class="tb" x="440" y="110">基盤</text>
+<text x="690" y="110">利用者</text>
+<text class="ts" x="740" y="560">自分の ns だけ</text>
+<text class="ts tr" x="416" y="540">notifications-cm は触らない</text>
+<text class="ts tr" x="40" y="522">on-deleted は</text>
+<text class="ts tr" x="40" y="542">「消え始め」</text>
 </svg>
 </div>
 

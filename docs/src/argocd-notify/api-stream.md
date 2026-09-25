@@ -2,29 +2,40 @@
 
 > Argo CD の API server が公開している `/api/v1/stream/applications` を、常駐クライアントが購読する。API server の broadcaster が informer のイベントを中継するので DELETED も届く。**ただし、消費者の受け取りが遅れているとイベントを捨てる。切断していた間のイベントも取り戻せない。**
 
-```grareco
-title: ⑥ API stream：速いが、落とす
-say:
-- API から直接
-- 流してもらえば？
-panels:
-- icon: ok
-  head: 2 ms で届く
-  lines:
-  - argocd-server が
-  - DELETED を中継する
-- icon: bad
-  head: 詰まると捨てる
-  lines:
-  - 受け取りが遅れると
-  - broadcaster が drop
-- icon: warn
-  head: 全部自前
-  lines:
-  - retry・HA・重複除去を
-  - 自分で書く
-bottom: 常駐クライアントとしては勧めない
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 500" role="img" aria-label="グラレコ：API stream は 2 ms で届くが、受け取りが詰まると捨て、切れている間の分は戻らない">
+<path class="hl" d="M40,52 L480,48"/>
+<text class="th" x="40" y="58">速いけど、あふれたら捨てる</text>
+<text class="ts" x="600" y="56">Argo CD API stream</text>
+<g filter="url(#wob)">
+  <!-- argocd-server（蛇口） -->
+  <rect class="wb-b fb" x="60" y="160" width="160" height="110" rx="10"/>
+  <path class="wb-b" d="M220,200 L330,200 L330,250"/>
+  <path class="wb-b thin" d="M300,250 l60,0"/>
+  <!-- 稲妻 2ms -->
+  <path class="wb-b" d="M260,150 l-16,26 l18,0 l-14,26"/>
+  <!-- バケツ（クライアント） -->
+  <path class="wk fw" d="M280,320 l110,0 l-14,110 l-82,0 z"/>
+  <path class="wb-b thin" d="M330,262 l0,10 M330,284 l0,10 M330,306 l0,10"/>
+  <path class="wr" d="M390,330 q20,10 10,30 M398,356 q14,20 4,40"/>
+  <circle class="wr fr" cx="420" cy="410" r="7"/><circle class="wr fr" cx="440" cy="440" r="6"/>
+  <!-- 切れたケーブル -->
+  <path class="wk" d="M560,260 C620,240 650,280 690,262"/>
+  <path class="wk" d="M740,262 C780,246 820,286 900,262"/>
+  <path class="wr" d="M704,250 l20,24 M724,250 l-20,24"/>
+  <rect class="wk fw" x="520" y="240" width="40" height="40" rx="6"/>
+  <rect class="wk fw" x="900" y="236" width="60" height="52" rx="6"/>
+</g>
+<text class="tb" x="80" y="220">argocd-server</text>
+<text class="ts tb" x="276" y="142">2 ms</text>
+<text class="ts" x="290" y="460">自前のクライアント</text>
+<text class="ts tr" x="452" y="400">drop</text>
+<text class="ts tr" x="600" y="320">切れていた間の DELETED は戻らない</text>
+<text class="ts" x="560" y="420">retry・HA・重複除去は全部自前</text>
+</svg>
+</div>
+
+
 
 
 ## アーキテクチャ

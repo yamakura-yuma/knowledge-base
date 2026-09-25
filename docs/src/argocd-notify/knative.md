@@ -4,30 +4,62 @@
 >
 > ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。**検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。** 6 方式の中で配送層が最も強い。
 
-```grareco
-title: ③ Knative：配送は強い、検知は watch 頼み
-say:
-- Knative に任せれば、
-- 全部安心？
-panels:
-- icon: ok
-  head: Broker の先は強い
-  lines:
-  - retry・backoff・DLQ を宣言
-  - 永続化した土台を選べる
-- icon: bad
-  head: Source は見逃す
-  lines:
-  - 止まっている間の DELETE は来ない
-  - キャッシュが無く、再 list でも
-  - 削除イベントを作らない
-- icon: flow
-  head: 穴は突き合わせで
-  lines:
-  - PingSource で uid 一覧と比べる
-  - 同じ id で Broker へ
-bottom: 推奨構成の中心。取りこぼしの穴だけ別の部品で埋める
-```
+<div class="grwb">
+<svg class="wb" viewBox="0 0 1000 560" role="img" aria-label="グラレコ：Knative は Broker から先の配送が強い。ただし Source が止まっている間の変化は届かないので、突き合わせで拾う">
+<path class="hl" d="M40,52 L560,48"/>
+<text class="th" x="40" y="58">Broker の先は強い、入口は寝る</text>
+<text class="ts" x="600" y="56">Knative Eventing</text>
+<g filter="url(#wob)">
+  <!-- Namespace -->
+  <rect class="wk fw" x="40" y="180" width="110" height="80" rx="8"/>
+  <!-- 目（ApiServerSource） -->
+  <path class="wb-b fb" d="M190,220 Q240,176 290,220 Q240,264 190,220 Z"/>
+  <circle class="fk" cx="240" cy="220" r="10"/>
+  <path class="wb-b" d="M294,220 L352,220" marker-end="url(#ab)"/>
+  <!-- ハンコ（EventTransform） -->
+  <rect class="wb-b fw" x="360" y="190" width="96" height="60" rx="6"/>
+  <path class="wb-b" d="M384,190 l0,-24 l48,0 l0,24 M396,166 l0,-18 l24,0 l0,18"/>
+  <path class="wb-b" d="M460,220 L520,220" marker-end="url(#ab)"/>
+  <!-- Broker（タンク） -->
+  <path class="wb-b fb" d="M530,170 L650,170 L650,280 L530,280 Z"/>
+  <ellipse class="wb-b fw" cx="590" cy="170" rx="60" ry="14"/>
+  <path class="wb-b thin" d="M530,280 Q590,300 650,280"/>
+  <!-- Trigger と宛先、retry ループ -->
+  <path class="wb-b" d="M654,220 L740,220" marker-end="url(#ab)"/>
+  <path class="wk fw" d="M748,190 L820,190 L798,226 L798,250 L770,250 L770,226 Z"/>
+  <path class="wk" d="M800,232 L880,232" marker-end="url(#ak)"/>
+  <rect class="wk fw" x="886" y="206" width="80" height="50" rx="6"/>
+  <path class="wr" d="M882,248 C860,300 820,300 810,262" marker-end="url(#ar)"/>
+  <path class="wr" d="M870,262 C900,340 880,360 850,380" marker-end="url(#ar)"/>
+  <path class="wk fw" d="M800,384 l80,0 l-10,64 l-60,0 z M796,384 l88,0"/>
+  <!-- 寝ている目 -->
+  <path class="wk" d="M190,330 Q240,354 290,330"/>
+  <path class="wr fr" d="M222,380 l30,0 l0,20 l-30,0 z M222,380 l15,11 l15,-11"/>
+  <path class="wr dash" d="M237,346 L237,376"/>
+  <!-- 網（PingSource 突き合わせ） -->
+  <path class="wb-b" d="M160,470 Q240,506 320,470"/>
+  <path class="wb-b thin" d="M176,478 L190,494 M204,486 L214,500 M232,490 L236,502 M258,490 L256,502 M284,486 L278,500 M306,478 L296,494 M180,488 L310,486"/>
+  <circle class="wk fw" cx="90" cy="470" r="28"/>
+  <path class="wk" d="M90,470 L90,450 M90,470 L104,478"/>
+  <path class="wb-b" d="M324,470 C420,460 500,380 560,290" marker-end="url(#ab)"/>
+</g>
+<text class="ts" x="54" y="226">Namespace</text>
+<text class="ts tb" x="200" y="170">ApiServerSource</text>
+<text class="ts tb" x="364" y="276">uid:deleted</text>
+<text class="tb" x="556" y="236">Broker</text>
+<text class="ts" x="664" y="300">永続化した土台</text>
+<text class="ts" x="760" y="180">Trigger</text>
+<text class="ts" x="900" y="236">宛先</text>
+<text class="ts tr" x="820" y="310">retry</text>
+<text class="ts" x="818" y="470">DLQ</text>
+<text class="ts tr" x="300" y="346">zzz 止まってる間</text>
+<text class="ts tr" x="262" y="398">落ちる</text>
+<text class="ts" x="66" y="526">PingSource 毎分</text>
+<text class="ts tb" x="190" y="534">突き合わせで拾う</text>
+</svg>
+</div>
+
+
 
 
 ## Knative が保証する範囲
