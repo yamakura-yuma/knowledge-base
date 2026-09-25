@@ -21,7 +21,8 @@ docs/
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
-uv run docs/build.py           # HTML を生成する
+uv run docs/build.py           # HTML を生成する（landscape / dotfiles）
+uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
 
 ## いま入っているもの
@@ -55,5 +56,8 @@ uv run docs/build.py           # HTML を生成する
 Argo CD の `Application` のデプロイ完了・削除完了を検知して外部へ送る方式を、
 kind 上の実測とソースを根拠に比べたもの。
 
-- [`docs/site/argocd-notify/argocd-notify.html`](./docs/site/argocd-notify/argocd-notify.html)
-  （正本 [`docs/src/argocd-notify/argocd-notify.md`](./docs/src/argocd-notify/argocd-notify.md)）
+- [`docs/site/argocd-notify/index.html`](./docs/site/argocd-notify/index.html) — 概要と評価マトリクス。
+  方式ごとのページ（Notifications / PostSync・PostDelete / Knative / Argo Events /
+  自前 finalizer / API stream）へはここから辿る
+- 正本は [`docs/src/argocd-notify/`](./docs/src/argocd-notify/)。ほかの話題とは独立していて、
+  `docs/build_argocd_notify.py` だけで生成する

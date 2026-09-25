@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>⑤ 自前 finalizer コントローラ</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>⑤ 自前 finalizer コントローラ</h1>
+  <p class="sub">Application に自分の finalizer（例 <code>notify.example.com/deletion</code>）を付けておく。<code>deletionTimestamp</code> が立ち、<strong>残っている finalizer が自分だけ</strong>になったら送信し、送信に成功してから finalizer を外す。<strong>削除完了を保証して送れるのは、6 方式の中でこれだけ。</strong> 代わりに、止まっている間は削除も止まる。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="on">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<h2>アーキテクチャ</h2>
+<div class="dgm"><div class="cap">状態は Application の finalizer 自身が持つ。コントローラは状態を持たず、毎回全件を見直す</div><svg class="fig" viewBox="0 0 1000 380" role="img" aria-label="自前 finalizer コントローラのアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="330" height="310" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="360" y="30" width="330" height="310" rx="8"/><text class="t-zone" x="370" y="46">notify namespace（Platform）</text><rect class="zone zone-ext" x="710" y="30" width="280" height="310" rx="8"/><text class="t-zone" x="720" y="46">外部 / Broker</text><rect class="nd nd-app" x="25" y="60" width="300" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-state" x="25" y="130" width="300" height="86" rx="6"/><text class="t-ink" x="35" y="149">metadata.finalizers</text><text class="t-mono" x="35" y="165">resources-finalizer.argocd…</text><text class="t-mono" x="35" y="181">post-delete-finalizer.argocd…</text><text class="t-mono" x="35" y="197">notify.example.com/deletion</text><rect class="nd nd-comp" x="25" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="35" y="269">application-controller</text><text class="t-mono" x="35" y="285">argocd の finalizer を順に外す</text><rect class="nd nd-comp" x="375" y="60" width="300" height="86" rx="6"/><text class="t-ink" x="385" y="79">notify-finalizer</text><text class="" x="385" y="95">作成時に付ける</text><text class="t-mono" x="385" y="111">残りが自分だけ → 送信 → 外す</text><text class="t-mono" x="385" y="127">controller-runtime・Lease</text><rect class="nd nd-state" x="375" y="250" width="300" height="54" rx="6"/><text class="t-ink" x="385" y="269">Lease</text><text class="t-mono" x="385" y="285">リーダー選出</text><rect class="nd nd-ext" x="725" y="60" width="250" height="70" rx="6"/><text class="t-ink" x="735" y="79">Broker / 任意の HTTP</text><text class="t-mono" x="735" y="95">Idempotency-Key: uid</text><path class="ln ln-watch" d="M375,94 L325,91" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="330" y="82" width="40" height="15" rx="3"/><text class="t-mono" x="350" y="92" text-anchor="middle">watch</text><path class="ln ln-patch" d="M413,146 L350,170 L325,170" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="310" y="155" width="79" height="15" rx="3"/><text class="t-mono" x="350" y="166" text-anchor="middle">付ける / 外す</text><path class="ln ln-patch" d="M175,250 L175,216" marker-end="url(#a-patch)"/><path class="ln ln-ce" d="M675,99 L725,98" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="686" y="88" width="29" height="15" rx="3"/><text class="t-mono" x="700" y="99" text-anchor="middle">送信</text><path class="ln ln-patch" d="M525,146 L525,250" marker-end="url(#a-patch)"/><path class="ln ln-watch" d="M20,370 L48,370" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="374">watch</text><path class="ln ln-ce" d="M107.5,370 L135.5,370" marker-end="url(#a-ce)"/><text class="t-mono" x="141.5" y="374">CloudEvent</text><path class="ln ln-patch" d="M226.5,370 L254.5,370" marker-end="url(#a-patch)"/><text class="t-mono" x="260.5" y="374">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="475.7" y="362" width="16" height="12" rx="2"/><text class="t-mono" x="497.7" y="374">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>状態を持つ場所は finalizer そのもの。</strong> 「まだ送っていない削除」は、自分の finalizer が残っていることで表される。コントローラが落ちても、Kubernetes が Application を消さずに持っていてくれる</li>
+<li>検証には、Python で 40 行ほどの試作を使った（1 秒ごとに全件を見直す）。本番なら controller-runtime で書き、Manager の <code>LeaderElection</code> でリーダーを 1 つにする（<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/v0.25.1/pkg/manager/manager.go">controller-runtime v0.25.1 の pkg/manager/manager.go</a>）</li>
+</ul>
+<h2>権限分離</h2>
+<div class="dgm"><div class="cap">Application に書き込む権限が要るので、Platform が持つ部品になる。App 側は Broker の先で受けるだけ</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="自前 finalizer の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">App 側</text><rect class="nd nd-comp" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">notify-finalizer（Platform が運用）</text><text class="t-mono" x="35" y="95">ServiceAccount: finalizer-ctrl</text><rect class="nd nd-crd" x="25" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="159">Role in argocd</text><text class="t-mono" x="35" y="175">applications: get/list/watch/patch/update</text><rect class="nd nd-crd" x="25" y="220" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="239">admission（任意）</text><text class="t-mono" x="35" y="255">作成時に finalizer を足す（Kyverno など）</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">Trigger と受け手</text><text class="t-mono" x="535" y="95">type=…app.deleted を購読</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">受け手の Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は App が持つ</text><path class="ln ln-rbac" d="M250,140 L250,114" marker-end="url(#a-rbac)"/><path class="ln ln-ce" d="M475,87 L525,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="463" y="76" width="73" height="15" rx="3"/><text class="t-mono" x="500" y="87" text-anchor="middle">Broker 経由</text><path class="ln ln-ce" d="M20,320 L48,320" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="324">CloudEvent</text><path class="ln ln-rbac" d="M139.0,320 L167.0,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="173.0" y="324">権限付与</text></svg></div>
+<ul>
+<li><strong>Platform が持つ部品。</strong> Argo CD が所有する CR の <code>metadata.finalizers</code> に書き込むので、applications への <code>patch</code>（または <code>update</code>）が要る。ほかの方式より権限が広く、App 側に渡してはいけない</li>
+<li><strong>越境:</strong> App 側は Broker の先で受けるだけなので、Application そのものには触れない。受け手を分ければ、他チームの削除通知を購読させない構成にもできる（Trigger の filter で <code>subject</code> を絞る）</li>
+</ul>
+<h2>評価</h2>
+<p><strong>削除完了の検知: ◎。</strong> 自分の finalizer だけが残った時点では、Argo CD はすでに <code>resources-finalizer</code> と <code>post-delete-finalizer</code> を外し終えている。つまり、管理リソースの削除も PostDelete hook の完了も保証された状態で送れる。自分の finalizer を外した直後に、オブジェクトは消える。run6 では、送信から 45 ms 後に Application が消えた。</p>
+<p><strong>検知層の耐障害性: ◎。</strong> レベルトリガで、起動するたびに全件を見直すので、止まっていた間の削除も復旧後に拾える。run4 では、コントローラを止めたまま削除すると、Application は自前の finalizer 1 つを残して待った。復旧から 2.4 秒後に送信され、Application が消えた。</p>
+<p><strong>配送層の回復性: ○。</strong> 送信に成功するまで finalizer を外さないので、retry は実装で自由に書ける（<code>RequeueAfter</code> によるバックオフなど）。DLQ や circuit breaker は付いてこないので、自分で持つか、Broker に任せる。</p>
+<p><strong>配送保証: ◎。</strong> 送ってから外すので at-least-once になる。外す前に落ちれば、重複しうる。冪等キーには Application の <code>uid</code> を使える（試作では <code>Idempotency-Key</code> ヘッダに入れた）。</p>
+<p><strong>可用性: ×。</strong> 止まっている間は削除が完了しない。これは確実さと引き換えの性質で、削除できるかどうかをこのコントローラに預けることになる。2 レプリカ以上とリーダー選出が要る。完全に失われた場合の抜け道（finalizer を手で外す手順）も、運用手順として用意しておく。</p>
+<p><strong>疎結合: ○。</strong> 単体だと、送信先がコードに入る。CloudEvent を Broker に出す形にすれば、送信先の追加は Trigger 側で済み、◎ になる（推奨構成）。</p>
+<p><strong>スケーラビリティ: △。</strong> 処理するのはリーダー 1 つ。Application の数が数千程度なら問題にならないと読めるが、測っていない。</p>
+<p><strong>可観測性: ○。</strong> 自分で OTel SDK を入れ、送信の span を切り、<code>traceparent</code> を付けて送れる。組み込みではないので ○ にした。</p>
+<p><strong>セキュリティ・権限分離: △。</strong> applications への <code>patch</code> が要り、権限が広い。</p>
+<p><strong>運用負荷: △。</strong> 自作のコントローラを保守することになる。</p>
+<p><strong>レイテンシ: ○。</strong> Argo CD の最後の finalizer が外れてから、次のループで送る。試作は 1 秒ごとのポーリングだったので、最大で約 1 秒遅れる。watch で書けば、この遅れは縮む。</p>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

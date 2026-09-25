@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>① Argo CD Notifications</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>① Argo CD Notifications</h1>
+  <p class="sub">Argo CD に同梱の <code>argocd-notifications-controller</code> が、Application を informer で見て trigger の条件式を評価し、template で組んだ本文を service（webhook・Slack など）で送る。<strong>デプロイ完了は取れるが、削除完了は原理的に取れない。</strong></p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="on">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<h2>アーキテクチャ</h2>
+<div class="dgm"><div class="cap">何がどの namespace で動き、状態をどこに持つか</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="Notifications のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="640" height="330" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-ext" x="670" y="30" width="320" height="330" rx="8"/><text class="t-zone" x="680" y="46">外部</text><rect class="nd nd-app" x="25" y="60" width="250" height="54" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><text class="t-mono" x="35" y="95">spec / status</text><rect class="nd nd-state" x="25" y="140" width="250" height="70" rx="6"/><text class="t-ink" x="35" y="159">annotation</text><text class="t-mono" x="35" y="175">notified.notifications.argoproj.io</text><text class="t-mono" x="35" y="191">送信済みの記録（oncePer キー）</text><rect class="nd nd-crd" x="25" y="235" width="250" height="70" rx="6"/><text class="t-ink" x="35" y="254">subscribe annotation</text><text class="t-mono" x="35" y="270">notifications.argoproj.io/</text><text class="t-mono" x="35" y="286">subscribe.&lt;trigger&gt;.&lt;service&gt;</text><rect class="nd nd-comp" x="330" y="60" width="300" height="70" rx="6"/><text class="t-ink" x="340" y="79">argocd-notifications-controller</text><text class="" x="340" y="95">informer（Add / Update のみ）</text><text class="t-mono" x="340" y="111">Deployment 1 レプリカ・Recreate</text><rect class="nd nd-crd" x="330" y="170" width="300" height="60" rx="6"/><text class="t-ink" x="340" y="189">argocd-notifications-cm</text><text class="t-mono" x="340" y="205">trigger / template / service</text><text class="t-mono" x="340" y="221">subscriptions</text><rect class="nd nd-crd" x="330" y="260" width="300" height="54" rx="6"/><text class="t-ink" x="340" y="279">argocd-notifications-secret</text><text class="t-mono" x="340" y="295">送信先の資格情報（$key で参照）</text><rect class="nd nd-ext" x="690" y="60" width="280" height="70" rx="6"/><text class="t-ink" x="700" y="79">Webhook / Slack など</text><text class="t-mono" x="700" y="95">go-retryablehttp</text><text class="t-mono" x="700" y="111">既定 retryMax 3・1〜5 秒</text><rect class="nd nd-ext" x="690" y="170" width="280" height="54" rx="6"/><text class="t-ink" x="700" y="189">Knative Broker（任意）</text><text class="t-mono" x="700" y="205">CloudEvent を template で組む</text><path class="ln ln-watch" d="M330,91 L275,90" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="283" y="80" width="40" height="15" rx="3"/><text class="t-mono" x="302" y="91" text-anchor="middle">watch</text><path class="ln ln-patch" d="M401,130 L300,175 L275,175" marker-end="url(#a-patch)"/><rect class="lbl-bg" x="286" y="160" width="29" height="15" rx="3"/><text class="t-mono" x="300" y="171" text-anchor="middle">記録</text><path class="ln ln-watch" d="M480,130 L480,170" marker-end="url(#a-watch)"/><path class="ln ln-http" d="M630,95 L690,95" marker-end="url(#a-http)"/><rect class="lbl-bg" x="643" y="84" width="33" height="15" rx="3"/><text class="t-mono" x="660" y="95" text-anchor="middle">HTTP</text><path class="ln ln-ce" d="M542,130 L660,197 L690,197" marker-end="url(#a-ce)"/><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M107.5,390 L135.5,390" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="394">HTTP</text><path class="ln ln-ce" d="M188.7,390 L216.7,390" marker-end="url(#a-ce)"/><text class="t-mono" x="222.7" y="394">CloudEvent</text><path class="ln ln-patch" d="M307.7,390 L335.7,390" marker-end="url(#a-patch)"/><text class="t-mono" x="341.7" y="394">書き込み（annotation・finalizer）</text><rect class="nd nd-state" x="556.9" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="578.9" y="394">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>状態を持つ場所は Application 自身の annotation だけ。</strong> 送信済みの記録を <code>notified.notifications.argoproj.io</code> に書く。コントローラは状態を持たないので、再起動しても記録から続きを判断できる</li>
+<li><strong>informer に登録しているハンドラは Add と Update だけ。</strong> キューから取り出したときにオブジェクトが無ければ、何もせず戻る（<a href="https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/controller/controller.go">notifications-engine の pkg/controller/controller.go</a> の <code>NewController</code> と、<code>processQueueItem</code> の <code>if !exists</code>）。オブジェクトが消えた瞬間を捉える経路が無い</li>
+</ul>
+<h2>権限分離</h2>
+<div class="dgm"><div class="cap">Platform 側が controller と既定の送信先を持ち、App 側は購読と自分の namespace の送信先だけを持つ</div><svg class="fig" viewBox="0 0 1000 380" role="img" aria-label="Notifications の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="310" rx="8"/><text class="t-zone" x="20" y="46">Platform 側（Argo CD 管理者）</text><rect class="zone zone-app" x="510" y="30" width="480" height="310" rx="8"/><text class="t-zone" x="520" y="46">App 側（チーム）</text><rect class="nd nd-comp" x="25" y="60" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="79">notifications-controller</text><text class="" x="35" y="95">Role: argocd-notifications-controller</text><text class="t-mono" x="35" y="111">applications: get/list/watch/update/patch</text><rect class="nd nd-crd" x="25" y="155" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="174">argocd-notifications-cm / -secret</text><text class="" x="35" y="190">既定の trigger・template・送信先</text><text class="t-mono" x="35" y="206">argocd namespace</text><rect class="nd nd-crd" x="25" y="250" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="269">argocd-cmd-params-cm</text><text class="t-mono" x="35" y="285">application.namespaces: team-a</text><text class="t-mono" x="35" y="301">notificationscontroller.selfservice.enabled</text><rect class="nd nd-app" x="525" y="60" width="450" height="70" rx="6"/><text class="t-ink" x="535" y="79">Application（team-a namespace）</text><text class="t-mono" x="535" y="95">subscribe annotation を自分で付ける</text><rect class="nd nd-crd" x="525" y="155" width="450" height="70" rx="6"/><text class="t-ink" x="535" y="174">team-a の argocd-notifications-cm / -secret</text><text class="" x="535" y="190">チーム独自の送信先と資格情報</text><text class="t-mono" x="535" y="206">self-service 有効時のみ</text><rect class="nd nd-crd" x="525" y="250" width="450" height="70" rx="6"/><text class="t-ink" x="535" y="269">AppProject（Platform が作る）</text><text class="t-mono" x="535" y="285">sourceNamespaces: [team-a]</text><path class="ln ln-watch" d="M475,95 L525,95" marker-end="url(#a-watch)"/><path class="ln ln-watch" d="M434,130 L566,155" marker-end="url(#a-watch)"/><path class="ln ln-rbac" d="M475,285 L525,285" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="486" y="274" width="29" height="15" rx="3"/><text class="t-mono" x="500" y="285" text-anchor="middle">許可</text><path class="ln ln-watch" d="M20,370 L48,370" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="374">watch</text><path class="ln ln-rbac" d="M107.5,370 L135.5,370" marker-end="url(#a-rbac)"/><text class="t-mono" x="141.5" y="374">権限付与</text></svg></div>
+<table>
+<thead>
+<tr>
+<th>誰が</th>
+<th>何をする</th>
+<th>根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform</td>
+<td>controller・<code>argocd-notifications-cm</code>・<code>-secret</code> を管理し、既定の送信先と資格情報を持つ</td>
+<td><a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/operator-manual/notifications/index.md">notifications/index.md</a></td>
+</tr>
+<tr>
+<td>Platform</td>
+<td>self-service を有効にする（<code>--application-namespaces</code> と <code>--self-service-notification-enabled</code>、または <code>argocd-cmd-params-cm</code>）</td>
+<td>同上「Namespace based configuration」</td>
+</tr>
+<tr>
+<td>Platform</td>
+<td>AppProject の <code>.spec.sourceNamespaces</code> に App 側の namespace を載せる。<code>argocd</code> namespace は絶対に載せない</td>
+<td><a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/operator-manual/app-any-namespace.md">app-any-namespace.md</a></td>
+</tr>
+<tr>
+<td>App</td>
+<td>自分の namespace の Application に subscribe annotation を付ける</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>App</td>
+<td>self-service が有効なら、自分の namespace に <code>argocd-notifications-cm</code> と <code>-secret</code> を置き、独自の送信先と資格情報を持つ</td>
+<td>notifications/index.md</td>
+</tr>
+</tbody>
+</table>
+<p><strong>越境:</strong> Application を <code>argocd</code> namespace に置く従来の構成では、App 側が購読を足すのに <code>argocd</code> namespace の applications への <code>patch</code> が要る。run9 では、<code>team-a</code> に <code>edit</code> を持つ ServiceAccount でも、この権限は無かった。apps-in-any-namespace と self-service を使えば、App 側は自分の namespace だけで購読と送信先を完結でき、他チームの Application には触れない。controller の Role は applications への <code>update</code> と <code>patch</code> を持つので、Platform はこれを信頼する前提になる。</p>
+<h2>評価</h2>
+<p><strong>削除完了の検知: ×。</strong> カタログの <code>on-deleted</code> は <code>when: app.metadata.deletionTimestamp != nil</code> で、説明文は "Application is deleted." となっている（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/notifications_catalog/triggers/on-deleted.yaml">on-deleted.yaml</a>）。実測では、削除要求の 0.06 秒後、<code>resources-finalizer.argocd.argoproj.io</code> を含む finalizer がまだ 3 つ残っている時点で届いた。</p>
+<p>条件を <code>deletionTimestamp != nil and app.status.health.status == 'Missing'</code> にしたカスタム trigger は、管理リソースが消えた直後に発火した（run6）。Notifications で取れるのはここが最も遅い時点で、オブジェクトの消滅は取れない。</p>
+<p><strong>デプロイ完了: 取れる。</strong> カタログの <code>on-deployed</code> は、operation が Succeeded かつ health が Healthy で、<code>oncePer: app.status.operationState?.syncResult?.revision</code>。1 リビジョンにつき 1 回だけ届いた（run3）。</p>
+<p><strong>検知層の耐障害性: ○（デプロイ）／×（削除）。</strong> 送信済みの記録を annotation に持ち、informer は 60 秒ごとに再同期する（<code>notification_controller/controller/controller.go</code> の <code>resyncPeriod</code>）。そのため、止まっていた間に完了したデプロイも、復旧後に送られる。削除は、止まっている間に消えると復旧後も何も送られなかった（run4・run5）。</p>
+<p><strong>配送層の回復性: △。</strong> webhook は go-retryablehttp で送り、既定は <code>retryMax: 3</code>、待ち時間 1〜5 秒（<a href="https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/services/webhook.go">webhook.go</a>）。run8 では 4 回試行（間隔 1 → 2 → 4 秒）して諦め、<strong>そのあと二度と送り直されなかった。</strong></p>
+<p>ソースは、失敗したら送信済みの記録を戻す作りになっている。ところが <code>SetAlreadyNotified</code> は、<code>oncePer</code> が付いた trigger では記録を消さずに <code>false</code> を返す（<a href="https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/controller/state.go">state.go</a>）。そのため <code>on-deployed</code> が失敗すると、送信済みとして残る。実測でも、失敗した送信先の分まで annotation に記録されていた。DLQ も circuit breaker も無い。</p>
+<p><strong>配送保証: ○。</strong> <code>oncePer</code> と annotation の記録で、重複は除かれる。その代わり、上のとおり失敗は at-most-once になる。</p>
+<p><strong>可用性: △。</strong> Deployment は 1 レプリカで、strategy は <code>Recreate</code>（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/manifests/base/notification/argocd-notifications-controller-deployment.yaml">manifests</a>）。リーダー選出の仕組みは見当たらなかった。</p>
+<p><strong>疎結合: △。</strong> 送信先を足すには <code>argocd-notifications-cm</code> を編集する。CloudEvent を組んで Broker に 1 本出す形にすれば、この欠点は Broker 側で解消できる（run7）。</p>
+<p><strong>スケーラビリティ: △。</strong> 購読の数だけ、送信先ごとに個別に送る。</p>
+<p><strong>可観測性: △。</strong> 出るのは Prometheus のメトリクスが 2 本（<code>argocd_notifications_deliveries_total</code> と <code>argocd_notifications_trigger_eval_total</code>、ポート 9001、<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/docs/operator-manual/notifications/monitoring.md">monitoring.md</a>）。application-controller などには <code>--otlp-address</code> があるが、notifications controller には無い。送信のヘッダは <code>Content-Type</code> だけで、<code>traceparent</code> は付かなかった。</p>
+<p><strong>セキュリティ・権限分離: ○。</strong> 上の節のとおり分けられるが、apps-in-any-namespace と self-service を有効にする設定が要る。</p>
+<p><strong>運用負荷: ◎。</strong> Argo CD に同梱されていて、増える部品は無い。</p>
+<p><strong>レイテンシ:</strong> デプロイ完了は、operation が Succeeded になった時点で届いた（作成から 6.05 秒）。削除完了は取れない。</p>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

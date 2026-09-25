@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>⑥ Argo CD API stream</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:11px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:10.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>⑥ Argo CD API stream</h1>
+  <p class="sub">Argo CD の API server が公開している <code>/api/v1/stream/applications</code> を、常駐クライアントが購読する。API server の broadcaster が informer のイベントを中継するので DELETED も届く。<strong>ただし、消費者の受け取りが遅れているとイベントを捨てる。切断していた間のイベントも取り戻せない。</strong></p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="on">⑥ API stream</a></nav>
+<h2>アーキテクチャ</h2>
+<div class="dgm"><div class="cap">状態はどこにも持たない。Kubernetes の RBAC ではなく Argo CD のトークンで入る</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="API stream のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="560" height="260" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-ext" x="590" y="30" width="400" height="260" rx="8"/><text class="t-zone" x="600" y="46">クライアントと外部</text><rect class="nd nd-app" x="25" y="60" width="220" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-comp" x="270" y="60" width="285" height="70" rx="6"/><text class="t-ink" x="280" y="79">argocd-server</text><text class="" x="280" y="95">informer → broadcaster</text><text class="t-mono" x="280" y="111">チャネルが満杯なら捨てる</text><rect class="nd nd-crd" x="270" y="170" width="285" height="54" rx="6"/><text class="t-ink" x="280" y="189">argocd-rbac-cm</text><text class="t-mono" x="280" y="205">p, role:notify, applications, get, …</text><rect class="nd nd-comp" x="605" y="60" width="370" height="54" rx="6"/><text class="t-ink" x="615" y="79">常駐クライアント（自作）</text><text class="t-mono" x="615" y="95">apiKey のトークン（Secret）</text><rect class="nd nd-ext" x="605" y="170" width="370" height="44" rx="6"/><text class="t-ink" x="615" y="189">送信先</text><path class="ln ln-watch" d="M270,88 L245,87" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="238" y="77" width="40" height="15" rx="3"/><text class="t-mono" x="258" y="88" text-anchor="middle">watch</text><path class="ln ln-http" d="M605,91 L555,92" marker-end="url(#a-http)"/><rect class="lbl-bg" x="521" y="80" width="117" height="15" rx="3"/><text class="t-mono" x="580" y="91" text-anchor="middle">HTTP stream（SSE）</text><path class="ln ln-http" d="M790,114 L790,170" marker-end="url(#a-http)"/><path class="ln ln-rbac" d="M412,170 L412,130" marker-end="url(#a-rbac)"/><path class="ln ln-watch" d="M20,320 L48,320" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="324">watch</text><path class="ln ln-http" d="M107.5,320 L135.5,320" marker-end="url(#a-http)"/><text class="t-mono" x="141.5" y="324">HTTP</text><path class="ln ln-rbac" d="M188.7,320 L216.7,320" marker-end="url(#a-rbac)"/><text class="t-mono" x="222.7" y="324">権限付与</text></svg></div>
+<ul>
+<li>API server の broadcaster は、購読者のチャネルに空きが無いとイベントを捨てる（<a href="https://github.com/argoproj/argo-cd/blob/v3.5.3/server/broadcast/broadcaster.go">server/broadcast/broadcaster.go</a> の <code>// drop event if cannot send right away</code>）</li>
+<li>送る前に、<code>sendIfPermitted</code> がトークンの主体に閲覧権限があるかを確かめる（<code>server/application/application.go</code>）</li>
+</ul>
+<h2>権限分離</h2>
+<div class="dgm"><div class="cap">Platform は Argo CD のアカウントと RBAC を発行する。App 側は許された project の Application しか受け取れない</div><svg class="fig" viewBox="0 0 1000 300" role="img" aria-label="API stream の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="230" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="230" rx="8"/><text class="t-zone" x="520" y="46">App 側</text><rect class="nd nd-crd" x="25" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="79">argocd-cm の accounts.&lt;name&gt;</text><text class="t-mono" x="35" y="95">apiKey を発行</text><rect class="nd nd-crd" x="25" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="159">argocd-rbac-cm</text><text class="t-mono" x="35" y="175">team-a の project の applications, get</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">チームのクライアント</text><text class="t-mono" x="535" y="95">トークンを Secret に置く</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">送信先の資格情報</text><text class="t-mono" x="535" y="175">クライアントが持つ</text><path class="ln ln-rbac" d="M475,87 L525,87" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="475" y="76" width="50" height="15" rx="3"/><text class="t-mono" x="500" y="87" text-anchor="middle">トークン</text><path class="ln ln-rbac" d="M419,140 L581,114" marker-end="url(#a-rbac)"/><path class="ln ln-rbac" d="M20,290 L48,290" marker-end="url(#a-rbac)"/><text class="t-mono" x="54" y="294">権限付与</text></svg></div>
+<ul>
+<li><strong>越境:</strong> stream が返すのは、トークンの主体が閲覧を許された Application だけ（<code>sendIfPermitted</code>）。Argo CD の RBAC で project ごとに絞れば、他チームの Application は見えない。この絞り込みは実測していない（実測は admin のトークンで行った）</li>
+<li><strong>資格情報:</strong> 長寿命の apiKey トークンをクライアント側の Secret に持つことになる。漏れたときの影響範囲は、RBAC で絞った範囲になる</li>
+</ul>
+<h2>評価</h2>
+<p><strong>削除完了の検知: ○。</strong> <code>DELETED</code> が、オブジェクトの消滅から 2 ms で届いた（run3）。</p>
+<p><strong>検知層の耐障害性: ×。</strong> 切断していた間の削除は、再接続したときの一覧に出てこない。</p>
+<p><strong>配送層の回復性: ×。</strong> 受け取った後の処理は、すべて自前のクライアントの仕事になる。stream 自体には再送の仕組みが無い。</p>
+<p><strong>配送保証: ×。</strong> 受け取りが詰まるとイベントを捨てるので、at-most-once にも届かない。</p>
+<p><strong>可用性: △。</strong> クライアントを複数並べると、全員が同じイベントを受け取って重複する。重複を除く仕組みも自前で作ることになる。</p>
+<p><strong>疎結合・スケーラビリティ: △。</strong> 送信先の管理もファンアウトも、自分で書く。</p>
+<p><strong>可観測性: △。</strong> すべて自前。</p>
+<p><strong>セキュリティ・権限分離: ○。</strong> Argo CD の RBAC で、見える範囲を絞れる。</p>
+<p><strong>運用負荷: ×。</strong> 自作のクライアントを保守することになる。しかも ⑤ ほどの保証は得られない。</p>
+<p><strong>レイテンシ: ◎。</strong> オブジェクトの消滅から 2 ms（run3）。</p>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

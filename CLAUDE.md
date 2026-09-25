@@ -25,20 +25,25 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   エージェント環境の組み立て）と `context-optimization.md`（Headroom / CodeGraph /
   graphify の比較）
 - `docs/src/argocd-notify/` — 話題③ Argo CD Application のデプロイ完了・削除完了を
-  外部へ通知する方式の比較。`argocd-notify.md` 1 本で、図は md の中に生の SVG で書く
+  外部へ通知する方式の比較。`index.md`（概要・評価マトリクス）と方式ごとの md 6 本。
+  ほかの話題とは独立していて、専用の `docs/build_argocd_notify.py` が生成する。
+  `build.py` の PAGES・ナビ・CSS には載せず、既存の話題とのリンクも張らない。
+  図は md の中の ```diagram ブロック（YAML）に書き、ビルド時に SVG になる
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
-- `docs/build.py` / `docs/fetch_metrics.py` — 生成系。このリポジトリのコードはこれだけ
+- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` — 生成系。
+  このリポジトリのコードはこれだけ
 - `.apm/skills/` — このリポジトリ固有のエージェント設定
 
 ## コマンド
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る。認証は gh に任せる
-uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
+uv run docs/build.py           # landscape / dotfiles の HTML を組み直す
+uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```
 

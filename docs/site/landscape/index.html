@@ -185,34 +185,6 @@
   .rail .v .yes { color:var(--ok); }
   .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
 
-  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
-  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
-  .fig text { fill:var(--ink-2); font-size:12px; }
-  .fig .t-ink { fill:var(--ink); font-weight:600; }
-  .fig .t-mono { font-family:var(--mono); font-size:10.5px; fill:var(--ink-3); }
-  .fig .nd { fill:var(--bg); stroke:var(--line); stroke-width:1.2; }
-  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink-3); }
-  .fig .nd-out { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
-  .fig .ln { stroke:var(--ink-3); stroke-width:1.3; fill:none; }
-  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l2 { stroke:var(--l2); }
-  .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
-  .fig .ln-dash { stroke-dasharray:4 3; }
-  .fig .ar { fill:var(--ink-3); }
-  .fig .band { fill:var(--surface-2); }
-  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); }
-  .fig .mk-mid { fill:var(--stale); } .fig .mk-dead { fill:var(--dead); }
-  .fig .t-ok { fill:var(--ok); } .fig .t-bad { fill:var(--hot); }
-
-  /* 評価マトリクス。◎○△× を背景色でも分ける */
-  table.mx td, table.mx th { text-align:center; white-space:nowrap; }
-  table.mx td:first-child, table.mx th:first-child { text-align:left; }
-  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
-                       font-family:var(--mono); font-size:12px; font-weight:600; }
-  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
-  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
-  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
-  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
-
   .tblwrap { overflow-x:auto; }
   .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
   .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
@@ -264,7 +236,7 @@
   <h1>AI コーディングツール・ランドスケープ</h1>
   <p class="sub">78 項目を 4 層に分けて並べた。星の数・直近リリース・アーカイブ状態は GitHub API の実測値（取得日 <b>2026-09-21</b>）で、状態の判定はすべてその数字から機械的に出している。詳細は層ごとのページに分けた。</p>
 </header>
-<nav class="nav"><a href="../landscape/index.html" class="on">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../dotfiles/context-optimization.html" class="">文脈の最適化</a><a href="../dotfiles/dotfiles.html" class="">dotfiles 構成</a><a href="../argocd-notify/argocd-notify.html" class="">Argo CD 通知</a></nav>
+<nav class="nav"><a href="../landscape/index.html" class="on">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../dotfiles/context-optimization.html" class="">文脈の最適化</a><a href="../dotfiles/dotfiles.html" class="">dotfiles 構成</a></nav>
 
 <h2>1. この分類はどうやって導いたか</h2>
 <p>
@@ -375,7 +347,7 @@ L3  共通基盤          MCP / AGENTS.md / Agent Skills / apm …       全層�
 
 <h2>4. 層ごとのページ</h2>
 <p>詳細はここには置かず、層ごとのページに分けてある。1 ページが長くなりすぎると読めないため。</p>
-<div class="pagegrid"><a class="pcard" href="../landscape/l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="../landscape/l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="../landscape/l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="../landscape/l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="../dotfiles/context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a><a class="pcard" href="../dotfiles/dotfiles.html"><b>dotfiles 構成</b><span>このホストのエージェント環境が、どう組み立てられているか</span></a><a class="pcard" href="../argocd-notify/argocd-notify.html"><b>Argo CD 通知</b><span>Argo CD Application のデプロイ完了・削除完了を検知して外へ通知する方式の比較</span></a></div>
+<div class="pagegrid"><a class="pcard" href="../landscape/l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="../landscape/l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="../landscape/l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="../landscape/l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="../dotfiles/context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a><a class="pcard" href="../dotfiles/dotfiles.html"><b>dotfiles 構成</b><span>このホストのエージェント環境が、どう組み立てられているか</span></a></div>
 
 <h2>5. この表が答えていないこと</h2>
 <p>ランドスケープの類は、何を載せたかより<strong>何を載せなかったか</strong>で誤解を生む。先に書いておく。</p>
