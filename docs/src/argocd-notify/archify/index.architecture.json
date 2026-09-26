@@ -2,7 +2,7 @@
  "schema_version": 1,
  "diagram_type": "architecture",
  "meta": {
-  "title": "推奨構成：基盤の設定に触らず、外から観測して届ける",
+  "title": "推奨構成：Knative Eventing で Argo CD と Namespace を外から観測する",
   "quality_profile": "showcase",
   "legend": {
    "mode": "hidden"
@@ -10,13 +10,27 @@
  },
  "components": [
   {
+   "id": "app",
+   "type": "external",
+   "label": "① Application",
+   "sublabel": "argocd ns",
+   "pos": [
+    40,
+    150
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
    "id": "job",
    "type": "external",
-   "label": "① Namespace 削除 Job",
+   "label": "② Namespace 削除 Job",
    "sublabel": "基盤の既存部品",
    "pos": [
     40,
-    110
+    290
    ],
    "size": [
     172,
@@ -30,7 +44,7 @@
    "sublabel": "ラベル付き",
    "pos": [
     40,
-    264
+    430
    ],
    "size": [
     172,
@@ -40,17 +54,31 @@
   {
    "id": "src",
    "type": "security",
-   "label": "② ApiServerSource",
-   "sublabel": "Namespace を watch",
+   "label": "③ ApiServerSource",
+   "sublabel": "App と NS を watch",
    "pos": [
     300,
-    264
+    290
    ],
    "size": [
     172,
     64
    ],
-   "tag": "⚠ 停止中の削除を落とす"
+   "tag": "⚠ 停止中は取りこぼす"
+  },
+  {
+   "id": "obs",
+   "type": "backend",
+   "label": "④ 観測 Service",
+   "sublabel": "deployed 判定・照合",
+   "pos": [
+    560,
+    150
+   ],
+   "size": [
+    172,
+    64
+   ]
   },
   {
    "id": "ping",
@@ -59,7 +87,7 @@
    "sublabel": "毎分",
    "pos": [
     300,
-    418
+    150
    ],
    "size": [
     172,
@@ -67,28 +95,13 @@
    ]
   },
   {
-   "id": "obs",
-   "type": "backend",
-   "label": "③ 観測 Service",
-   "sublabel": "uid 一覧と照合",
-   "pos": [
-    560,
-    418
-   ],
-   "size": [
-    172,
-    64
-   ],
-   "tag": "停止中の分を拾う"
-  },
-  {
    "id": "brk",
    "type": "messagebus",
-   "label": "④ Broker",
+   "label": "⑤ Broker",
    "sublabel": "入口は 1 つ",
    "pos": [
     560,
-    264
+    290
    ],
    "size": [
     172,
@@ -97,13 +110,27 @@
    "tag": "⚠ InMemory だと失う"
   },
   {
+   "id": "tf",
+   "type": "backend",
+   "label": "EventTransform",
+   "sublabel": "id = uid:deleted",
+   "pos": [
+    560,
+    430
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
    "id": "tr",
    "type": "backend",
-   "label": "⑤ Trigger",
+   "label": "⑥ Trigger",
    "sublabel": "条件・retry・DLQ",
    "pos": [
-    820,
-    264
+    860,
+    290
    ],
    "size": [
     172,
@@ -113,25 +140,11 @@
   {
    "id": "rcv",
    "type": "frontend",
-   "label": "⑥ 受け手",
-   "sublabel": "Slack へ送る",
+   "label": "⑦ 受け手",
+   "sublabel": "id で重複を消す",
    "pos": [
-    1080,
-    264
-   ],
-   "size": [
-    172,
-    64
-   ]
-  },
-  {
-   "id": "sec",
-   "type": "database",
-   "label": "Secret",
-   "sublabel": "Slack の鍵",
-   "pos": [
-    1080,
-    418
+    860,
+    430
    ],
    "size": [
     172,
@@ -142,82 +155,131 @@
  "boundaries": [
   {
    "kind": "region",
-   "label": "基盤側（基盤チームが管理）",
+   "label": "基盤側：Argo CD と Namespace（触らない）",
    "wraps": [
+    "app",
     "job",
-    "ns",
+    "ns"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "基盤側：Knative Eventing（通知基盤）",
+   "wraps": [
     "src",
     "ping",
     "obs",
-    "brk"
+    "brk",
+    "tf"
    ]
   },
   {
    "kind": "security-group",
-   "label": "利用者側（アプリチームが管理）",
+   "label": "利用者側",
    "wraps": [
     "tr",
-    "rcv",
-    "sec"
+    "rcv"
    ]
   }
  ],
  "connections": [
   {
-   "id": "c0",
+   "id": "del",
    "from": "job",
    "to": "ns",
    "label": "削除",
    "labelAt": [
     126,
-    188
+    368
    ]
   },
   {
-   "id": "c1",
+   "id": "wa",
    "from": "src",
-   "to": "ns",
-   "label": "watch"
+   "to": "app",
+   "label": "watch",
+   "fromSide": "top",
+   "toSide": "right",
+   "via": [
+    [
+     386,
+     250
+    ],
+    [
+     256,
+     250
+    ],
+    [
+     256,
+     182
+    ]
+   ]
   },
   {
-   "id": "c2",
+   "id": "wn",
+   "from": "src",
+   "to": "ns",
+   "label": "watch",
+   "fromSide": "bottom",
+   "toSide": "right",
+   "via": [
+    [
+     386,
+     462
+    ]
+   ]
+  },
+  {
+   "id": "ev",
    "from": "src",
    "to": "brk",
-   "label": "delete",
+   "label": "add/update/delete",
    "variant": "emphasis"
   },
   {
-   "id": "c3",
+   "id": "p",
    "from": "ping",
    "to": "obs",
    "label": "起動"
   },
   {
-   "id": "c4",
+   "id": "o",
    "from": "obs",
    "to": "brk",
-   "label": "同じ id",
-   "variant": "emphasis"
+   "label": "deployed",
+   "variant": "emphasis",
+   "labelAt": [
+    646,
+    228
+   ]
   },
   {
-   "id": "c5",
+   "id": "t",
+   "from": "brk",
+   "to": "tf",
+   "label": "delete",
+   "labelAt": [
+    646,
+    368
+   ]
+  },
+  {
+   "id": "f",
    "from": "brk",
    "to": "tr",
    "label": "転送 1 本",
    "variant": "emphasis"
   },
   {
-   "id": "c6",
+   "id": "r",
    "from": "tr",
    "to": "rcv",
-   "label": "配る"
-  },
-  {
-   "id": "c7",
-   "from": "sec",
-   "to": "rcv",
-   "label": "鍵",
-   "variant": "dashed"
+   "label": "配る",
+   "variant": "emphasis",
+   "labelAt": [
+    946,
+    368
+   ]
   }
  ]
 }

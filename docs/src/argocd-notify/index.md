@@ -1,22 +1,23 @@
 # Argo CD Application の完了通知
 
-> Argo CD の `Application` について、デプロイ完了（Synced かつ Healthy）と削除完了（finalizer の処理が終わってオブジェクトと管理リソースが実際に消えた時点）を検知し、外部へ送る 6 つの方式を比べる。根拠は kind 上の Argo CD v3.5.3 での実測と、各プロジェクトのソース・公式ドキュメント。方式ごとの詳細は各ページに分けた。
+> **前提は Knative Eventing の導入。** そのうえで、Argo CD の `Application` のデプロイ完了（Synced かつ Healthy）と、Namespace の削除完了（Terminating が終わり完全に消えた時点）を、基盤側の設定（Argo CD・`argocd-notifications-cm`・Namespace を消す Job）に触らずに外へ届ける組み方を示す。Knative を使わない 5 方式との比較は参考として残した。根拠は kind 上の Argo CD v3.5.3 と Knative Eventing v1.23.0 での実測と、各プロジェクトのソース・公式ドキュメント。
 
 ## このページを一言で {#grareco}
 
-<p class="eli5">部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。Namespace を消すと、中の Pod や Deployment が順に片づけられ、最後に Namespace そのものが消えます。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで、建物の外に見張り役を置きます。見張り役は Kubernetes に「この Namespace はまだあるか」を問い合わせ続け、完全に消えたのを見てから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
+<p class="eli5">アプリを置く部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで建物の中に、郵便局（Knative Eventing）を一つ置きます。郵便局の受付係（ApiServerSource）は Kubernetes に「アプリの配置は終わったか」「この Namespace はまだあるか」を問い合わせ続け、デプロイが終わったとき・Namespace が完全に消えたときに手紙を作ります。手紙はすべて同じ窓口（Broker）に集まり、あなたが自分の部屋に置いた仕分け箱（Trigger）を通って届きます。受付係がうたた寝しても、一分ごとに名簿と見比べる係（PingSource で起きる観測 Service）が落とした分を拾うので、手紙はあとから必ず届きます。管理会社の仕組みには、どこにも手を入れません。</p>
 
 <!-- archify: index.architecture -->
 
 **図の読み方**
 
-- ① 基盤チームの既存の Job が Namespace を消す。通知のためにこの Job には手を入れない
-- ② ApiServerSource が Namespace の消滅を watch して、Broker に送る。⚠ 止まっている間の削除は取りこぼす（取りこぼす条件の表「受信役の停止中の削除」）
-- ③ PingSource が毎分起こす観測 Service が uid 一覧と照合し、②の取りこぼしを同じ id で送り直す
-- ④ Broker は全チーム共通の入口。⚠ 保管しない InMemoryChannel だと再起動で失う（取りこぼす条件の表）
-- ⑤⑥ 利用者側は自分の Namespace の Trigger・受け手・Secret だけを持つ。宛先・条件・本文の変更はここで済む（変更時の作業の表で「通知側」）
+- 左の枠は Argo CD と Namespace（基盤側、通知のために触らない）、中央の枠は Knative Eventing（基盤側の通知基盤）、右の枠は利用者側
+- ① Application と ② Namespace を消す Job は既存の部品。Knative からは watch するだけ
+- ③ ApiServerSource が Application の変化と Namespace の消滅を CloudEvent にして Broker に入れる。⚠ 止まっている間の変化は取りこぼす（取りこぼす条件の表「受信役の停止中の削除」）
+- ④ 観測 Service が Application の変化から「デプロイ完了」を判定して送る。PingSource で毎分起き、③の取りこぼしも同じ id で拾う。Namespace の削除は EventTransform が `uid:deleted` の id を付ける
+- ⑤ Broker が唯一の入口。⚠ 保管しない InMemoryChannel だと再起動で失う（取りこぼす条件の表）
+- ⑥⑦ 利用者側は自分の Namespace の Trigger と受け手だけを持つ。宛先・条件・本文の変更はここで済む（変更時の作業の表で「通知側」）
 
-（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点。）
 
 ---
 
