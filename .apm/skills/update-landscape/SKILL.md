@@ -1,6 +1,6 @@
 ---
 name: update-landscape
-description: docs/ の AI ツール・ランドスケープを実測値で更新する。GitHub から star・push 日時・リリース数・アーカイブ状態を取り直し、registry.yaml の取りこぼしを直して HTML を組み直すとき、あるいは「ランドスケープを更新して」と言われたときに使う。
+description: docs/ の AI ツール・ランドスケープを実測値で更新する。GitHub から star・push 日時・リリース数・アーカイブ状態を取り直し、registry.yaml の取りこぼしを直して HTML を組み直すとき、ハーネスのパターン・カタログの出典候補を集め直してパターンを抽出するとき、あるいは「ランドスケープを更新して」と言われたときに使う。
 ---
 
 # ランドスケープを更新する
@@ -28,5 +28,9 @@ uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
 - **`docs/site/` を直接編集しない。** 生成物なので次のビルドで消える。
   **`docs/src/data/metrics.json` を手で編集しない。** 実測値の置き場所であって、意見の置き場所ではない。
 
-どちらのスクリプトも冪等で、実データに差が無ければファイルに触らない。
+パターン・カタログ（話題④）は同じ回の最後に回す。`uv run docs/collect_candidates.py` で
+候補を集め直し、上位のうち未抽出のものを `docs/src/patterns/catalog.yaml` に足す
+（UPDATE_PROMPT.md の 7）。候補は `registry.yaml` に入れない。`~/dotfiles` は読むだけ。
+
+どのスクリプトも冪等で、実データに差が無ければファイルに触らない。
 続けて 2 回流して git の差分が出ないことが、正しく終わった証拠になる。

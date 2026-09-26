@@ -14,14 +14,16 @@ docs/
     landscape/          # 話題① AI ツールのランドスケープ
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
     argocd-notify/      # 話題③ Argo CD の完了通知
-    data/               # 取得物・状態（metrics.json / status.json）
+    patterns/           # 話題④ ハーネスのパターン・カタログ
+    data/               # 取得物・状態（metrics.json / status.json / candidates.json）
   site/                 # 生成物。直接編集しない
-    landscape/  tool-research/  argocd-notify/
+    landscape/  tool-research/  argocd-notify/  patterns/
 ```
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
-uv run docs/build.py           # HTML を生成する（landscape / tool-research）
+uv run docs/collect_candidates.py  # パターンの出典候補を集める（話題④）
+uv run docs/build.py           # HTML を生成する（landscape / tool-research / patterns）
 uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
 
@@ -63,3 +65,18 @@ Argo CD の `Application` や Namespace の作成・更新・削除から、「�
   finalizer / API stream）と実測の報告書へはここから辿る
 - 正本は [`docs/src/argocd-notify/`](./docs/src/argocd-notify/)。ほかの話題とは独立していて、
   `docs/build_argocd_notify.py` だけで生成する（Node と `apm install` が要る）
+
+### 話題④ ハーネスのパターン・カタログ
+
+各ハーネス・スキル集から学べる**型**（ツールではなく）を、プロンプト ⊂ ハーネス ⊂ ループ ⊂ グラフ
+の 4 層に分けて並べ、自作ハーネス（`~/dotfiles` の core-principal）での状態（採用済・部分的・
+未採用・観察）を付けたもの。出典は公式ドキュメントか README の原文だけ。
+
+- 読む: [`docs/site/patterns/index.html`](./docs/site/patterns/index.html)（先頭の図で、どの層が薄いか分かる）
+- 正本: [`docs/src/patterns/catalog.yaml`](./docs/src/patterns/catalog.yaml)
+- 見立て（意見）: どういう形式のハーネスがよいか。[`docs/site/patterns/harness-form.html`](./docs/site/patterns/harness-form.html)
+  （正本 [`docs/src/patterns/harness-form.md`](./docs/src/patterns/harness-form.md)。件数は catalog.yaml から生成時に数える）
+- 出典候補: `docs/collect_candidates.py` が GitHub の topic 検索と awesome 系リストから、
+  LLM を使わずに star/日で上位を集める（[`docs/src/data/candidates.json`](./docs/src/data/candidates.json)）。
+  ランドスケープの母集団には入れない
+- 更新: [`UPDATE_PROMPT.md`](./docs/src/landscape/UPDATE_PROMPT.md) の 7、または `/update-landscape`

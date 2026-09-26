@@ -1,0 +1,1002 @@
+# ハーネスのパターン・カタログ
+#
+# このファイルが話題④の正本。行はパターン（ツールではない）。同じ働きを複数の出典が
+# 持つときは 1 行にまとめ、sources に並べる。HTML は docs/build.py が
+# docs/patterns_page.py 経由で docs/site/patterns/index.html に描く。
+#
+# 縛り:
+#   - 出典は公式ドキュメントか README（リポジトリ内の docs / SKILL.md を含む）に限る。
+#     evidence にはそのページの原文を短く引く。引けないものは載せない。
+#   - state は自作ハーネス（~/dotfiles の core-principal）を読んで決める。基準は
+#     state_criteria。self には ~/dotfiles からの相対パスを書く。
+#   - 出典候補（docs/src/data/candidates.json）から出典に上げたものは kind: candidate。
+#     ランドスケープの registry.yaml には入れない。
+
+verified: 2026-09-26
+
+state_criteria:
+  adopted: 同じ働きをするものが自作ハーネスにあり、ファイルで示せる
+  partial: 一部だけある。手動の手順に留まる、対象が狭い、または別の層で代替している
+  missing: 自作ハーネスに無い
+  watch: 入れないと決めた理由がどこかに書いてある。採否を保留している
+
+# 層ごとの節の冒頭に出す「この層で何が分かったか」。state を変えたら読み直すこと。
+layer_findings:
+  prompt: 常駐させる文面を絞る型（階層化した指示、ルールは橋渡しだけ）は揃っている。無いのは、手順の省略を防ぐ型（言い訳と反論の表、プレイブックを ToDo に写す）。
+  harness: いちばん薄い層（18 件中 8 件が未採用）。止めるフックと文脈の節約は揃っているが、権限を段階的に緩める型（サンドボックスと承認のプリセット、呼び出しごとの審査）と、サブエージェントごとの権限分離が無い。
+  loop: 振り返りとハーネス自身の検査（make ci、行動評価）は揃っている。無いのは、1 回の作業の中で「続けるか止めるか」を機械が判定する型（目標までの自動継続、TDD ゲート、閾値付きの審査）。
+  graph: coordinator と worker、worktree による隔離は採用済みで、いちばん埋まっている層。無いのは、複数の案や観点を並列に出して統合する型と、PR やチャットのイベントを起点にエージェントを立てる型。
+
+# 未採用・部分的の行に付ける、取り込んだ場合の効果（impact）と手間（effort）。
+# 「次に取り込む候補」はこの 2 つから機械的に並べる。
+priority_criteria:
+  impact:
+    3: 毎セッション・全ワーカーで効き、失敗をその場で防ぐ
+    2: 特定の作業の種類で効く
+    1: 限られた場面でだけ効く
+  effort:
+    1: 既存の置き場所（ルール・スキル・フック・agents/）に 1 つ足すだけ
+    2: 新しいスクリプトを書くか、設定の方法を調べる必要がある
+    3: ハーネスの外の基盤か、Claude Code に無い機能が要る
+  order: 効果 − 手間 の大きい順。同点なら効果の高い順、さらに出典の多い順
+
+sources:
+  # ---- 公式（指定の抽出対象）
+  - id: claude-code
+    name: Claude Code
+    kind: official
+    url: https://code.claude.com/docs/en/overview
+    repo: anthropics/claude-code
+    version: v2.1.282 (2026-09-24)
+    dogfood: null
+  - id: codex-cli
+    name: Codex CLI
+    kind: official
+    url: https://developers.openai.com/codex
+    repo: openai/codex
+    version: rust-v0.157.0 (2026-09-25)
+    dogfood: null
+  - id: deepseek-harness
+    name: DeepSeek Harness
+    kind: official
+    url: https://github.com/deepseek-ai/deepseek-harness
+    repo: deepseek-ai/deepseek-harness
+    version: dsh-v0.1.7-rc.2 (2026-09-24, プレリリースのみ)
+    dogfood: null
+  - id: cursor-pstack
+    name: Cursor pstack / poteto-mode
+    kind: official
+    url: https://github.com/cursor/plugins/tree/main/pstack
+    repo: cursor/plugins
+    version: plugin 0.15.5（リリースなし, 2026-09-23）
+    dogfood:
+      quote: these are the same skills i use everyday to ship high quality code at Cursor.
+      url: https://github.com/cursor/plugins/blob/main/pstack/README.md
+  - id: self
+    name: 自作ハーネス（core-principal）
+    kind: self
+    url: https://github.com/yamakura-yuma/dotfiles/tree/main/core-principal
+    version: core-principal 1.1.0（非公開リポジトリ）
+    dogfood: null
+  # ---- 出典候補の上位 10（candidates.json の rank 1〜10）
+  - id: ponytail
+    name: ponytail
+    kind: candidate
+    url: https://github.com/DietrichGebert/ponytail
+    repo: DietrichGebert/ponytail
+    version: v4.10.0 (2026-09-14)
+    dogfood: null
+  - id: ecc
+    name: ECC
+    kind: candidate
+    url: https://github.com/affaan-m/ECC
+    repo: affaan-m/ECC
+    version: v2.2.1 (2026-09-08)
+    dogfood:
+      quote: These configs are battle-tested across multiple production applications.
+      url: https://github.com/affaan-m/ECC/blob/main/README.md
+  - id: superpowers
+    name: Superpowers
+    kind: candidate
+    url: https://github.com/obra/superpowers
+    repo: obra/superpowers
+    version: v6.4.1 (2026-09-19)
+    dogfood: null
+  - id: graphify
+    name: graphify
+    kind: candidate
+    url: https://github.com/Graphify-Labs/graphify
+    repo: Graphify-Labs/graphify
+    version: v0.9.67 (2026-09-23)
+    dogfood: null
+  - id: gstack
+    name: gstack
+    kind: candidate
+    url: https://github.com/garrytan/gstack
+    repo: garrytan/gstack
+    version: VERSION 1.89.1.0（リリースなし, 2026-09-25）
+    dogfood:
+      quote: This is my open source software factory. I use it every day.
+      url: https://github.com/garrytan/gstack/blob/main/README.md
+  - id: open-design
+    name: OpenDesign
+    kind: candidate
+    url: https://github.com/nexu-io/open-design
+    repo: nexu-io/open-design
+    version: v0.24.1 (2026-09-24)
+    dogfood: null
+  - id: caveman
+    name: Caveman
+    kind: candidate
+    url: https://github.com/JuliusBrussee/caveman
+    repo: JuliusBrussee/caveman
+    version: v2.7.0 (2026-09-15)
+    dogfood: null
+  - id: hermes-agent
+    name: Hermes Agent
+    kind: candidate
+    url: https://github.com/NousResearch/hermes-agent
+    repo: NousResearch/hermes-agent
+    version: v2026.9.24 (2026-09-24)
+    dogfood: null
+  - id: anthropic-skills
+    name: Anthropic Skills
+    kind: candidate
+    url: https://github.com/anthropics/skills
+    repo: anthropics/skills
+    version: リリースなし (2026-09-24)
+    dogfood: null
+  - id: addy-agent-skills
+    name: Agent Skills（Addy Osmani）
+    kind: candidate
+    url: https://github.com/addyosmani/agent-skills
+    repo: addyosmani/agent-skills
+    version: 0.6.10 (2026-09-18)
+    dogfood: null
+
+patterns:
+  # =================================================================== prompt
+  - id: layered-instruction-files
+    name: 階層化した常設の指示ファイル
+    layer: prompt
+    problem: 全体の規約とディレクトリ別の上書きを、必要な範囲にだけ毎セッション読ませる
+    state: adopted
+    self: [core-principal/.apm/instructions/core-principal.instructions.md, AGENTS.md]
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/memory
+        evidence: CLAUDE.md and CLAUDE.local.md files in the directory hierarchy above the working directory are loaded at launch.
+      - source: codex-cli
+        url: https://developers.openai.com/codex/guides/agents-md
+        evidence: Files closer to your current directory override earlier guidance because they appear later in the combined prompt.
+
+  - id: rule-as-pointer
+    name: 常駐ルールは規範と橋渡しだけにする
+    layer: prompt
+    problem: 毎プロンプト読まれるファイルが肥大して文脈を食うのを防ぐ。説明はスキルへ逃がす
+    state: adopted
+    self: [core-principal/.apm/instructions/core-principal.instructions.md]
+    sources:
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/instructions/core-principal.instructions.md
+        evidence: このファイルは毎プロンプト読み込まれる。だから内容は、数行で完結する規範か、「この場面ではこれを使う」という橋渡しだけに限る。
+
+  - id: pushy-skill-description
+    name: 起動条件を description に集め、強めに書く
+    layer: prompt
+    problem: 役立つ場面でもモデルがスキルを起動しない（起動漏れ）
+    state: partial
+    impact: 1
+    effort: 1
+    gain: core-* スキルの起動漏れが少し減る
+    cost: description を書き直すだけ
+    self: [core-principal/.apm/skills/core-harness/SKILL.md]
+    note: 起動条件を description に集める（"Describe the situation"）ところまで。強めに書く指示は無い
+    sources:
+      - source: anthropic-skills
+        url: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
+        evidence: Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful.
+
+  - id: mandatory-skill-check
+    name: 行動前にスキルの有無を必ず確かめさせる
+    layer: prompt
+    problem: 当てはまるスキルがあるのに「簡単だから」と使わずに進む
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 当てはまるスキルの起動漏れが減る
+    cost: 常駐ルールに 1 行足すだけ
+    self: [core-principal/.apm/instructions/core-principal.instructions.md]
+    note: 場面ごとの橋渡しはあるが、毎回の確認を強制する文言は無い
+    sources:
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/using-superpowers/SKILL.md
+        evidence: If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+  - id: solution-ladder
+    name: 最小解の段階ラダー
+    layer: prompt
+    problem: 標準ライブラリや既存機能で済む処理を自前で作り込む
+    state: adopted
+    self: [core-principal/apm.yml（ponytail スキル群を依存に取る）]
+    sources:
+      - source: ponytail
+        url: https://github.com/DietrichGebert/ponytail/blob/main/README.md
+        evidence: Before writing code, the agent stops at the first rung that holds
+
+  - id: anti-rationalization-table
+    name: 言い訳と反論の表で手順の省略を防ぐ
+    layer: prompt
+    problem: 「テストは後で」のような言い訳で手順を飛ばす
+    state: missing
+    impact: 2
+    effort: 1
+    gain: core-* スキルの手順が「今回は省いてよい」と飛ばされにくくなる
+    cost: 既存のスキルに言い訳と反論の表を 1 つずつ足すだけ
+    sources:
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/README.md
+        evidence: Every skill includes a table of common excuses agents use to skip steps (e.g., "I'll add tests later") with documented counter-arguments.
+
+  - id: playbook-steps-as-todos
+    name: プレイブックの手順を ToDo にそのまま写す
+    layer: prompt
+    problem: 作業種別ごとに決めた手順を飛ばす。飛ばすなら理由を残させる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: ワーカーが core-dispatch などの手順を黙って飛ばさなくなる
+    cost: スキルに「手順を ToDo に写す」と 1 段落足すだけ
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/SKILL.md
+        evidence: Open a todolist whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos.
+
+  - id: pause-only-irreversible
+    name: 取り消せない操作のときだけ止まる
+    layer: prompt
+    problem: 取り消せる作業での確認をやめて自律性を上げ、取り消せない操作でだけ人を待つ
+    state: partial
+    impact: 2
+    effort: 2
+    gain: デプロイや外部への送信も、git と同じ線で止まる
+    cost: ガードの対象を広げるには、何が取り消せないかをコマンドごとに決める必要がある
+    self: [core-principal/.apm/hooks/guard-destructive-git.json, docs/agent-harness.md]
+    note: git で「復旧できない」操作だけを止める線引きは同じ。デプロイや外部への送信は対象外
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/SKILL.md
+        evidence: "Always pause for irreversible writes: force-push to shared branches, deploys, data deletion, customer messages."
+
+  - id: brand-contract-file
+    name: 仕様ファイルを契約として毎回読ませる
+    layer: prompt
+    problem: 生成のたびにトークンや文体がぶれる
+    state: missing
+    impact: 1
+    effort: 1
+    gain: show-me や site の HTML の見た目が回ごとにぶれなくなる
+    cost: DESIGN.md を 1 つ書き、HTML を作るスキルから読ませる
+    sources:
+      - source: open-design
+        url: https://github.com/nexu-io/open-design/blob/main/README.md
+        evidence: Every render reads the active package's `DESIGN.md` as the core brand contract.
+
+  - id: output-prose-compression
+    name: 出力の散文だけを圧縮する
+    layer: prompt
+    problem: 前置きや言い淀みで出力トークンが膨らむ。コードと警告は原文を保つ
+    state: watch
+    note: 出力側の圧縮スキルは外し、入力側（headroom）に寄せた。経緯は knowledge-base の tool-research/context-optimization.md
+    sources:
+      - source: caveman
+        url: https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md
+        evidence: Technical terms exact. Code blocks unchanged. Errors quoted exact.
+
+  # =================================================================== harness
+  - id: skill-progressive-disclosure
+    name: スキルの段階的読み込み
+    layer: harness
+    problem: 多数の手順書を常駐させず、使うときだけ本文を文脈に入れる
+    state: adopted
+    self: [core-principal/.apm/skills/]
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/skills
+        evidence: skill descriptions are loaded into context so Claude knows what's available, but full skill content only loads when invoked.
+      - source: codex-cli
+        url: https://developers.openai.com/codex/skills
+        evidence: Codex start with each skill's name and description, then load the full `SKILL.md` instructions when they decide to use that skill.
+      - source: anthropic-skills
+        url: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
+        evidence: Metadata (name + description) - Always in context (~100 words)
+
+  - id: hook-deterministic-block
+    name: フックで決定的に拒否する
+    layer: harness
+    problem: 指示文は守られる保証が無いので、禁止したい操作は機械的に止める
+    state: adopted
+    self: [core-principal/.apm/hooks/guard-default-branch.json, core-principal/.apm/hooks/guard-destructive-git.json, core-principal/.apm/hooks/guard-coordinator-edit.json]
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/memory
+        evidence: To block an action regardless of what Claude decides, use a PreToolUse hook instead.
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/docs/agent-harness.md
+        evidence: 線を引いているのは「危なく聞こえるか」ではなく「復旧できないか」です。
+
+  - id: advisory-prompt-hook
+    name: 毎プロンプトに規範を差し込む助言フック
+    layer: harness
+    problem: 人がコマンドを打たなくても、その場所で守るべき規範を毎回思い出させる
+    state: adopted
+    self: [core-principal/.apm/hooks/dispatch-in-coordinator.json]
+    sources:
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/README.md
+        evidence: on every prompt in the coordinator it appends the dispatch norm to the message, so the layer holds without a human typing a command.
+
+  - id: subagent-rule-injection
+    name: サブエージェントにも同じルールを注入する
+    layer: harness
+    problem: 親に入れたルールが Task で起動したサブエージェントに届かない
+    state: watch
+    self: [core-principal/apm.yml]
+    note: ponytail はスキルだけを取り、フックは毎回走るのを避けて意図的に外している（apm.yml のコメント）
+    sources:
+      - source: ponytail
+        url: https://github.com/DietrichGebert/ponytail/blob/main/hooks/ponytail-subagent.js
+        evidence: When ponytail mode is active, inject the same ruleset into each subagent.
+
+  - id: fail-closed-approval
+    name: 承認ゲートはフェイルクローズ
+    layer: harness
+    problem: 承認側が居ない・壊れているときにゲートが開いてしまう
+    state: watch
+    self: [docs/agent-harness.md]
+    note: 自作のガードは判断できないとき exit 0 で素通りする（フェイルオープン）と明記している
+    sources:
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/approval.md
+        evidence: "`ApprovalOutcome` is closed and fail-closed."
+
+  - id: sandbox-approval-presets
+    name: サンドボックスと承認ポリシーを束ねる
+    layer: harness
+    problem: 境界の内側は確認なしで進ませ、外へ出るときだけ人に聞く。2 つのつまみを 1 つの選択肢にする
+    state: missing
+    impact: 3
+    effort: 2
+    gain: 境界の内側では承認待ちが消え、外に出る操作だけ人に来る
+    cost: Claude Code の sandbox と permissions の設定を調べ、apm で配る形を決める必要がある
+    sources:
+      - source: codex-cli
+        url: https://developers.openai.com/codex/sandboxing
+        evidence: When a task stays inside those boundaries, the agent can keep moving without stopping for confirmation.
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/permission-presets.md
+        evidence: bundles two independent enforcement knobs — sandbox mode (`sandbox/mode`) and approval policy (`approval/policy`) — into named presets
+
+  - id: command-prefix-policy
+    name: コマンド接頭辞で allow / prompt / forbid を振り分ける
+    layer: harness
+    problem: サンドボックスの外で走らせてよいコマンドを規則で決める
+    state: partial
+    impact: 2
+    effort: 2
+    gain: よく使う安全なコマンドの承認待ちが減る
+    cost: 許可側の規則を settings に書き、apm で配る方法を調べる
+    self: [core-principal/.apm/hooks/scripts/guard-destructive-git.sh]
+    note: 破壊的な git 4 種だけを拒否する。許可側の規則は持たない
+    sources:
+      - source: codex-cli
+        url: https://developers.openai.com/codex/exec-policy
+        evidence: Use rules to control which commands Codex can run outside the sandbox.
+
+  - id: per-call-llm-review
+    name: ツール呼び出しごとに LLM が審査する
+    layer: harness
+    problem: 毎回人に承認を求めずに、危険な操作だけを人に回す
+    state: missing
+    impact: 2
+    effort: 3
+    gain: 危険な呼び出しだけが人に回り、残りは止まらずに進む
+    cost: 呼び出しごとにモデルを呼ぶので遅延と費用が増え、審査器も自作になる
+    sources:
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/experimental/auto-review/README.md
+        evidence: Before each native or PTC inner tool call, the current agent's provider and model assess the pending action
+
+  - id: edit-scope-freeze
+    name: 編集してよい範囲を凍結する
+    layer: harness
+    problem: デバッグ中に関係ないコードまで「ついでに」直す
+    state: partial
+    impact: 1
+    effort: 2
+    gain: デバッグ中に関係ないコードを直すのを防ぐ
+    cost: パス単位で拒否するフックを新しく書く
+    self: [core-principal/.apm/hooks/guard-coordinator-edit.json]
+    note: coordinator での編集を丸ごと拒否するだけ。パス単位の凍結は無い
+    sources:
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/freeze/SKILL.md.tmpl
+        evidence: Blocks Edit and Write outside the allowed path.
+
+  - id: subagent-scoped-tools
+    name: サブエージェントごとに文脈と権限を絞る
+    layer: harness
+    problem: 副作業を別の文脈に隔離し、使えるツールも役割ごとに制限する
+    state: missing
+    impact: 3
+    effort: 1
+    gain: 調査やレビューを読み取り専用の別文脈に出せ、親の文脈と権限を守れる
+    cost: core-harness に置き場所（.apm/agents/）が書いてあり、定義を 1 つ書けば apm が配る
+    note: core-harness に agents/ の置き場所は書いてあるが、定義したサブエージェントは無い
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/sub-agents
+        evidence: Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.
+
+  - id: reversible-output-compression
+    name: 大きなツール出力を退避・圧縮し、元に戻せる鍵だけ返す
+    layer: harness
+    problem: ログや JSON がコンテキストを埋める。原文は必要なときに取り出せるようにする
+    state: adopted
+    self: [host-apm.yml（headroom MCP）, core-principal/.apm/skills/core-tools/SKILL.md]
+    sources:
+      - source: caveman
+        url: https://github.com/JuliusBrussee/caveman/blob/main/README.md
+        evidence: Every squeezed byte gets a backup, so the agent can always pull the original back.
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/spill.md
+        evidence: persists caller-provided text and returns a model-facing locator with retrieval guidance.
+
+  - id: programmatic-tool-calling
+    name: スクリプトからツールを呼び、途中結果を文脈に入れない
+    layer: harness
+    problem: 多段のツール呼び出しで途中結果が全部コンテキストに積もる
+    state: missing
+    impact: 2
+    effort: 3
+    gain: 多段の調査で途中結果が文脈に積もらなくなる
+    cost: Claude Code 側に同じ仕組みが無く、MCP サーバを自作することになる
+    sources:
+      - source: hermes-agent
+        url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/code-execution.md
+        evidence: intermediate tool results never enter the context window
+
+  - id: black-box-scripts
+    name: 付属スクリプトは読まずに実行する
+    layer: harness
+    problem: 大きな補助スクリプトのソースを読み込んで文脈を汚す
+    state: missing
+    impact: 1
+    effort: 1
+    gain: スキル付属のスクリプトを読み込まずに済む
+    cost: スキルの書き方の規範（core-harness）に 1 行足すだけ
+    sources:
+      - source: anthropic-skills
+        url: https://github.com/anthropics/skills/blob/main/skills/webapp-testing/SKILL.md
+        evidence: They exist to be called directly as black-box scripts rather than ingested into your context window.
+
+  - id: index-first-search
+    name: 検索の前に索引へ誘導する
+    layer: harness
+    problem: grep と逐次読みでトークンを浪費し、構造的な索引を使わない
+    state: partial
+    impact: 2
+    effort: 1
+    gain: grep の前に索引を引かせるのを、規範ではなく機械で守らせる
+    cost: graphify の README にある検索前フックを有効にするだけ
+    self: [core-principal/.apm/instructions/core-principal.instructions.md, core-principal/.apm/skills/core-tools/SKILL.md]
+    note: ルールで「まず索引」と書くだけ。検索前に割り込むフックは無い
+    sources:
+      - source: graphify
+        url: https://github.com/Graphify-Labs/graphify/blob/v8/README.md
+        evidence: a hook fires automatically before search-style tool calls
+
+  - id: index-auto-refresh
+    name: git フックで索引を自動再構築する
+    layer: harness
+    problem: コードが変わるたびに索引が古くなる
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 索引が古いまま答えることが減る
+    cost: graphify の git フックを入れるだけ
+    self: [core-principal/.apm/skills/core-tools/SKILL.md]
+    note: 「変更したら graphify update .」は手順として書くだけで、git フックは入れていない
+    sources:
+      - source: graphify
+        url: https://github.com/Graphify-Labs/graphify/blob/v8/README.md
+        evidence: "`git commit` | rebuilds automatically — AST only, no API cost"
+
+  - id: provenance-tags
+    name: 索引の関係に「抽出 / 推論」の出所を付ける
+    layer: harness
+    problem: 索引上の関係が確認済みか推測かを区別できない
+    state: adopted
+    self: [core-principal/.apm/skills/core-tools/SKILL.md（graphify を使う）]
+    sources:
+      - source: graphify
+        url: https://github.com/Graphify-Labs/graphify/blob/v8/README.md
+        evidence: every inferred relationship is marked `EXTRACTED`, `INFERRED`, or `AMBIGUOUS`.
+
+  - id: strategic-compaction
+    name: 作業の区切りでコンパクションを促す
+    layer: harness
+    problem: 自動コンパクションが作業の途中で走り、必要な文脈を失う
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 作業の途中でコンパクションが走って文脈を失うことが減る
+    cost: 区切りを判定するフックかスキルを新しく書く
+    sources:
+      - source: ecc
+        url: https://github.com/affaan-m/ECC/blob/main/skills/strategic-compact/SKILL.md
+        evidence: "Auto-compaction triggers at arbitrary points: - Often mid-task, losing important context"
+
+  - id: bounded-frozen-memory
+    name: 上限付きで、開始時に固定するメモリ
+    layer: harness
+    problem: 永続メモリの肥大と、途中の書き換えによるプレフィックスキャッシュの破壊
+    state: missing
+    impact: 1
+    effort: 3
+    gain: メモリの肥大と、途中の書き換えによるキャッシュ破壊を防ぐ
+    cost: メモリの読み込みは Claude Code 本体の機能で、ハーネスから上限を掛ける手段が無い
+    sources:
+      - source: hermes-agent
+        url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/memory.md
+        evidence: The system prompt injection is captured once at session start and never changes mid-session.
+
+  - id: search-before-authoring
+    name: 書く前に公開スキルを探し、コミット固定で取り込む
+    layer: harness
+    problem: 他人が磨いた知識を使わずに自作し、しかも上流の変化で黙って壊れる
+    state: adopted
+    self: [core-principal/.apm/skills/core-harness/SKILL.md, core-principal/apm.yml]
+    sources:
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/skills/core-harness/SKILL.md
+        evidence: Where something fits, **adopt** it — take it as an apm dependency — or **cite** it
+
+  - id: generated-verification-skill
+    name: 実アプリを操作する検証手段をプロジェクトごとに作る
+    layer: harness
+    problem: 「コンパイルが通った」ではなく、利用者と同じ操作で振る舞いを証明する
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 「動いた」を実際の操作で証明できる
+    cost: リポジトリごとに作る必要があり、手元のリポジトリは文書と設定が主
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/create-verification-skill/SKILL.md
+        evidence: Every serious project needs a scripted way to drive the real app and prove behavior
+
+  # =================================================================== loop
+  - id: continue-until-goal
+    name: 終了条件を満たすまで自動で続ける（上限付き）
+    layer: loop
+    problem: 完了前に止まる。人が「続けて」と促さないと長い作業が進まない
+    state: missing
+    impact: 3
+    effort: 2
+    gain: ワーカーが完了条件の手前で止まるのを防ぐ。core-dispatch の完了条件をそのまま判定に使える
+    cost: Stop フックと、無限ループを防ぐ上限カウンタのスクリプトを 1 本書く
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/hooks
+        evidence: Prevents Claude from stopping, continues conversation
+      - source: codex-cli
+        url: https://developers.openai.com/codex/hooks
+        evidence: it tells Codex to continue and automatically creates a new continuation prompt
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/goal/goal-round-driver/README.md
+        evidence: automatically continues an active goal in the same session while the agent is idle
+      - source: hermes-agent
+        url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/goals.md
+        evidence: lightweight judge model checks whether the goal is satisfied by the assistant's last response.
+
+  - id: fresh-agent-rounds
+    name: 毎ラウンド新しいエージェントで回す（Ralph ループ）
+    layer: loop
+    problem: 会話履歴を引き継がず、前ラウンドの短い報告だけを渡して文脈の汚染を避ける
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 長い作業でも文脈が汚れず、各ラウンドが短い報告だけを引き継ぐ
+    cost: coordinator がラウンドごとにワーカーを立て直す手順を core-dispatch に足す
+    sources:
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/workflow/tool-ralph/README.md
+        evidence: runs a foreground sequence of fresh child agents against one immutable objective
+
+  - id: checkable-exit-predicate
+    name: 確認できる終了条件を先に決める
+    layer: loop
+    problem: 長い自律実行が、途中で止まったり条件を緩めて完了扱いにしたりする
+    state: partial
+    impact: 2
+    effort: 2
+    gain: 完了条件を人が読まなくても機械が判定できる
+    cost: 完了条件を検証できる形（コマンド）で書く規約と、判定するスクリプトが要る
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md]
+    note: ワーカーへの依頼に「完了条件（何が観測できたら終わりか）」を必ず書く。自動で判定はしない
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/autonomous-run.md
+        evidence: State the exit condition as a checkable predicate before the first iteration
+
+  - id: evidence-before-done
+    name: 完了は検証の証拠で宣言し、証明したら止まる
+    layer: loop
+    problem: 検証を走らせずに「直った」と言う。逆に証明後も磨き込みを続けて膨らむ
+    state: partial
+    impact: 3
+    effort: 1
+    gain: 検証を走らせずに「直った」と報告する失敗を、全ワーカーでその場で止める
+    cost: 常駐ルールに 1 行。機械で守らせるなら Stop フックで検証の実行を確かめる
+    self: [core-principal/.apm/prompts/workers.prompt.md]
+    note: 報告の evidence 欄に一次情報を書かせる（「順調です」は不可）。完了前のゲートは無い
+    sources:
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md
+        evidence: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
+      - source: caveman
+        url: https://github.com/JuliusBrussee/caveman/blob/main/skills/verify-and-stop/SKILL.md
+        evidence: Stop immediately when acceptance proof is complete.
+
+  - id: plan-then-act
+    name: 計画と実行を分ける
+    layer: loop
+    problem: 調べて計画する段階と編集する段階を分け、承認を挟んでから手を動かす
+    state: partial
+    impact: 1
+    effort: 1
+    gain: ワーカーが調べる前に編集し始めるのを防ぐ
+    cost: Claude Code の計画モードを使うよう依頼文の型に 1 行足す
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md]
+    note: coordinator が依頼文（仕様）を書いてから出す。個々のワーカー内での計画ゲートは無い
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/permission-modes
+        evidence: Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source.
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/plan.md
+        evidence: Plan mode is **soft guidance**.
+
+  - id: gated-tdd
+    name: RED → GREEN → REFACTOR を証跡付きで通す
+    layer: loop
+    problem: 「TDD で」と言っても途中で忘れてテストを後回しにする
+    state: missing
+    impact: 1
+    effort: 2
+    gain: テストの後回しを防ぐ
+    cost: 手元のリポジトリはシェルと文書が主で、テストの対象が少ない
+    sources:
+      - source: ecc
+        url: https://github.com/affaan-m/ECC/blob/main/README.md
+        evidence: TDD becomes a gated RED -> GREEN -> REFACTOR workflow with evidence
+
+  - id: hillclimb
+    name: 1 変更 1 計測で残すか戻すかを決める
+    layer: loop
+    problem: 検証していない変更を積み重ねる
+    state: missing
+    impact: 1
+    effort: 1
+    gain: 行動評価（eval）の改善で、未検証の変更を積まなくなる
+    cost: 計測ハーネスは tests/eval にあり、規範を 1 段落足すだけ
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/hillclimb.md
+        evidence: "Core discipline: one change, one measurement, keep or revert."
+
+  - id: role-review-rounds
+    name: 役割別の審査を順序・閾値付きで回す
+    layer: loop
+    problem: 計画や成果物を 1 つの観点でしか見ない。改善が収束しないときも上限で打ち切る
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 1 つの観点のレビューで見落とす指摘を拾える
+    cost: 役割ごとのプロンプトと、打ち切りの閾値を設計する
+    sources:
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/README.md
+        evidence: Runs CEO → design → DX → eng review automatically
+      - source: open-design
+        url: https://github.com/nexu-io/open-design/blob/main/docs/critique-theater.md
+        evidence: the run either ships (composite ≥ threshold) or runs another round.
+
+  - id: skill-eval-baseline
+    name: スキルあり・なしを並べて効きを確かめる
+    layer: loop
+    problem: 書いたルールやスキルが本当に振る舞いを変えているか分からない
+    state: adopted
+    self: [core-principal/tests/eval/run.sh, core-principal/tests/eval/README.md]
+    sources:
+      - source: anthropic-skills
+        url: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
+        evidence: For each test case, spawn two subagents in the same turn — one with the skill, one without.
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md
+        evidence: If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
+
+  - id: harness-invariant-ci
+    name: ハーネス自身の不変条件を CI で検査する
+    layer: loop
+    problem: 規則の引用と実物、生成物と正本がずれても誰も気づかない
+    state: adopted
+    self: [core-principal/tests/harness-check.sh, Makefile（make ci）]
+    sources:
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/tests/harness-check.sh
+        evidence: "Invariants of the harness itself: the things that are supposed to stay true"
+
+  - id: lessons-into-structure
+    name: 繰り返す教訓は文章でなく仕組みに落とす
+    layer: loop
+    problem: 同じ指摘を何度もする。学びがセッションとともに消える
+    state: adopted
+    self: [core-principal/.apm/skills/core-retro/SKILL.md, core-principal/.apm/skills/core-harness/SKILL.md]
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/principle-encode-lessons-in-structure/SKILL.md
+        evidence: Encode recurring fixes in mechanisms (tools, code, metadata, automation) instead of textual instructions.
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/skills/core-retro/SKILL.md
+        evidence: Mechanical, decidable by a script | A target under `make ci`
+
+  - id: scoped-learning-promotion
+    name: 学びを信頼度付きで貯め、複数プロジェクトで出たら全体へ上げる
+    layer: loop
+    problem: 固有の癖が別のプロジェクトに混ざる。逆に共通の学びが 1 か所に閉じる
+    state: partial
+    impact: 1
+    effort: 2
+    gain: 学びが共通とリポジトリ固有に自動で振り分けられる
+    cost: 出現回数を数える仕組みを新しく作る
+    self: [core-principal/.apm/skills/core-retro/SKILL.md]
+    note: 共通（core-principal）かリポジトリ固有（.apm）かを振り返りで人が判断する。自動の昇格は無い
+    sources:
+      - source: ecc
+        url: https://github.com/affaan-m/ECC/blob/main/skills/continuous-learning-v2/SKILL.md
+        evidence: Project → global when seen in 2+ projects
+
+  - id: skill-curator
+    name: 使われないスキルを active → stale → archived に回す
+    layer: loop
+    problem: 自動で書いたスキルや記憶が重複・陳腐化したまま溜まる
+    state: partial
+    impact: 1
+    effort: 2
+    gain: 使われないスキルやメモリが溜まり続けるのを防ぐ
+    cost: 使用回数を記録する仕組みが無く、まず計測から作る
+    self: [core-principal/.apm/skills/core-retro/SKILL.md（Taking stock）]
+    note: 取り残されたメモリと、ルールに昇格済みのメモリを手で消す手順だけがある
+    sources:
+      - source: hermes-agent
+        url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/curator.md
+        evidence: moves long-unused skills through `active → stale → archived` states
+
+  - id: debt-ledger
+    name: 意図した手抜きに印を付け、台帳に集める
+    layer: loop
+    problem: わざと単純化した箇所が記録されず、後で直す予定が放置される
+    state: adopted
+    self: [core-principal/apm.yml（ponytail-debt）]
+    sources:
+      - source: ponytail
+        url: https://github.com/DietrichGebert/ponytail/blob/main/skills/ponytail-debt/SKILL.md
+        evidence: Every deliberate ponytail shortcut is marked with a `ponytail:` comment naming the ceiling and the upgrade path.
+
+  - id: poll-not-wait
+    name: 完了は通知を待たず、自分から突き合わせる
+    layer: loop
+    problem: セッションが終わると待ち受けごと消え、完了通知を取りこぼす
+    state: adopted
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/prompts/workers.prompt.md]
+    sources:
+      - source: self
+        url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/skills/core-dispatch/SKILL.md
+        evidence: "`orca orchestration check --wait` をバックグラウンドで張って完了を待つ設計は **成立しない**。"
+
+  # =================================================================== graph
+  - id: worktree-isolation
+    name: 並列の作業を worktree で隔離する
+    layer: graph
+    problem: 並列に動くセッションの変更がぶつかる
+    state: adopted
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-default-branch.json]
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/worktrees
+        evidence: Isolate parallel Claude Code sessions in separate git worktrees so changes don't collide.
+
+  - id: coordinator-worker
+    name: coordinator が配り、worker が実装する
+    layer: graph
+    problem: 多数のエージェントを並べると、誰が何をしていつ止まるか分からなくなる
+    state: adopted
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-coordinator-edit.json]
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/agent-teams
+        evidence: One session acts as the team lead, coordinating work, assigning tasks, and synthesizing results.
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/orchestrate.md
+        evidence: Completions are queue events, not interrupts.
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/README.md
+        evidence: Without a process, ten agents is ten sources of chaos.
+
+  - id: fresh-context-per-task
+    name: タスクごとに新しい文脈を組み立てて渡す
+    layer: graph
+    problem: 長い計画を 1 つの文脈で進めると汚れて品質が落ちる
+    state: adopted
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md]
+    note: ワーカーは新しい worktree と依頼文だけで始まる
+    sources:
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md
+        evidence: They should never inherit your session's context or history — you construct exactly what they need.
+
+  - id: artifact-handoff
+    name: 工程の成果物をファイルで次へ渡す
+    layer: graph
+    problem: 工程間で前段の決定が引き継がれず抜け落ちる
+    state: adopted
+    self: [core-principal/.apm/prompts/worktree.prompt.md（~/.claude/worker-reports/<名前>.md）]
+    sources:
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/README.md
+        evidence: Each skill feeds into the next. `/office-hours` writes a design doc that `/plan-ceo-review` reads.
+
+  - id: fixed-lifecycle-pipeline
+    name: 仕様 → 計画 → 実装 → レビュー → 出荷の工程を固定する
+    layer: graph
+    problem: 要件が固まる前にいきなり実装に入る
+    state: partial
+    impact: 2
+    effort: 2
+    gain: 要件が固まる前に実装を始めることが減る
+    cost: 受付から出荷までの工程を core-dispatch に組み込み、飛ばしを検出する
+    self: [core-principal/apm.yml（grill-me / grilling）, core-principal/.apm/skills/core-dispatch/SKILL.md]
+    note: 詰める道具（grilling）と受付の分類はあるが、工程を強制する仕組みは無い
+    sources:
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md
+        evidence: Before taking any implementation action, including invoking an implementation skill, writing product code
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/README.md
+        evidence: 9 slash commands that map to the development lifecycle.
+      - source: open-design
+        url: https://github.com/nexu-io/open-design/blob/main/README.md
+        evidence: brief → plugin → direction → design system → artifact → handoff → memory
+
+  - id: fresh-context-review
+    name: 書いたのとは別の文脈でレビューする
+    layer: graph
+    problem: 同じ文脈でのレビューは自分の盲点と、事実化した仮定を見落とす
+    state: partial
+    impact: 3
+    effort: 1
+    gain: 書いた本人の盲点を、差分だけ受け取るレビュアーが拾う
+    cost: 読み取り専用のレビュー用サブエージェントを 1 つ定義する（サブエージェント定義と同時に入る）
+    self: [core-principal/.apm/skills/core-retro/SKILL.md（Implementation and review）]
+    note: 実装とレビューを分ける考え方は書いてある。レビューを起動する仕組みは無い
+    sources:
+      - source: ecc
+        url: https://github.com/affaan-m/ECC/blob/main/README.md
+        evidence: A fresh-context reviewer looks for regressions and blind spots
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/doubt-driven-development/SKILL.md
+        evidence: Long sessions accumulate context that quietly turns assumptions into "facts" without anyone noticing.
+
+  - id: parallel-perspectives-merge
+    name: 複数の観点（モデル・ペルソナ）を並列に走らせ、親が統合する
+    layer: graph
+    problem: 1 つのモデルに役割を演じ分けさせても見落としが減らない
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 同じモデルの盲点を別モデルの視点で拾える
+    cost: Orca で Codex など別のエージェントを並べ、結果を統合する手順を書く
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/interrogate/SKILL.md
+        evidence: The adversarial signal comes from model diversity, not assigned personas.
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/references/orchestration-patterns.md
+        evidence: Multiple personas operate on the same input concurrently, each producing an independent report.
+
+  - id: arena-graft
+    name: 並列の競作から土台を選び、他案の良い部分を移植する
+    layer: graph
+    problem: 1 回の試作で形が早く固まる
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 最初の案で形が固まるのを防ぐ
+    cost: 同じ作業を N 倍の費用で回すことになる
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/arena/SKILL.md
+        evidence: Fan out N parallel attempts at the same task. Read every candidate end to end. Pick the strongest base.
+
+  - id: summary-only-subagents
+    name: サブエージェントは読むだけ、返すのは短い定型だけ
+    layer: graph
+    problem: 並列の書き込みは衝突し、長い返り値は親の文脈を使い切る
+    state: partial
+    impact: 2
+    effort: 1
+    gain: サブエージェントの長い返り値で親の文脈を使い切らなくなる
+    cost: サブエージェント定義に返り値の型を書くだけ
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md（報告の型）]
+    note: ワーカーの報告の型は決めてある。読み取り専用のサブエージェントの定義は無い
+    sources:
+      - source: codex-cli
+        url: https://developers.openai.com/codex/subagents
+        evidence: use parallel agents for read-heavy tasks such as exploration, tests, triage, and summarization.
+      - source: caveman
+        url: https://github.com/JuliusBrussee/caveman/blob/main/skills/cavecrew/SKILL.md
+        evidence: Subagent tool results get injected into main context verbatim.
+
+  - id: model-written-workflow
+    name: モデルが書いたスクリプトでサブエージェントの並びを組む
+    layer: graph
+    problem: 並列・直列の構成を固定の仕組みでなく、その場で組み立てる
+    state: partial
+    impact: 1
+    effort: 3
+    gain: 作業の並びをその場で組み立てられる
+    cost: Orca のタスク DAG で足りており、スクリプト実行の基盤を別に作ることになる
+    self: [core-principal/apm.yml（Orca の orchestration スキル）]
+    note: Orca のタスク DAG を coordinator が組める。スクリプトとして書いて実行する形ではない
+    sources:
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/workflow.md
+        evidence: The workflow seam lets an agent run a model-written orchestration SCRIPT that starts subagents.
+
+  - id: headless-pipeline
+    name: 非対話実行をスクリプトや CI に組み込む
+    layer: graph
+    problem: エージェントをパイプラインの 1 段にし、後段が機械的に読める出力を得る
+    state: partial
+    impact: 1
+    effort: 2
+    gain: 行動評価を CI で毎回回せる
+    cost: 1 回の実行ごとに API 費用がかかる（それが make ci から外した理由）
+    self: [core-principal/tests/eval/run.sh]
+    note: 行動評価で claude -p を使うだけ。make ci には入れていない
+    sources:
+      - source: claude-code
+        url: https://code.claude.com/docs/en/headless
+        evidence: To get output conforming to a specific schema, use `--output-format json` with `--json-schema`
+      - source: codex-cli
+        url: https://developers.openai.com/codex/noninteractive
+        evidence: If you need to continue a previous run (for example, a two-stage pipeline), use the `resume` subcommand
+
+  - id: event-triggered-agents
+    name: 外部イベント（PR・チャット）を起点にエージェントを立てる
+    layer: graph
+    problem: 人が起動しなくても、レビューやトリアージを決まった契機で走らせる
+    state: missing
+    impact: 2
+    effort: 3
+    gain: PR のレビューを人が起動しなくても走らせられる
+    cost: GitHub Actions か常駐の受け口が要り、ハーネスの外に基盤が増える
+    sources:
+      - source: deepseek-harness
+        url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/github-review.md
+        evidence: When a pull request in the configured repository changes from draft to ready for review, the rule creates a titled root Session
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/automations/benny/README.md
+        evidence: one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.

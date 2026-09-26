@@ -27,6 +27,8 @@ import sys
 import markdown as md_lib
 import yaml
 
+import patterns_page
+
 HERE = pathlib.Path(__file__).resolve().parent
 SRC = HERE / "src"            # 正本。手で書く markdown と registry
 OUT = HERE / "site"           # 生成物。話題ごとのディレクトリに出す
@@ -886,6 +888,9 @@ def main() -> int:
             written.append(rel)
 
     STATIC_ROWS[:] = rows
+    # 話題④ パターン・カタログ。PAGES にもナビにも入れない別系統（patterns_page.py）。
+    emit("patterns", "index.html", patterns_page.render(SRC, CSS, warnings))
+    emit("patterns", "harness-form.html", patterns_page.render_form(SRC, CSS, warnings))
     emit("landscape", "index.html", page(reg, metrics, rows, warnings))
     for fname, label, sel, topic in PAGES:
         if sel is None:

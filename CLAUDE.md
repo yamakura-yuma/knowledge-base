@@ -2,7 +2,8 @@
 
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
 HTML はそこから生成する。いま入っているのは AI ツールのランドスケープ、ハーネスに
-入れる外部ツールの調査、Argo CD の完了通知の発行方法の比較の3つ。
+入れる外部ツールの調査、Argo CD の完了通知の発行方法の比較、
+ハーネスのパターン・カタログの4つ。
 
 ハーネス（エージェント設定）そのものの説明はここに書かない。正本は dotfiles リポジトリの
 [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)（手元では
@@ -36,20 +37,28 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   各ページの冒頭は「たとえ話 1 段落（eli5）＋図」。図はすべて archify の JSON
   （`docs/src/argocd-notify/archify/`）を `<!-- archify: 名前 -->` で参照し、ビルドが
   `apm_modules` の archify で描いて、JS を含まない `<svg>` 要素だけを埋め込む（要 Node と `apm install`）
+- `docs/src/patterns/` — 話題④ ハーネスのパターン・カタログ。`catalog.yaml` が正本
+  （行はパターン、4 層 × 自作ハーネスでの状態）。HTML は `docs/patterns_page.py` が描き、
+  既存の話題の `PAGES`・ナビには入れていない（既存ページに差分を出さないため）。
+  `harness-form.md` はハーネスの形式についての見立て（意見）で、`harness-form.html` に出し、
+  要約をカタログの冒頭に置く
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
-- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` — 生成系。
-  このリポジトリのコードはこれだけ
+- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
+  `docs/collect_candidates.py` / `docs/patterns_page.py` — 生成系。このリポジトリのコードはこれだけ。
+  `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
+  候補はランドスケープの母集団（`registry.yaml`）には入れない
 - `.apm/skills/` — このリポジトリ固有のエージェント設定
 
 ## コマンド
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る。認証は gh に任せる
-uv run docs/build.py           # landscape / tool-research の HTML を組み直す
+uv run docs/collect_candidates.py  # パターンの出典候補を集める。gh の認証が必須
+uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
 uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```
@@ -57,7 +66,7 @@ apm install                    # apm.yml から ./.claude/ にエージェント
 この順番を守る。`build.py` は `docs/src/data/metrics.json` を読むだけで自分では取りに
 行かないので、先に流しても前回の数字が出るだけになる。
 
-どちらのスクリプトも冪等で、実データに差が無ければファイルに触らない。続けて2回流して
+どのスクリプトも冪等で、実データに差が無ければファイルに触らない。続けて2回流して
 git の差分が出ないことが、正しく終わった証拠になる。
 
 `build.py` は警告を出して終わることがある。「改名 / 移転を検出」なら `registry.yaml`

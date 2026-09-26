@@ -4349,7 +4349,7 @@ deployments:
   owners:
   - .
   active_owner: .
-  content_hash: sha256:8142eba7fd0245da285112ee07dad27a806d236da9f4bd388ef1776e5270a893
+  content_hash: sha256:e57df01ee24c6e804d4c1087f9cda7603f102a08b0e9c4a272d3756dd1344955
 - kind: project-relative
   target: claude
   value: .claude/skills/wait-what
@@ -4417,4 +4417,4 @@ local_deployed_files:
 - .claude/skills/update-landscape
 - .claude/skills/update-landscape/SKILL.md
 local_deployed_file_hashes:
-  .claude/skills/update-landscape/SKILL.md: sha256:8142eba7fd0245da285112ee07dad27a806d236da9f4bd388ef1776e5270a893
+  .claude/skills/update-landscape/SKILL.md: sha256:e57df01ee24c6e804d4c1087f9cda7603f102a08b0e9c4a272d3756dd1344955

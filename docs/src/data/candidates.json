@@ -1,0 +1,906 @@
+{
+  "awesome_lists": [
+    "hesreallyhim/awesome-claude-code",
+    "ComposioHQ/awesome-claude-skills",
+    "VoltAgent/awesome-agent-skills",
+    "travisvn/awesome-claude-skills"
+  ],
+  "candidates": [
+    {
+      "archived": false,
+      "created_at": "2026-06-12",
+      "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+      "in_landscape": true,
+      "pushed_at": "2026-09-14",
+      "rank": 1,
+      "repo": "DietrichGebert/ponytail",
+      "sources": [
+        "topic:agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 145828,
+      "stars_per_day": 1375.7,
+      "topics": [
+        "agent-skills",
+        "ai-agents",
+        "claude",
+        "claude-code",
+        "claude-code-plugin",
+        "cursor-rules",
+        "developer-tools",
+        "llm",
+        "prompt-engineering",
+        "yagni"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-01-18",
+      "description": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-24",
+      "rank": 2,
+      "repo": "affaan-m/ECC",
+      "sources": [
+        "list:hesreallyhim/awesome-claude-code",
+        "topic:claude-code"
+      ],
+      "stars": 267294,
+      "stars_per_day": 1064.9,
+      "topics": [
+        "ai-agents",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "developer-tools",
+        "llm",
+        "mcp",
+        "productivity"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-10-09",
+      "description": "An agentic skills framework & software development methodology that works.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 3,
+      "repo": "obra/superpowers",
+      "sources": [
+        "list:ComposioHQ/awesome-claude-skills",
+        "list:VoltAgent/awesome-agent-skills",
+        "list:hesreallyhim/awesome-claude-code",
+        "list:travisvn/awesome-claude-skills"
+      ],
+      "stars": 291495,
+      "stars_per_day": 828.1,
+      "topics": [
+        "ai",
+        "brainstorming",
+        "coding",
+        "obra",
+        "sdlc",
+        "skills",
+        "subagent-driven-development",
+        "superpowers"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-03",
+      "description": "Turn any codebase, with its docs, SQL schemas, configs, and PDFs, into a queryable knowledge graph. A /graphify skill for Claude Code, Cursor, Codex, and Gemini CLI: local deterministic AST parsing, every edge explained, no vector store.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 4,
+      "repo": "Graphify-Labs/graphify",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 121360,
+      "stars_per_day": 689.5,
+      "topics": [
+        "ai-agents",
+        "antigravity",
+        "ast",
+        "claude-code",
+        "code-analysis",
+        "code-search",
+        "codex",
+        "cursor",
+        "developer-tools",
+        "gemini",
+        "graphrag",
+        "knowledge-graph",
+        "leiden",
+        "llm",
+        "mcp",
+        "openclaw",
+        "rag",
+        "skills",
+        "tree-sitter"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-03-11",
+      "description": "Use Garry Tan's exact Claude Code setup: 23 opinionated tools that serve as CEO, Designer, Eng Manager, Release Manager, Doc Engineer, and QA",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 5,
+      "repo": "garrytan/gstack",
+      "sources": [
+        "list:hesreallyhim/awesome-claude-code"
+      ],
+      "stars": 134179,
+      "stars_per_day": 674.3,
+      "topics": []
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-28",
+      "description": "🎨 Best DeepSeek Harness Design Plugin. The open-source Claude Design alternative. 🖥️ Local-first desktop app. 🖼️ Your coding agent becomes the design engine: prototypes, landing pages, dashboards, slides, images & video — real files, HTML/PDF/PPTX/MP4 export. 🤖 Claude Code / Codex / Cursor / DeepSeek Harness / OpenCode & 20+ CLIs via BYOK.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 6,
+      "repo": "nexu-io/open-design",
+      "sources": [
+        "topic:agent-skills"
+      ],
+      "stars": 98060,
+      "stars_per_day": 649.4,
+      "topics": [
+        "agent-skills",
+        "ai-design",
+        "byok",
+        "claude-code-for-design",
+        "claude-design",
+        "codex-design",
+        "coding-agents",
+        "cursor-design",
+        "deepseek",
+        "deepseek-harness",
+        "design-systems",
+        "desktop-app",
+        "dsh",
+        "dsh-plugin",
+        "figma-alternative",
+        "hermes-agent",
+        "local-first",
+        "prototyping",
+        "ui-generator",
+        "vibe-coding"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-04",
+      "description": "🪨 why use many token when few token do trick. Viral skill + proxy for coding agents that cuts 65% of tokens by talking like a caveman.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 7,
+      "repo": "JuliusBrussee/caveman",
+      "sources": [
+        "list:hesreallyhim/awesome-claude-code",
+        "topic:claude-code"
+      ],
+      "stars": 107819,
+      "stars_per_day": 616.1,
+      "topics": [
+        "ai",
+        "anthropic",
+        "caveman",
+        "claude",
+        "claude-code",
+        "llm",
+        "meme",
+        "prompt-engineering",
+        "skill",
+        "tokens"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-07-22",
+      "description": "The agent that grows with you",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 8,
+      "repo": "NousResearch/hermes-agent",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 248886,
+      "stars_per_day": 577.5,
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "anthropic",
+        "chatgpt",
+        "claude",
+        "claude-code",
+        "codex",
+        "hermes",
+        "hermes-agent",
+        "llm",
+        "nous-research",
+        "openai"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-09-22",
+      "description": "Public repository for Agent Skills",
+      "in_landscape": true,
+      "pushed_at": "2026-09-24",
+      "rank": 9,
+      "repo": "anthropics/skills",
+      "sources": [
+        "list:ComposioHQ/awesome-claude-skills",
+        "list:hesreallyhim/awesome-claude-code",
+        "list:travisvn/awesome-claude-skills",
+        "topic:agent-skills"
+      ],
+      "stars": 178134,
+      "stars_per_day": 482.7,
+      "topics": [
+        "agent-skills"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-02-15",
+      "description": "Production-grade engineering skills for AI coding agents.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-23",
+      "rank": 10,
+      "repo": "addyosmani/agent-skills",
+      "sources": [
+        "topic:agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 99004,
+      "stars_per_day": 444.0,
+      "topics": [
+        "agent-skills",
+        "antigravity",
+        "claude-code",
+        "codex",
+        "cursor",
+        "skills"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-15",
+      "description": "Agent skill for beautiful, verifiable architecture, workflow, sequence, data-flow, and lifecycle diagrams—self-contained HTML with motion and crisp export.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 11,
+      "repo": "tt-a1i/archify",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:agent-skills"
+      ],
+      "stars": 71539,
+      "stars_per_day": 436.2,
+      "topics": [
+        "agent-skills",
+        "architecture-as-code",
+        "architecture-diagram",
+        "claude-skill",
+        "code-visualization",
+        "codex",
+        "coding-agents",
+        "data-flow-diagram",
+        "deepseek-harness",
+        "developer-tools",
+        "diagram-as-code",
+        "diagrams",
+        "diagrams-as-code",
+        "dsh-plugin",
+        "mermaid-alternative",
+        "opencode",
+        "sequence-diagram",
+        "software-architecture",
+        "system-design",
+        "text-to-diagram"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-11-30",
+      "description": "An AI skill that provides design intelligence for building professional UI/UX across multiple platforms.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-21",
+      "rank": 12,
+      "repo": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 130571,
+      "stars_per_day": 435.2,
+      "topics": [
+        "ai-skills",
+        "antigravity",
+        "claude",
+        "claude-code",
+        "codex",
+        "command-line",
+        "copilot",
+        "cursor-ai",
+        "html5",
+        "kiro",
+        "landing-page",
+        "mobile-ui",
+        "qoder",
+        "react",
+        "tailwindcss",
+        "trae",
+        "ui-design",
+        "uikit",
+        "windsurf-ai"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-03-15",
+      "description": "Graphs that teach > graphs that impress. Turn any code into an interactive knowledge graph you can explore, search, and ask questions about. Works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and more.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-12",
+      "rank": 13,
+      "repo": "Egonex-AI/Understand-Anything",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code",
+        "topic:claude-skills"
+      ],
+      "stars": 84168,
+      "stars_per_day": 431.6,
+      "topics": [
+        "antigravity-skills",
+        "business-knowledge",
+        "claude-code",
+        "claude-skills",
+        "codebase-analysis",
+        "codex",
+        "codex-skills",
+        "developer-tools-ai-agent",
+        "gemini-cli-skills",
+        "karpathy-llm-wiki",
+        "knowledge-base",
+        "knowledge-graph",
+        "memory",
+        "opencode-skills",
+        "pi-agent",
+        "understandcode",
+        "vibe-coding"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-04",
+      "description": "Open-source AI job search: scan job portals, evaluate listings into a structured A-H report with a global 1-5 score, tailor your CV, track applications — runs locally in your AI coding CLI (Claude Code, Codex, OpenCode, Antigravity…)",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 14,
+      "repo": "career-ops-hq/career-ops",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 72727,
+      "stars_per_day": 415.6,
+      "topics": [
+        "ai-agent",
+        "ai-job-search",
+        "ats",
+        "career",
+        "careerops",
+        "claude-code",
+        "cli",
+        "cover-letter",
+        "cv",
+        "interview-prep",
+        "job-application",
+        "job-hunting",
+        "job-search",
+        "job-tracker",
+        "jobsearch",
+        "jobseekers",
+        "local-first",
+        "open-source",
+        "resume",
+        "resume-builder"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-02-19",
+      "description": "Taste-Skill - gives your AI good taste. stops the AI from generating boring, generic slop ",
+      "in_landscape": false,
+      "pushed_at": "2026-09-23",
+      "rank": 15,
+      "repo": "Leonxlnx/taste-skill",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 90048,
+      "stars_per_day": 411.2,
+      "topics": [
+        "agent",
+        "ai",
+        "claude",
+        "claude-code",
+        "codex",
+        "coding",
+        "design",
+        "frontend",
+        "lowcode",
+        "nocode",
+        "skill",
+        "skills",
+        "vibecoding"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-03-17",
+      "description": "Orca is the ADE for working with a fleet of parallel agents. Run any coding agent with your own subscription. Available on desktop, mobile and remote runtime.",
+      "in_landscape": true,
+      "pushed_at": "2026-09-25",
+      "rank": 16,
+      "repo": "stablyai/orca",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 78041,
+      "stars_per_day": 404.4,
+      "topics": [
+        "ade",
+        "agent-ide",
+        "ai-agents",
+        "claude-code",
+        "cli",
+        "codex",
+        "cursor-agent",
+        "devtools",
+        "ghostty",
+        "ide",
+        "mobile-app",
+        "opencode",
+        "orchestration",
+        "parallel-agents",
+        "pi",
+        "terminal",
+        "worktrees",
+        "yc-backed"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-02-24",
+      "description": "Give your AI agent eyes to see the entire internet. Read & search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu — one CLI, zero API fees.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-15",
+      "rank": 17,
+      "repo": "Panniantong/Agent-Reach",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 85392,
+      "stars_per_day": 399.0,
+      "topics": [
+        "agent-infrastructure",
+        "ai-agent",
+        "ai-search",
+        "automation",
+        "bilibili",
+        "claude-code",
+        "cli",
+        "cursor",
+        "free-api",
+        "llm-tools",
+        "mcp",
+        "python",
+        "reddit-scraper",
+        "twitter-scraper",
+        "web-scraper",
+        "xiaohongshu",
+        "youtube-transcript"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-05-13",
+      "description": "A skill to stop your coding agent from burying the answer. ADHD-friendly output.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-19",
+      "rank": 18,
+      "repo": "ayghri/i-have-adhd",
+      "sources": [
+        "topic:claude-skills"
+      ],
+      "stars": 51133,
+      "stars_per_day": 376.0,
+      "topics": [
+        "adhd",
+        "claude-",
+        "claude-code-plugin",
+        "claude-skills",
+        "developer-tools",
+        "productivity"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-01-22",
+      "description": "CLI proxy that reduces LLM token consumption by 60-90% on common dev commands. Single Rust binary, zero dependencies",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 19,
+      "repo": "rtk-ai/rtk",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 81697,
+      "stars_per_day": 330.8,
+      "topics": [
+        "agentic-coding",
+        "ai-coding",
+        "anthropic",
+        "claude-code",
+        "cli",
+        "command-line-tool",
+        "cost-reduction",
+        "developer-tools",
+        "llm",
+        "open-source",
+        "productivity",
+        "rust",
+        "token-optimization"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-08-04",
+      "description": "A cross-platform desktop All-in-One assistant for Claude Code, Codex, OpenCode, OpenClaw, Grok Build & Hermes Agent. Only official website: ccswitch.io",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 20,
+      "repo": "farion1231/cc-switch",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 136783,
+      "stars_per_day": 327.2,
+      "topics": [
+        "ai-tools",
+        "claude-code",
+        "codex",
+        "desktop-app",
+        "grok",
+        "grokbuild",
+        "hermes",
+        "hermes-agent",
+        "mcp",
+        "open-source",
+        "openclaw",
+        "openclaw-ui",
+        "opencode",
+        "pi",
+        "provider-management",
+        "rust",
+        "skills",
+        "skills-management",
+        "tauri",
+        "wsl-support"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-05-18",
+      "description": "Secure, fast, efficient, battle-tested at Alibaba's scale. Hybrid architecture code review tool: deterministic pipelines + LLM Agent, precise line-level comments, built-in multi-language ruleset (NPE, thread-safety, XSS, SQL injection), OpenAI & Anthropic compatible.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-24",
+      "rank": 21,
+      "repo": "alibaba/open-code-review",
+      "sources": [
+        "topic:agent-skills"
+      ],
+      "stars": 41170,
+      "stars_per_day": 314.3,
+      "topics": [
+        "agent",
+        "agent-skills",
+        "code-review",
+        "code-review-assistant",
+        "harness",
+        "repository-level-context"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-02-13",
+      "description": "Never stop coding. Free MIT AI gateway: one endpoint, 359 providers (150+ free), 1200+ models Kimi, Claude, GPT, Gemini, GLM, DeepSeek, MiniMax. Works with Claude Code, Codex, Cursor, OpenCode, Cline & Copilot. Quota-aware auto-fallback, RTK+Caveman compression saves 15-95% tokens, MCP/A2A, Desktop/PWA. Built by hundreds of contributors",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 22,
+      "repo": "diegosouzapw/OmniRoute",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 70100,
+      "stars_per_day": 311.6,
+      "topics": [
+        "a2a",
+        "ai-agents",
+        "ai-gateway",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "cline",
+        "codex",
+        "copilot",
+        "cursor",
+        "deepseek",
+        "free-ai",
+        "gemini",
+        "kimi",
+        "llm-gateway",
+        "mcp",
+        "openai",
+        "openai-proxy",
+        "qwen",
+        "token-saver"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-01-07",
+      "description": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 20% fewer tokens for coding agents, 60-95% fewer tokens for JSON, same answers. Library, proxy, MCP server.",
+      "in_landscape": true,
+      "pushed_at": "2026-09-25",
+      "rank": 23,
+      "repo": "headroomlabs-ai/headroom",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 73788,
+      "stars_per_day": 281.6,
+      "topics": [
+        "agent",
+        "ai",
+        "anthropic",
+        "claude-code",
+        "compression",
+        "context-engineering",
+        "context-window",
+        "cursor",
+        "fastapi",
+        "langchain",
+        "llm",
+        "mcp",
+        "openai",
+        "prompt-engineering",
+        "proxy",
+        "python",
+        "rag",
+        "token-optimization",
+        "tokens",
+        "typescript"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-04-16",
+      "description": "Editorial diagram design for Claude Code, Codex, and Pi. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-19",
+      "rank": 24,
+      "repo": "cathrynlavery/diagram-design",
+      "sources": [
+        "list:hesreallyhim/awesome-claude-code",
+        "topic:agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 42386,
+      "stars_per_day": 260.0,
+      "topics": [
+        "agent-skills",
+        "claude-code",
+        "codex",
+        "data-visualization",
+        "diagrams",
+        "drawio",
+        "mermaid",
+        "svg"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-01-23",
+      "description": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a grounded summary",
+      "in_landscape": false,
+      "pushed_at": "2026-09-23",
+      "rank": 25,
+      "repo": "mvanhorn/last30days-skill",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code"
+      ],
+      "stars": 62797,
+      "stars_per_day": 255.3,
+      "topics": [
+        "ai-prompts",
+        "ai-skill",
+        "bluesky",
+        "claude",
+        "claude-code",
+        "clawhub",
+        "deep-research",
+        "hackernews",
+        "instagram",
+        "openclaw",
+        "polymarket",
+        "recency",
+        "reddit",
+        "research",
+        "social-media",
+        "tiktok",
+        "trends",
+        "twitter",
+        "web-search",
+        "youtube"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-02-22",
+      "description": "Claude Code is an agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster by executing routine tasks, explaining complex code, and handling git workflows - all through natural language commands.",
+      "in_landscape": true,
+      "pushed_at": "2026-09-25",
+      "rank": 26,
+      "repo": "anthropics/claude-code",
+      "sources": [
+        "list:hesreallyhim/awesome-claude-code"
+      ],
+      "stars": 148048,
+      "stars_per_day": 254.8,
+      "topics": []
+    },
+    {
+      "archived": false,
+      "created_at": "2025-08-31",
+      "description": "Persistent Context Across Sessions for Every Agent –  Captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions. Works with Claude Code, OpenClaw, Codex, Gemini, Hermes, Copilot, OpenCode + More",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 27,
+      "repo": "thedotmack/claude-mem",
+      "sources": [
+        "list:VoltAgent/awesome-agent-skills",
+        "topic:claude-code",
+        "topic:claude-skills"
+      ],
+      "stars": 94678,
+      "stars_per_day": 242.1,
+      "topics": [
+        "ai",
+        "ai-agents",
+        "ai-memory",
+        "anthropic",
+        "artificial-intelligence",
+        "chromadb",
+        "claude",
+        "claude-agent-sdk",
+        "claude-agents",
+        "claude-code",
+        "claude-code-plugin",
+        "claude-skills",
+        "embeddings",
+        "long-term-memory",
+        "mem0",
+        "memory-engine",
+        "openmemory",
+        "rag",
+        "sqlite",
+        "supermemory"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2025-12-03",
+      "description": "OmO: Just type \"mass ulw\" keyword with your prompt. Now you are the master of graph engineering.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-24",
+      "rank": 28,
+      "repo": "code-yeongyu/oh-my-openagent",
+      "sources": [
+        "topic:claude-skills"
+      ],
+      "stars": 69408,
+      "stars_per_day": 233.7,
+      "topics": [
+        "ai",
+        "ai-agents",
+        "anthropic",
+        "chatgpt",
+        "claude",
+        "claude-skills",
+        "codex",
+        "cursor",
+        "gemini",
+        "ide",
+        "openai",
+        "opencode",
+        "orchestration",
+        "tui",
+        "typescript"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-02-26",
+      "description": "Academic Research Skills for Claude Code: research → write → review → revise → finalize",
+      "in_landscape": false,
+      "pushed_at": "2026-09-25",
+      "rank": 29,
+      "repo": "Imbad0202/academic-research-skills",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 49454,
+      "stars_per_day": 233.3,
+      "topics": [
+        "academic-pipeline",
+        "academic-writing",
+        "ai-research",
+        "claude",
+        "claude-code",
+        "literature-review",
+        "peer-review",
+        "prompt-engineering"
+      ]
+    },
+    {
+      "archived": false,
+      "created_at": "2026-07-15",
+      "description": "Rebuild the object in a reference image as a code-only, procedural, quality-gated, animation-ready Three.js model. Token-efficient image-to-3D.",
+      "in_landscape": false,
+      "pushed_at": "2026-09-23",
+      "rank": 30,
+      "repo": "img2threejs/img2threejs",
+      "sources": [
+        "topic:claude-code"
+      ],
+      "stars": 16741,
+      "stars_per_day": 229.3,
+      "topics": [
+        "3d",
+        "ai-agents",
+        "claude-code",
+        "computer-graphics",
+        "generative",
+        "image-to-3d",
+        "procedural-generation",
+        "threejs",
+        "typescript",
+        "webgl"
+      ]
+    }
+  ],
+  "fetched_at": "2026-09-26",
+  "pool_size": 656,
+  "push_days": 90,
+  "schema_version": 1,
+  "topics": [
+    "claude-code",
+    "claude-skills",
+    "agent-skills",
+    "agent-harness",
+    "coding-agent",
+    "codex-cli"
+  ]
+}
