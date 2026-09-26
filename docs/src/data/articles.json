@@ -1,0 +1,1123 @@
+{
+  "fetched_at": "2026-09-26",
+  "schema_version": 1,
+  "window_days": 365,
+  "top": {
+    "zenn": 12,
+    "qiita": 10,
+    "hn": 10,
+    "devto": 6
+  },
+  "min_reactions": {
+    "zenn": 50,
+    "qiita": 50,
+    "hn": 100,
+    "devto": 20
+  },
+  "zenn_topics": [
+    "claudecode",
+    "codex",
+    "cursor",
+    "mcp",
+    "aiagent",
+    "agentskills"
+  ],
+  "qiita_tags": [
+    "ClaudeCode",
+    "Codex",
+    "Cursor",
+    "MCP",
+    "AIエージェント"
+  ],
+  "hn_queries": [
+    "claude code",
+    "codex cli",
+    "cursor agent",
+    "coding agent",
+    "agent skills",
+    "subagents",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "MCP server"
+  ],
+  "devto_tags": [
+    "claudecode",
+    "codex",
+    "cursor",
+    "mcp",
+    "aiagents"
+  ],
+  "slop": {
+    "top": {
+      "zenn": 5,
+      "qiita": 4,
+      "hn": 6
+    },
+    "min_reactions": {
+      "zenn": 20,
+      "qiita": 20,
+      "hn": 100
+    },
+    "zenn_topics": [
+      "aislop",
+      "slop"
+    ],
+    "zenn_search": [
+      "AI Slop",
+      "AIっぽい",
+      "ヒューマナイザー"
+    ],
+    "qiita_titles": [
+      "AIっぽい",
+      "slop"
+    ],
+    "hn_queries": [
+      "AI slop",
+      "slop",
+      "humanizer",
+      "AI-generated code"
+    ]
+  },
+  "named": {
+    "poteto-mode": [
+      "pstack",
+      "poteto[- ]?mode|^pstack$|guide to pstack|cursor.{0,20}pstack|pstack.{0,20}(cursor|plugin)"
+    ],
+    "Hermes Agent": [
+      "Hermes Agent",
+      "hermes[ -]agent"
+    ],
+    "DeepSeek Harness": [
+      "DeepSeek Harness",
+      "deepseek[ -]harness"
+    ],
+    "Devin": [
+      "Devin",
+      "\\bdevin\\b"
+    ]
+  },
+  "articles": [
+    {
+      "id": "zenn:5fee11d03a11a1",
+      "site": "zenn",
+      "title": "Claude Codeで「AI部下10人」を作ったら、勝手にバグ直して「違反は切腹」ルールを追加してきて、オレは適当にしゃべるだけになった",
+      "url": "https://zenn.dev/shio_shoppaize/articles/5fee11d03a11a1",
+      "reactions": 1795,
+      "published": "2026-01-25",
+      "tags": [],
+      "via": [
+        "topic:agentskills",
+        "topic:aiagent",
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 1
+    },
+    {
+      "id": "zenn:e3f648e335a947",
+      "site": "zenn",
+      "title": "コードを書くのをやめた。Claude Codeに月商300万のSaaSの全コードを書かせ、完全ソロ運用しているという話。",
+      "url": "https://zenn.dev/nnze/articles/e3f648e335a947",
+      "reactions": 645,
+      "published": "2026-03-15",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 2
+    },
+    {
+      "id": "zenn:8783c6b3ead2cb",
+      "site": "zenn",
+      "title": "grill-me スキルがめちゃ良いので布教したい",
+      "url": "https://zenn.dev/ryonakae/articles/8783c6b3ead2cb",
+      "reactions": 635,
+      "published": "2026-04-09",
+      "tags": [],
+      "via": [
+        "topic:agentskills",
+        "topic:claudecode",
+        "topic:codex"
+      ],
+      "theme": "harness",
+      "rank": 3
+    },
+    {
+      "id": "zenn:2512-full-ai-cofing",
+      "site": "zenn",
+      "title": "実践フルAIコーディング",
+      "url": "https://zenn.dev/erukiti/articles/2512-full-ai-cofing",
+      "reactions": 631,
+      "published": "2025-12-08",
+      "tags": [],
+      "via": [
+        "topic:claudecode",
+        "topic:codex"
+      ],
+      "theme": "harness",
+      "rank": 4
+    },
+    {
+      "id": "zenn:6aa18c80496ec6",
+      "site": "zenn",
+      "title": "AIに「レビューして」はもう古い？「敵対的検証」のすすめ",
+      "url": "https://zenn.dev/loglass/articles/6aa18c80496ec6",
+      "reactions": 594,
+      "published": "2026-07-17",
+      "tags": [],
+      "via": [
+        "topic:claudecode",
+        "topic:codex"
+      ],
+      "theme": "harness",
+      "rank": 5
+    },
+    {
+      "id": "zenn:b7fad1a0c52481",
+      "site": "zenn",
+      "title": "Claude CodeのPlanモードで実装した後、そのまま質問しまくってるやついる？いねえよな！",
+      "url": "https://zenn.dev/take4/articles/b7fad1a0c52481",
+      "reactions": 584,
+      "published": "2026-01-27",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 6
+    },
+    {
+      "id": "zenn:83fe82191db01b",
+      "site": "zenn",
+      "title": "確定申告を自動化する Agent Skill \"shinkoku\" を OSS にした",
+      "url": "https://zenn.dev/kazukinagata/articles/83fe82191db01b",
+      "reactions": 578,
+      "published": "2026-02-22",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 7
+    },
+    {
+      "id": "zenn:63d325934ba0de",
+      "site": "zenn",
+      "title": "Claude CodeとCodexの連携をMCPからSkillに変えたら体験が劇的に改善した",
+      "url": "https://zenn.dev/owayo/articles/63d325934ba0de",
+      "reactions": 547,
+      "published": "2026-01-14",
+      "tags": [],
+      "via": [
+        "topic:claudecode",
+        "topic:codex",
+        "topic:mcp"
+      ],
+      "theme": "harness",
+      "rank": 8
+    },
+    {
+      "id": "zenn:claude-code-tips-findy-2026",
+      "site": "zenn",
+      "title": "Claude Codeを加速させる私の推しスキル・ツール・設定（Findyイベント登壇資料）",
+      "url": "https://zenn.dev/ubie_dev/articles/claude-code-tips-findy-2026",
+      "reactions": 545,
+      "published": "2026-03-11",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 9
+    },
+    {
+      "id": "zenn:1c6c3b9333117c",
+      "site": "zenn",
+      "title": "ハーネスエンジニアリングで人間のコードレビューをやめる",
+      "url": "https://zenn.dev/theaktky/articles/1c6c3b9333117c",
+      "reactions": 466,
+      "published": "2026-03-24",
+      "tags": [],
+      "via": [
+        "topic:claudecode",
+        "topic:codex",
+        "topic:cursor"
+      ],
+      "theme": "harness",
+      "rank": 10
+    },
+    {
+      "id": "zenn:empirical-prompt-tuning",
+      "site": "zenn",
+      "title": "プロンプトの再現性をAI に自動チューニングさせる方法 ~ 暗黙知を排除する",
+      "url": "https://zenn.dev/mizchi/articles/empirical-prompt-tuning",
+      "reactions": 465,
+      "published": "2026-04-19",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 11
+    },
+    {
+      "id": "zenn:65b9a99d22ce2b",
+      "site": "zenn",
+      "title": "CLAUDE.mdに本当は何を書くべきなのか",
+      "url": "https://zenn.dev/cureapp/articles/65b9a99d22ce2b",
+      "reactions": 449,
+      "published": "2026-03-03",
+      "tags": [],
+      "via": [
+        "topic:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 12
+    },
+    {
+      "id": "qiita:114f53def8cb0db60f47",
+      "site": "qiita",
+      "title": "Claude Codeですべての日常業務を爆速化しよう！",
+      "url": "https://qiita.com/minorun365/items/114f53def8cb0db60f47",
+      "reactions": 2362,
+      "published": "2026-03-02",
+      "tags": [
+        "AI",
+        "AIエージェント",
+        "ClaudeCode",
+        "仕様駆動開発"
+      ],
+      "via": [
+        "tag:AIエージェント",
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 1
+    },
+    {
+      "id": "qiita:356e5f1dba112a075be1",
+      "site": "qiita",
+      "title": "正直に言う。お前のClaude Codeの使い方は間違っている",
+      "url": "https://qiita.com/tehito/items/356e5f1dba112a075be1",
+      "reactions": 1067,
+      "published": "2026-06-25",
+      "tags": [
+        "AI",
+        "ClaudeCode",
+        "個人開発",
+        "生成AI"
+      ],
+      "via": [
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 2
+    },
+    {
+      "id": "qiita:77e9e022860b57e4bd4d",
+      "site": "qiita",
+      "title": "【15分で追いつく！】今のClaude Codeができることをざっくり解説",
+      "url": "https://qiita.com/kyuko/items/77e9e022860b57e4bd4d",
+      "reactions": 966,
+      "published": "2026-02-17",
+      "tags": [
+        "Anthropic",
+        "Claude",
+        "ClaudeCode",
+        "SKILLS",
+        "生成AI"
+      ],
+      "via": [
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 3
+    },
+    {
+      "id": "qiita:66e7c07c459e3bb7082d",
+      "site": "qiita",
+      "title": "【2026年最新】Claude Code作者が実践する「超並列駆動」開発術がエンジニアの常識を破壊していた",
+      "url": "https://qiita.com/ot12/items/66e7c07c459e3bb7082d",
+      "reactions": 874,
+      "published": "2026-01-19",
+      "tags": [
+        "AI",
+        "ClaudeCode",
+        "バイブコーディング",
+        "ポエム",
+        "生成AI"
+      ],
+      "via": [
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 4
+    },
+    {
+      "id": "qiita:da163b7f7b53fc445f63",
+      "site": "qiita",
+      "title": "【狂気の実証実験1】AIエージェントに電気ショック権限を付与したら生活が更生した",
+      "url": "https://qiita.com/motoya0118/items/da163b7f7b53fc445f63",
+      "reactions": 853,
+      "published": "2026-01-01",
+      "tags": [
+        "AIエージェント",
+        "LLM",
+        "継続",
+        "習慣化",
+        "自己管理"
+      ],
+      "via": [
+        "tag:AIエージェント"
+      ],
+      "theme": "harness",
+      "rank": 5
+    },
+    {
+      "id": "qiita:c392f0804987593dc179",
+      "site": "qiita",
+      "title": "ChatGPTが長いチャットで重くなったときに使っている「引き継ぎプロンプト」",
+      "url": "https://qiita.com/SatoRyota_zvc/items/c392f0804987593dc179",
+      "reactions": 676,
+      "published": "2026-03-27",
+      "tags": [
+        "AI",
+        "AIエージェント",
+        "AI活用",
+        "ChatGPT",
+        "プロンプト"
+      ],
+      "via": [
+        "tag:AIエージェント"
+      ],
+      "theme": "harness",
+      "rank": 6
+    },
+    {
+      "id": "qiita:2feffd2cc6c672717973",
+      "site": "qiita",
+      "title": "AIが実装し、AIがテストし、AIが「問題ありません」と言う時代の品質保証",
+      "url": "https://qiita.com/y0us91/items/2feffd2cc6c672717973",
+      "reactions": 663,
+      "published": "2026-08-11",
+      "tags": [
+        "AIエージェント",
+        "CICD",
+        "ソフトウェアテスト",
+        "テスト自動化",
+        "生成AI"
+      ],
+      "via": [
+        "tag:AIエージェント"
+      ],
+      "theme": "harness",
+      "rank": 7
+    },
+    {
+      "id": "qiita:d6c83ea50b82e1c2602c",
+      "site": "qiita",
+      "title": "100行のCLAUDE.mdより35行が効く理由 — 公式仕様で解く設定の最適化",
+      "url": "https://qiita.com/nogataka/items/d6c83ea50b82e1c2602c",
+      "reactions": 569,
+      "published": "2026-03-31",
+      "tags": [
+        "AIエージェント",
+        "AI駆動開発",
+        "CLAUDE.md",
+        "ClaudeCode",
+        "プロンプトエンジニアリング"
+      ],
+      "via": [
+        "tag:AIエージェント",
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 8
+    },
+    {
+      "id": "qiita:ca1810e419fee5fd963b",
+      "site": "qiita",
+      "title": "【2026年版】Claude Codeを最強にするプラグイン・MCP・ツール総まとめ",
+      "url": "https://qiita.com/shatolin/items/ca1810e419fee5fd963b",
+      "reactions": 495,
+      "published": "2026-02-06",
+      "tags": [
+        "AI",
+        "AI駆動開発",
+        "Claude",
+        "ClaudeCode"
+      ],
+      "via": [
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 9
+    },
+    {
+      "id": "qiita:1ad4e4ccaf47816c63e0",
+      "site": "qiita",
+      "title": "CLAUDE.mdを設計するとClaude Codeの生産性が別物になる — 実際の設定と運用ワークフローを公開",
+      "url": "https://qiita.com/nogataka/items/1ad4e4ccaf47816c63e0",
+      "reactions": 490,
+      "published": "2026-03-18",
+      "tags": [
+        "AI",
+        "AIエージェント",
+        "ClaudeCode",
+        "生成AI",
+        "開発効率化"
+      ],
+      "via": [
+        "tag:AIエージェント",
+        "tag:ClaudeCode"
+      ],
+      "theme": "harness",
+      "rank": 10
+    },
+    {
+      "id": "hn:47106686",
+      "site": "hn",
+      "title": "How I use Claude Code: Separation of planning and execution",
+      "url": "https://boristane.com/blog/how-i-use-claude-code/",
+      "reactions": 976,
+      "published": "2026-02-22",
+      "tags": [],
+      "via": [
+        "query:claude code"
+      ],
+      "theme": "harness",
+      "rank": 1
+    },
+    {
+      "id": "hn:45607117",
+      "site": "hn",
+      "title": "Claude Skills",
+      "url": "https://www.anthropic.com/news/skills",
+      "reactions": 816,
+      "published": "2025-10-16",
+      "tags": [],
+      "via": [
+        "query:agent skills"
+      ],
+      "theme": "harness",
+      "rank": 2
+    },
+    {
+      "id": "hn:46723384",
+      "site": "hn",
+      "title": "I was banned from Claude for scaffolding a Claude.md file?",
+      "url": "https://hugodaniel.com/posts/claude-code-banned-me/",
+      "reactions": 749,
+      "published": "2026-01-22",
+      "tags": [],
+      "via": [
+        "query:CLAUDE.md"
+      ],
+      "theme": "harness",
+      "rank": 3
+    },
+    {
+      "id": "hn:46098838",
+      "site": "hn",
+      "title": "Writing a good Claude.md",
+      "url": "https://www.humanlayer.dev/blog/writing-a-good-claude-md",
+      "reactions": 748,
+      "published": "2025-11-30",
+      "tags": [],
+      "via": [
+        "query:CLAUDE.md"
+      ],
+      "theme": "harness",
+      "rank": 4
+    },
+    {
+      "id": "hn:49760187",
+      "site": "hn",
+      "title": "Claude Code now reads AGENTS.md if there is no Claude.md",
+      "url": "https://code.claude.com/docs/en/changelog",
+      "reactions": 740,
+      "published": "2026-09-18",
+      "tags": [],
+      "via": [
+        "query:AGENTS.md",
+        "query:CLAUDE.md",
+        "query:claude code",
+        "query:codex cli"
+      ],
+      "theme": "harness",
+      "rank": 5
+    },
+    {
+      "id": "hn:48883275",
+      "site": "hn",
+      "title": "Claude Code sends 33k tokens before reading the prompt; OpenCode sends 7k",
+      "url": "https://systima.ai/blog/claude-code-vs-opencode-token-overhead",
+      "reactions": 706,
+      "published": "2026-07-12",
+      "tags": [],
+      "via": [
+        "query:claude code",
+        "query:coding agent"
+      ],
+      "theme": "harness",
+      "rank": 6
+    },
+    {
+      "id": "hn:47854477",
+      "site": "hn",
+      "title": "Claude Code to be removed from Anthropic's Pro plan?",
+      "url": "https://bsky.app/profile/edzitron.com/post/3mjzxwfx3qs2a",
+      "reactions": 683,
+      "published": "2026-04-21",
+      "tags": [],
+      "via": [
+        "query:claude code"
+      ],
+      "theme": "harness",
+      "rank": 7
+    },
+    {
+      "id": "hn:48002136",
+      "site": "hn",
+      "title": "DeepClaude – Claude Code agent loop with DeepSeek V4 Pro",
+      "url": "https://github.com/aattaran/deepclaude",
+      "reactions": 678,
+      "published": "2026-05-03",
+      "tags": [],
+      "via": [
+        "query:claude code"
+      ],
+      "theme": "harness",
+      "rank": 8
+    },
+    {
+      "id": "hn:46250332",
+      "site": "hn",
+      "title": "OpenAI are quietly adopting skills, now available in ChatGPT and Codex CLI",
+      "url": "https://simonwillison.net/2025/Dec/12/openai-skills/",
+      "reactions": 587,
+      "published": "2025-12-12",
+      "tags": [],
+      "via": [
+        "query:codex cli"
+      ],
+      "theme": "harness",
+      "rank": 9
+    },
+    {
+      "id": "hn:47193064",
+      "site": "hn",
+      "title": "MCP server that reduces Claude Code context consumption by 98%",
+      "url": "https://mksg.lu/blog/context-mode",
+      "reactions": 570,
+      "published": "2026-02-28",
+      "tags": [],
+      "via": [
+        "query:MCP server",
+        "query:claude code"
+      ],
+      "theme": "harness",
+      "rank": 10
+    },
+    {
+      "id": "devto:4559844",
+      "site": "devto",
+      "title": "20 Agentic AI Terms Every Developer Should Know (Explained Simply)",
+      "url": "https://dev.to/sylwia-lask/20-agentic-ai-terms-every-developer-should-know-explained-simply-jii",
+      "reactions": 226,
+      "published": "2026-09-03",
+      "tags": [
+        "agents",
+        "ai",
+        "beginners",
+        "mcp"
+      ],
+      "via": [
+        "tag:mcp"
+      ],
+      "theme": "harness",
+      "rank": 1
+    },
+    {
+      "id": "devto:4702045",
+      "site": "devto",
+      "title": "What If Your AI Agent Never Had to Leave the Browser? (Demo 🚀)",
+      "url": "https://dev.to/sylwia-lask/what-if-your-ai-agent-never-had-to-leave-the-browser-demo--5g",
+      "reactions": 164,
+      "published": "2026-09-21",
+      "tags": [
+        "ai",
+        "mcp",
+        "typescript",
+        "webdev"
+      ],
+      "via": [
+        "tag:mcp"
+      ],
+      "theme": "harness",
+      "rank": 2
+    },
+    {
+      "id": "devto:3806074",
+      "site": "devto",
+      "title": "Is This How We'll Build Websites Soon? (webMCP Live Demo 🚀)",
+      "url": "https://dev.to/sylwia-lask/is-this-how-well-build-websites-soon-webmcp-live-demo--2e33",
+      "reactions": 156,
+      "published": "2026-06-03",
+      "tags": [
+        "ai",
+        "javascript",
+        "mcp",
+        "react"
+      ],
+      "via": [
+        "tag:mcp"
+      ],
+      "theme": "harness",
+      "rank": 3
+    },
+    {
+      "id": "devto:4576085",
+      "site": "devto",
+      "title": "From AI Solutions to Shared Knowledge: Building an MCP for the Community",
+      "url": "https://dev.to/pascal_cescato_692b7a8a20/from-ai-solutions-to-shared-knowledge-building-an-mcp-for-the-community-6bk",
+      "reactions": 145,
+      "published": "2026-09-07",
+      "tags": [
+        "ai",
+        "devchallenge",
+        "mcp",
+        "weekendchallenge"
+      ],
+      "via": [
+        "tag:mcp"
+      ],
+      "theme": "harness",
+      "rank": 4
+    },
+    {
+      "id": "devto:3403502",
+      "site": "devto",
+      "title": "your agent can think. it can't remember.",
+      "url": "https://dev.to/ghostbuild/your-agent-can-think-it-cant-remember-5e1o",
+      "reactions": 144,
+      "published": "2026-03-25",
+      "tags": [
+        "agents",
+        "ai",
+        "mcp",
+        "postgres"
+      ],
+      "via": [
+        "tag:mcp"
+      ],
+      "theme": "harness",
+      "rank": 5
+    },
+    {
+      "id": "devto:3335508",
+      "site": "devto",
+      "title": "I Made Claude Code Think Before It Codes. Here's the Prompt.",
+      "url": "https://dev.to/_vjk/i-made-claude-code-think-before-it-codes-heres-the-prompt-bf",
+      "reactions": 133,
+      "published": "2026-03-10",
+      "tags": [
+        "ai",
+        "claudecode",
+        "productivity",
+        "tdd"
+      ],
+      "via": [
+        "tag:claudecode"
+      ],
+      "theme": "harness",
+      "rank": 6
+    },
+    {
+      "id": "zenn:fba4cc93baf0a9",
+      "site": "zenn",
+      "title": "ちょっとしたアイデアをAIで長文記事にして公開するのをやめろ",
+      "url": "https://zenn.dev/todesking/articles/fba4cc93baf0a9",
+      "reactions": 490,
+      "published": "2026-05-12",
+      "tags": [],
+      "via": [
+        "topic:slop"
+      ],
+      "theme": "slop",
+      "rank": 1
+    },
+    {
+      "id": "zenn:apple_design_skills",
+      "site": "zenn",
+      "title": "Claude Skillsで簡単にApple風デザインを自動生成！AIっぽいデザインから脱却する方法",
+      "url": "https://zenn.dev/tmasuyama1114/articles/apple_design_skills",
+      "reactions": 85,
+      "published": "2025-11-19",
+      "tags": [],
+      "via": [
+        "search:AIっぽい"
+      ],
+      "theme": "slop",
+      "rank": 2
+    },
+    {
+      "id": "zenn:ai-likeness-not-about-writing-style",
+      "site": "zenn",
+      "title": "「AIっぽい」の正体は文体じゃない — 全業務をAIエージェントで回して気づいたこと",
+      "url": "https://zenn.dev/omori432/articles/ai-likeness-not-about-writing-style",
+      "reactions": 69,
+      "published": "2026-03-17",
+      "tags": [],
+      "via": [
+        "search:AIっぽい"
+      ],
+      "theme": "slop",
+      "rank": 3
+    },
+    {
+      "id": "zenn:anthropic_claude_skills_design",
+      "site": "zenn",
+      "title": "【Claude Code】Skills機能で『AIっぽい』UIから脱却する方法！Anthropic公式もおすすめ",
+      "url": "https://zenn.dev/tmasuyama1114/articles/anthropic_claude_skills_design",
+      "reactions": 65,
+      "published": "2025-11-16",
+      "tags": [],
+      "via": [
+        "search:AIっぽい"
+      ],
+      "theme": "slop",
+      "rank": 4
+    },
+    {
+      "id": "zenn:04387b258ba54e",
+      "site": "zenn",
+      "title": "せっかく作ったアプリが「AIっぽい」だけで避けられないようにするには？ ── /frontend-designだけじゃ足りなかった話",
+      "url": "https://zenn.dev/tokium_dev/articles/04387b258ba54e",
+      "reactions": 62,
+      "published": "2026-06-04",
+      "tags": [],
+      "via": [
+        "search:AIっぽい"
+      ],
+      "theme": "slop",
+      "rank": 5
+    },
+    {
+      "id": "qiita:b633dda178c505461080",
+      "site": "qiita",
+      "title": "AIっぽくない画像を作る画風プロンプト38種類＋テンプレート",
+      "url": "https://qiita.com/maeda-niku18/items/b633dda178c505461080",
+      "reactions": 860,
+      "published": "2026-09-07",
+      "tags": [
+        "AI",
+        "画像生成"
+      ],
+      "via": [
+        "title:AIっぽい"
+      ],
+      "theme": "slop",
+      "rank": 1
+    },
+    {
+      "id": "hn:48053203",
+      "site": "hn",
+      "title": "AI slop is killing online communities",
+      "url": "https://rmoff.net/2026/05/06/ai-slop-is-killing-online-communities/",
+      "reactions": 834,
+      "published": "2026-05-07",
+      "tags": [],
+      "via": [
+        "query:AI slop",
+        "query:slop"
+      ],
+      "theme": "slop",
+      "rank": 1
+    },
+    {
+      "id": "hn:49154332",
+      "site": "hn",
+      "title": "SQLite Critical CVEs or LLM Slop?",
+      "url": "https://research.jfrog.com/post/sqlite-critical-cves-or-llm-slops/",
+      "reactions": 727,
+      "published": "2026-08-03",
+      "tags": [],
+      "via": [
+        "query:slop"
+      ],
+      "theme": "slop",
+      "rank": 2
+    },
+    {
+      "id": "hn:47389570",
+      "site": "hn",
+      "title": "Stop Sloppypasta",
+      "url": "https://stopsloppypasta.ai/",
+      "reactions": 667,
+      "published": "2026-03-15",
+      "tags": [],
+      "via": [
+        "query:AI slop",
+        "query:slop"
+      ],
+      "theme": "slop",
+      "rank": 3
+    },
+    {
+      "id": "hn:45919067",
+      "site": "hn",
+      "title": "SlopStop: Community-driven AI slop detection in Kagi Search",
+      "url": "https://blog.kagi.com/slopstop",
+      "reactions": 589,
+      "published": "2025-11-13",
+      "tags": [],
+      "via": [
+        "query:AI slop",
+        "query:slop"
+      ],
+      "theme": "slop",
+      "rank": 4
+    },
+    {
+      "id": "hn:49213754",
+      "site": "hn",
+      "title": "Oracle bans AI-generated code from OpenJDK",
+      "url": "https://app.dealroom.co/news/feed/oracle-bans-ai-generated-code-from-openjdk-despite-ellison-s-claim-oracle-isn-t-writing-its-own-code",
+      "reactions": 536,
+      "published": "2026-08-07",
+      "tags": [],
+      "via": [
+        "query:AI-generated code"
+      ],
+      "theme": "slop",
+      "rank": 5
+    },
+    {
+      "id": "hn:49007247",
+      "site": "hn",
+      "title": "Quality non-fiction books are the antithesis of AI slop",
+      "url": "https://resobscura.substack.com/p/quality-non-fiction-books-are-the",
+      "reactions": 492,
+      "published": "2026-07-22",
+      "tags": [],
+      "via": [
+        "query:AI slop",
+        "query:slop"
+      ],
+      "theme": "slop",
+      "rank": 6
+    }
+  ],
+  "reputation": {
+    "poteto-mode": {
+      "query": "pstack",
+      "pattern": "poteto[- ]?mode|^pstack$|guide to pstack|cursor.{0,20}pstack|pstack.{0,20}(cursor|plugin)",
+      "count": {
+        "zenn": 1,
+        "qiita": 0,
+        "hn": 2
+      },
+      "reactions": {
+        "zenn": 31,
+        "qiita": 0,
+        "hn": 3
+      },
+      "top": [
+        {
+          "id": "zenn:pstack-cursor-plugin",
+          "site": "zenn",
+          "title": "pstack",
+          "url": "https://zenn.dev/jnst/articles/pstack-cursor-plugin",
+          "reactions": 31,
+          "published": "2026-08-28"
+        },
+        {
+          "id": "hn:49696222",
+          "site": "hn",
+          "title": "The Complete Guide to pstack Pt. 2",
+          "url": "https://twitter.com/poteto/status/2097732320606507506",
+          "reactions": 2,
+          "published": "2026-09-14"
+        },
+        {
+          "id": "hn:49523858",
+          "site": "hn",
+          "title": "pstack",
+          "url": "https://github.com/cursor/plugins/blob/main/pstack/docs/guide/README.md",
+          "reactions": 1,
+          "published": "2026-09-01"
+        }
+      ]
+    },
+    "Hermes Agent": {
+      "query": "Hermes Agent",
+      "pattern": "hermes[ -]agent",
+      "count": {
+        "zenn": 48,
+        "qiita": 76,
+        "hn": 58
+      },
+      "reactions": {
+        "zenn": 227,
+        "qiita": 246,
+        "hn": 228
+      },
+      "top": [
+        {
+          "id": "qiita:c4ba4c6dfd0342634a78",
+          "site": "qiita",
+          "title": "Hermes Agent入門 — 永続メモリと自動スキル生成で成長するOSSエージェント",
+          "url": "https://qiita.com/kai_kou/items/c4ba4c6dfd0342634a78",
+          "reactions": 104,
+          "published": "2026-03-16"
+        },
+        {
+          "id": "hn:48419000",
+          "site": "hn",
+          "title": "Hermes Agent – Open-source AI agent with persistent memory",
+          "url": "https://hermes-agent.org/",
+          "reactions": 52,
+          "published": "2026-06-05"
+        },
+        {
+          "id": "qiita:48328a49ae80dead6174",
+          "site": "qiita",
+          "title": "Hermes Agent：GitHub 67,000 Starの「自己成長型AIエージェント」の技術的仕組み",
+          "url": "https://qiita.com/nogataka/items/48328a49ae80dead6174",
+          "reactions": 42,
+          "published": "2026-04-13"
+        },
+        {
+          "id": "hn:49318128",
+          "site": "hn",
+          "title": "Show HN: Grafana agent observability for Hermes Agent",
+          "url": "https://github.com/alexander-akhmetov/grafana-agento11y-hermes",
+          "reactions": 28,
+          "published": "2026-08-16"
+        },
+        {
+          "id": "zenn:85337ee0faa966",
+          "site": "zenn",
+          "title": "Hermes Agent は個人開発の相棒になれるか？ ーー仕様設計からアプリ実装までやらせてみた",
+          "url": "https://zenn.dev/big_tanukiudon/articles/85337ee0faa966",
+          "reactions": 21,
+          "published": "2026-06-14"
+        }
+      ]
+    },
+    "DeepSeek Harness": {
+      "query": "DeepSeek Harness",
+      "pattern": "deepseek[ -]harness",
+      "count": {
+        "zenn": 11,
+        "qiita": 9,
+        "hn": 30
+      },
+      "reactions": {
+        "zenn": 20,
+        "qiita": 12,
+        "hn": 835
+      },
+      "top": [
+        {
+          "id": "hn:49285244",
+          "site": "hn",
+          "title": "DeepSeek Harness developer preview",
+          "url": "https://deepseek.com/harness/en/",
+          "reactions": 747,
+          "published": "2026-08-13"
+        },
+        {
+          "id": "hn:49285620",
+          "site": "hn",
+          "title": "DeepSeek Harness Released",
+          "url": "https://twitter.com/deepseek_ai/status/2087887408440164663",
+          "reactions": 10,
+          "published": "2026-08-13"
+        },
+        {
+          "id": "hn:49285631",
+          "site": "hn",
+          "title": "DeepSeek Harness official website launched",
+          "url": "https://www.deepseek.com/harness/en/",
+          "reactions": 10,
+          "published": "2026-08-13"
+        },
+        {
+          "id": "qiita:74f83c39cd67c59d9f94",
+          "site": "qiita",
+          "title": "Hermes Agent と DeepSeek Harness は何が違うのか",
+          "url": "https://qiita.com/anchor_/items/74f83c39cd67c59d9f94",
+          "reactions": 8,
+          "published": "2026-08-17"
+        },
+        {
+          "id": "zenn:4f44fcacede3b6",
+          "site": "zenn",
+          "title": "DeepSeek Harness入門：Agent版のVS Codeなのか",
+          "url": "https://zenn.dev/hjpotter1/articles/4f44fcacede3b6",
+          "reactions": 8,
+          "published": "2026-08-14"
+        }
+      ]
+    },
+    "Devin": {
+      "query": "Devin",
+      "pattern": "\\bdevin\\b",
+      "count": {
+        "zenn": 15,
+        "qiita": 49,
+        "hn": 20
+      },
+      "reactions": {
+        "zenn": 1475,
+        "qiita": 88,
+        "hn": 2478
+      },
+      "top": [
+        {
+          "id": "hn:39679787",
+          "site": "hn",
+          "title": "Devin: AI Software Engineer",
+          "url": "https://www.cognition-labs.com/blog",
+          "reactions": 530,
+          "published": "2024-03-12"
+        },
+        {
+          "id": "hn:44563324",
+          "site": "hn",
+          "title": "Cognition (Devin AI) to Acquire Windsurf",
+          "url": "https://cognition.ai/blog/windsurf",
+          "reactions": 502,
+          "published": "2025-07-14"
+        },
+        {
+          "id": "zenn:devin-for-test",
+          "site": "zenn",
+          "title": "Devin AIにテストを丸ごと書かせてCIがパスするまで作業してもらう方法",
+          "url": "https://zenn.dev/ubie_dev/articles/devin-for-test",
+          "reactions": 493,
+          "published": "2024-12-25"
+        },
+        {
+          "id": "hn:40008109",
+          "site": "hn",
+          "title": "Debunking Devin: \"First AI Software Engineer\" Upwork Lie Exposed [video]",
+          "url": "https://www.youtube.com/watch?v=tNmgmwEtoWE",
+          "reactions": 302,
+          "published": "2024-04-12"
+        },
+        {
+          "id": "hn:42734681",
+          "site": "hn",
+          "title": "Thoughts on a month with Devin",
+          "url": "https://www.answer.ai/posts/2025-01-08-devin.html",
+          "reactions": 285,
+          "published": "2025-01-17"
+        }
+      ]
+    }
+  }
+}

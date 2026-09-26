@@ -15,7 +15,7 @@ docs/
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
     argocd-notify/      # 話題③ Argo CD の完了通知
     patterns/           # 話題④ ハーネスのパターン・カタログ
-    data/               # 取得物・状態（metrics.json / status.json / candidates.json）
+    data/               # 取得物・状態（metrics.json / status.json / candidates.json / articles.json）
   site/                 # 生成物。直接編集しない
     landscape/  tool-research/  argocd-notify/  patterns/
 ```
@@ -23,6 +23,7 @@ docs/
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
 uv run docs/collect_candidates.py  # パターンの出典候補を集める（話題④）
+uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める（話題④）
 uv run docs/build.py           # HTML を生成する（landscape / tool-research / patterns）
 uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
@@ -70,7 +71,9 @@ Argo CD の `Application` や Namespace の作成・更新・削除から、「�
 
 各ハーネス・スキル集から学べる**型**（ツールではなく）を、プロンプト ⊂ ハーネス ⊂ ループ ⊂ グラフ
 の 4 層に分けて並べ、自作ハーネス（`~/dotfiles` の core-principal）での状態（採用済・部分的・
-未採用・観察）を付けたもの。出典は公式ドキュメントか README の原文だけ。
+未採用・観察）を付けたもの。「何ができるか」の出典は公式ドキュメントか README の原文だけで、
+「使った人に効いたか」は Zenn・Qiita・Hacker News・dev.to の人気記事から、筆者自身の使用報告
+（効いた・効かなかった）を原文で引いて別の列に置く。AI slop 対策は 4 層とは別の軸で並べる。
 
 - 読む: [`docs/site/patterns/index.html`](./docs/site/patterns/index.html)（先頭の図で、どの層が薄いか分かる）
 - 正本: [`docs/src/patterns/catalog.yaml`](./docs/src/patterns/catalog.yaml)
