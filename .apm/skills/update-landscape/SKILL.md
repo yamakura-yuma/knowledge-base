@@ -28,7 +28,7 @@ uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
 - **`docs/site/` を直接編集しない。** 生成物なので次のビルドで消える。
   **`docs/src/data/metrics.json` を手で編集しない。** 実測値の置き場所であって、意見の置き場所ではない。
 
-パターン・カタログ（話題③）は同じ回の最後に回す。`uv run docs/collect_candidates.py` で
+パターン・カタログ（話題④）は同じ回の最後に回す。`uv run docs/collect_candidates.py` で
 候補を集め直し、上位のうち未抽出のものを `docs/src/patterns/catalog.yaml` に足す
 （UPDATE_PROMPT.md の 7）。候補は `registry.yaml` に入れない。`~/dotfiles` は読むだけ。
 

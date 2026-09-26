@@ -2,7 +2,8 @@
 
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
 HTML はそこから生成する。いま入っているのは AI ツールのランドスケープ、ハーネスに
-入れる外部ツールの調査、ハーネスのパターン・カタログの3つ。
+入れる外部ツールの調査、Argo CD の完了通知の発行方法の比較、
+ハーネスのパターン・カタログの4つ。
 
 ハーネス（エージェント設定）そのものの説明はここに書かない。正本は dotfiles リポジトリの
 [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)（手元では
@@ -28,7 +29,15 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   `index.md` が分類軸と母集団の決め方、`UPDATE_PROMPT.md` が更新手順の正本
 - `docs/src/tool-research/` — 話題② ハーネスに入れる外部ツールの調査。
   `context-optimization.md`（Headroom / CodeGraph / graphify を対抗馬と比較）
-- `docs/src/patterns/` — 話題③ ハーネスのパターン・カタログ。`catalog.yaml` が正本
+- `docs/src/argocd-notify/` — 話題③ Argo CD の Application や Namespace の作成・更新・削除から、
+  デプロイ完了・削除完了のイベントをどう発行するかの比較。`index.md`（概要・評価マトリクス）、
+  `recommended.md`・`criteria.md`・`report.md`（実測の報告書）と方式ごとの md 6 本。
+  ほかの話題とは独立していて、専用の `docs/build_argocd_notify.py` が生成する。
+  `build.py` の PAGES・ナビ・CSS には載せず、既存の話題とのリンクも張らない。
+  各ページの冒頭は「たとえ話 1 段落（eli5）＋図」。図はすべて archify の JSON
+  （`docs/src/argocd-notify/archify/`）を `<!-- archify: 名前 -->` で参照し、ビルドが
+  `apm_modules` の archify で描いて、JS を含まない `<svg>` 要素だけを埋め込む（要 Node と `apm install`）
+- `docs/src/patterns/` — 話題④ ハーネスのパターン・カタログ。`catalog.yaml` が正本
   （行はパターン、4 層 × 自作ハーネスでの状態）。HTML は `docs/patterns_page.py` が描き、
   既存の話題の `PAGES`・ナビには入れていない（既存ページに差分を出さないため）。
   `harness-form.md` はハーネスの形式についての見立て（意見）で、`harness-form.html` に出し、
@@ -38,8 +47,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
-- `docs/build.py` / `docs/fetch_metrics.py` / `docs/collect_candidates.py` /
-  `docs/patterns_page.py` — 生成系。このリポジトリのコードはこれだけ。
+- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
+  `docs/collect_candidates.py` / `docs/patterns_page.py` — 生成系。このリポジトリのコードはこれだけ。
   `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
   候補はランドスケープの母集団（`registry.yaml`）には入れない
 - `.apm/skills/` — このリポジトリ固有のエージェント設定
@@ -49,7 +58,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る。認証は gh に任せる
 uv run docs/collect_candidates.py  # パターンの出典候補を集める。gh の認証が必須
-uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
+uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
+uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```
 
@@ -72,6 +82,8 @@ git の差分が出ないことが、正しく終わった証拠になる。
   対象はこのディレクトリ
   - `update-landscape` — ランドスケープを実測値で更新する手順。スキル側は入口で、
     手順の正本は `docs/src/landscape/UPDATE_PROMPT.md`
+- `eli5`・`archify`・`impeccable` — 外部の公開スキル。コミット固定で取り込む。
+  ページ冒頭のたとえ話（eli5）、図（archify）、出す前の批評（impeccable の critique）に使う
 - `core-principal` — 共有ハーネス（ルール、git のガードフック、`core-*` スキル）。
   [dotfiles](https://github.com/yamakura-yuma/dotfiles) リポジトリからコミットで
   固定して取得する。変更は向こうで行い、ここでは `apm update` で `ref` を上げる。
