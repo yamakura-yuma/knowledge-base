@@ -1,0 +1,135 @@
+{
+ "schema_version": 1,
+ "diagram_type": "sequence",
+ "meta": {
+  "title": "PostDelete hook の順番（run3 の実測）",
+  "viewBox": [
+   980,
+   600
+  ],
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "participants": [
+  {
+   "id": "user",
+   "type": "external",
+   "label": "削除者",
+   "sublabel": "kubectl delete"
+  },
+  {
+   "id": "ctl",
+   "type": "backend",
+   "label": "controller",
+   "sublabel": "基盤側"
+  },
+  {
+   "id": "app",
+   "type": "database",
+   "label": "App",
+   "sublabel": "基盤側（argocd ns）"
+  },
+  {
+   "id": "res",
+   "type": "frontend",
+   "label": "Pod 等",
+   "sublabel": "利用者側"
+  },
+  {
+   "id": "job",
+   "type": "security",
+   "label": "hook Job",
+   "sublabel": "利用者側"
+  },
+  {
+   "id": "slack",
+   "type": "external",
+   "label": "Slack",
+   "sublabel": "宛先"
+  }
+ ],
+ "segments": [
+  {
+   "from": 150,
+   "to": 250,
+   "label": "① 0〜3.45 秒"
+  },
+  {
+   "from": 266,
+   "to": 390,
+   "label": "② 4.29 秒"
+  },
+  {
+   "from": 406,
+   "to": 540,
+   "label": "③ 6.80 秒"
+  }
+ ],
+ "messages": [
+  {
+   "from": "user",
+   "to": "app",
+   "y": 180,
+   "label": "削除を依頼",
+   "variant": "default"
+  },
+  {
+   "from": "ctl",
+   "to": "res",
+   "y": 222,
+   "label": "管理リソースを消す",
+   "variant": "default"
+  },
+  {
+   "from": "ctl",
+   "to": "job",
+   "y": 296,
+   "label": "hook の Job を作る",
+   "variant": "emphasis"
+  },
+  {
+   "from": "job",
+   "to": "slack",
+   "y": 338,
+   "label": "⚠ 通知（Application はまだある）",
+   "variant": "security"
+  },
+  {
+   "from": "job",
+   "to": "ctl",
+   "y": 372,
+   "label": "成功",
+   "variant": "return"
+  },
+  {
+   "from": "ctl",
+   "to": "app",
+   "y": 436,
+   "label": "札を外す",
+   "variant": "default"
+  },
+  {
+   "from": "ctl",
+   "to": "app",
+   "y": 490,
+   "label": "⚠ Job が失敗すると、ここで止まる",
+   "variant": "security"
+  }
+ ],
+ "activations": [
+  {
+   "participant": "ctl",
+   "from": 170,
+   "to": 500,
+   "type": "backend"
+  },
+  {
+   "participant": "job",
+   "from": 290,
+   "to": 380,
+   "type": "security"
+  }
+ ]
+}

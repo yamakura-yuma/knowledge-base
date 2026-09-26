@@ -1,0 +1,223 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "推奨構成：基盤の設定に触らず、外から観測して届ける",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "job",
+   "type": "external",
+   "label": "① Namespace 削除 Job",
+   "sublabel": "基盤の既存部品",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "Namespace",
+   "sublabel": "ラベル付き",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "src",
+   "type": "security",
+   "label": "② ApiServerSource",
+   "sublabel": "Namespace を watch",
+   "pos": [
+    300,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 停止中の削除を落とす"
+  },
+  {
+   "id": "ping",
+   "type": "cloud",
+   "label": "PingSource",
+   "sublabel": "毎分",
+   "pos": [
+    300,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "obs",
+   "type": "backend",
+   "label": "③ 観測 Service",
+   "sublabel": "uid 一覧と照合",
+   "pos": [
+    560,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "停止中の分を拾う"
+  },
+  {
+   "id": "brk",
+   "type": "messagebus",
+   "label": "④ Broker",
+   "sublabel": "入口は 1 つ",
+   "pos": [
+    560,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ InMemory だと失う"
+  },
+  {
+   "id": "tr",
+   "type": "backend",
+   "label": "⑤ Trigger",
+   "sublabel": "条件・retry・DLQ",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "⑥ 受け手",
+   "sublabel": "Slack へ送る",
+   "pos": [
+    1080,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "Secret",
+   "sublabel": "Slack の鍵",
+   "pos": [
+    1080,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "job",
+    "ns",
+    "src",
+    "ping",
+    "obs",
+    "brk"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "tr",
+    "rcv",
+    "sec"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "job",
+   "to": "ns",
+   "label": "削除",
+   "labelAt": [
+    126,
+    188
+   ]
+  },
+  {
+   "id": "c1",
+   "from": "src",
+   "to": "ns",
+   "label": "watch"
+  },
+  {
+   "id": "c2",
+   "from": "src",
+   "to": "brk",
+   "label": "delete",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "ping",
+   "to": "obs",
+   "label": "起動"
+  },
+  {
+   "id": "c4",
+   "from": "obs",
+   "to": "brk",
+   "label": "同じ id",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c5",
+   "from": "brk",
+   "to": "tr",
+   "label": "転送 1 本",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c6",
+   "from": "tr",
+   "to": "rcv",
+   "label": "配る"
+  },
+  {
+   "id": "c7",
+   "from": "sec",
+   "to": "rcv",
+   "label": "鍵",
+   "variant": "dashed"
+  }
+ ]
+}

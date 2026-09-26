@@ -1,0 +1,154 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "API stream：受け皿があふれると捨て、切断中の分は戻らない",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "app",
+   "type": "external",
+   "label": "Application",
+   "sublabel": "状態が変わる",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "srv",
+   "type": "backend",
+   "label": "① argocd-server",
+   "sublabel": "変化を中継",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "bc",
+   "type": "security",
+   "label": "② broadcaster",
+   "sublabel": "購読者の受け皿",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ あふれたら捨てる"
+  },
+  {
+   "id": "cli",
+   "type": "security",
+   "label": "③ 自前クライアント",
+   "sublabel": "常駐プログラム",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ retry・HA も自作"
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "④ 宛先",
+   "sublabel": "Slack など",
+   "pos": [
+    1080,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "tok",
+   "type": "database",
+   "label": "apiKey トークン",
+   "sublabel": "Argo CD のアカウント",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "app",
+    "srv",
+    "bc"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "cli",
+    "rcv",
+    "tok"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "srv",
+   "to": "app",
+   "label": "watch"
+  },
+  {
+   "id": "c1",
+   "from": "srv",
+   "to": "bc",
+   "label": "中継"
+  },
+  {
+   "id": "c2",
+   "from": "bc",
+   "to": "cli",
+   "label": "stream",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "cli",
+   "to": "rcv",
+   "label": "HTTP",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "tok",
+   "to": "cli",
+   "label": "認証",
+   "variant": "dashed"
+  }
+ ]
+}

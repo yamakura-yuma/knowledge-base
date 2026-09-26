@@ -1,0 +1,224 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "論点：Application などの作成・更新・削除から、イベントをどう発行するか",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "app",
+   "type": "external",
+   "label": "① Application",
+   "sublabel": "作成・更新・削除",
+   "pos": [
+    40,
+    150
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "Namespace",
+   "sublabel": "作成・削除",
+   "pos": [
+    40,
+    330
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ncm",
+   "type": "security",
+   "label": "② Notifications",
+   "sublabel": "argocd-notifications-cm",
+   "pos": [
+    300,
+    90
+   ],
+   "size": [
+    180,
+    64
+   ],
+   "tag": "⚠ 削除は開始・設定は基盤側"
+  },
+  {
+   "id": "hook",
+   "type": "security",
+   "label": "② PostSync/PostDelete",
+   "sublabel": "アプリの Job",
+   "pos": [
+    300,
+    210
+   ],
+   "size": [
+    180,
+    64
+   ],
+   "tag": "⚠ 失敗で削除が詰まる"
+  },
+  {
+   "id": "watch",
+   "type": "backend",
+   "label": "③ watch",
+   "sublabel": "ApiServerSource 等",
+   "pos": [
+    300,
+    330
+   ],
+   "size": [
+    180,
+    64
+   ],
+   "tag": "⚠ 停止中は取りこぼす"
+  },
+  {
+   "id": "fin",
+   "type": "security",
+   "label": "② finalizer",
+   "sublabel": "Metacontroller",
+   "pos": [
+    300,
+    450
+   ],
+   "size": [
+    180,
+    64
+   ],
+   "tag": "⚠ 止まると削除も止まる"
+  },
+  {
+   "id": "rec",
+   "type": "backend",
+   "label": "④ 突き合わせ",
+   "sublabel": "uid 一覧と list",
+   "pos": [
+    580,
+    450
+   ],
+   "size": [
+    180,
+    64
+   ],
+   "tag": "遅延は周期ぶん"
+  },
+  {
+   "id": "ev",
+   "type": "messagebus",
+   "label": "⑤ CloudEvent",
+   "sublabel": "id = uid:種類:rev",
+   "pos": [
+    580,
+    330
+   ],
+   "size": [
+    180,
+    64
+   ]
+  },
+  {
+   "id": "out",
+   "type": "frontend",
+   "label": "⑥ 配送",
+   "sublabel": "Broker・HTTP など",
+   "pos": [
+    860,
+    330
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側：リソース（触らない）",
+   "wraps": [
+    "app",
+    "ns"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "発行部分（ここを選ぶ）",
+   "wraps": [
+    "ncm",
+    "hook",
+    "watch",
+    "fin",
+    "rec",
+    "ev"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側",
+   "wraps": [
+    "out"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "w",
+   "from": "watch",
+   "to": "ns",
+   "label": "watch",
+   "labelAt": [
+    272,
+    380
+   ]
+  },
+  {
+   "id": "wa",
+   "from": "watch",
+   "to": "app",
+   "label": "watch",
+   "fromSide": "left",
+   "toSide": "right",
+   "via": [
+    [
+     240,
+     362
+    ],
+    [
+     240,
+     182
+    ]
+   ]
+  },
+  {
+   "id": "e",
+   "from": "watch",
+   "to": "ev",
+   "label": "発行",
+   "variant": "emphasis"
+  },
+  {
+   "id": "r",
+   "from": "rec",
+   "to": "ev",
+   "label": "拾い直し",
+   "variant": "emphasis"
+  },
+  {
+   "id": "o",
+   "from": "ev",
+   "to": "out",
+   "label": "送る",
+   "variant": "emphasis"
+  }
+ ]
+}

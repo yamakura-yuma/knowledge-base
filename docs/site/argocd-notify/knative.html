@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>③ Knative Eventing</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#95938c; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* ページ冒頭のたとえ話（eli5） */
+  .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>③ Knative Eventing</h1>
+  <p class="sub"><strong>推奨構成の中心。</strong> できること: 観測の入口（ApiServerSource・PingSource）、決定的な id への変換（EventTransform）、配送（Broker・Trigger・retry・DLQ）。できないこと: ApiServerSource だけでは、止まっている間の削除を拾えない。この穴は突き合わせで埋める。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="on">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<blockquote>
+<p>ApiServerSource の receive adapter が Application を watch し、ADD / UPDATE / DELETE を CloudEvents にして Broker へ送る。Trigger が属性でふるい分けて、受け手（Knative Service や通常の Service）へ配る。<strong>検知層は停止中の削除を取りこぼすが、配送層は retry・backoff・DLQ・永続化を宣言だけで持てる。</strong> 6 方式の中で配送層が最も強い。</p>
+</blockquote>
+<p class="eli5">Knative Eventing は、クラスタの中の郵便局のようなものです。受付係（ApiServerSource）が Kubernetes の変化（Namespace ができた・消えた）を見て手紙にし、郵便局（Broker）に預けます。郵便局は手紙を保管し、宛先が留守なら時間をおいて配り直し、それでもだめなら保管箱（DLQ）に入れます。弱点は受付係です。受付係の Pod が再起動している間に起きた変化は、手紙にならず、あとから思い出すこともありません。</p>
+
+<figure class="arch"><svg viewBox="0 0 1322 416" role="img" lang="en" aria-labelledby="ax-knative-architecture-archify-diagram-title ax-knative-architecture-archify-diagram-description">
+        <title id="ax-knative-architecture-archify-diagram-title">Knative：Broker から先は強く、入口の ApiServerSource が弱い</title>
+        <desc id="ax-knative-architecture-archify-diagram-description">An architecture diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-knative-architecture-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-knative-architecture-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-knative-architecture-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-knative-architecture-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-knative-architecture-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-knative-architecture-grid)" />
+        <rect x="10" y="80" width="752" height="114" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="790" y="80" width="492" height="268" rx="8" class="c-security-group" stroke-width="1"/>
+        <path d="M 300 142 L 212 142" class="a-default" stroke-width="1.5" marker-end="url(#ax-knative-architecture-arrowhead)"/>
+        <path d="M 472 142 L 560 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-architecture-arrowhead-emphasis)"/>
+        <path d="M 732 142 L 820 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-architecture-arrowhead-emphasis)"/>
+        <path d="M 992 142 L 1080 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-knative-architecture-arrowhead-emphasis)"/>
+        <path d="M 906 174 L 906 264" class="a-security" stroke-width="1.5" marker-end="url(#ax-knative-architecture-arrowhead-security)"/>
+        <g id="ax-knative-architecture-node-ns" tabindex="0" role="button" aria-label="Focus Namespace, Pod の入れ物, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>Namespace · Pod の入れ物 · 基盤側（基盤チームが管理）</title>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(46 116) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="126" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Namespace</text>
+        <text x="126" y="156" class="t-muted" font-size="9" text-anchor="middle">Pod の入れ物</text>
+        </g>
+        <g id="ax-knative-architecture-node-src" tabindex="0" role="button" aria-label="Focus ① ApiServerSource, 変化を watch, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>① ApiServerSource · 変化を watch · 基盤側（基盤チームが管理） · ⚠ 停止中は取りこぼす</title>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(306 116) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="386" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① ApiServerSource</text>
+        <text x="386" y="156" class="t-muted" font-size="9" text-anchor="middle">変化を watch</text>
+        <text x="386" y="166" class="t-security" font-size="7" text-anchor="middle">⚠ 停止中は取りこぼす</text>
+        </g>
+        <g id="ax-knative-architecture-node-brk" tabindex="0" role="button" aria-label="Focus ② Broker, 保管・再送, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>② Broker · 保管・再送 · 基盤側（基盤チームが管理） · retry・DLQ</title>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(566 116) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="646" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">② Broker</text>
+        <text x="646" y="156" class="t-muted" font-size="9" text-anchor="middle">保管・再送</text>
+        <text x="646" y="166" class="t-messagebus" font-size="7" text-anchor="middle">retry・DLQ</text>
+        </g>
+        <g id="ax-knative-architecture-node-tr" tabindex="0" role="button" aria-label="Focus ③ Trigger, type で振り分け, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>③ Trigger · type で振り分け · 利用者側（アプリチームが管理）</title>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(826 116) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="906" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ Trigger</text>
+        <text x="906" y="156" class="t-muted" font-size="9" text-anchor="middle">type で振り分け</text>
+        </g>
+        <g id="ax-knative-architecture-node-rcv" tabindex="0" role="button" aria-label="Focus ④ 宛先, Slack など, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>④ 宛先 · Slack など · 利用者側（アプリチームが管理）</title>
+          <rect x="1080" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="1080" y="110" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(1086 116) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="1166" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">④ 宛先</text>
+        <text x="1166" y="156" class="t-muted" font-size="9" text-anchor="middle">Slack など</text>
+        </g>
+        <g id="ax-knative-architecture-node-dlq" tabindex="0" role="button" aria-label="Focus DLQ, 届かなかった分, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>DLQ · 届かなかった分 · 利用者側（アプリチームが管理）</title>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(826 270) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="906" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">DLQ</text>
+        <text x="906" y="310" class="t-muted" font-size="9" text-anchor="middle">届かなかった分</text>
+        </g>
+        <g>
+          <rect x="239" y="122" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="256" y="132" class="t-muted" font-size="8" text-anchor="middle">watch</text>
+        </g>
+        <g>
+          <rect x="487" y="122" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="516" y="132" class="t-backend" font-size="8" text-anchor="middle">CloudEvent</text>
+        </g>
+        <g>
+          <rect x="761" y="122" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="776" y="132" class="t-backend" font-size="8" text-anchor="middle">転送</text>
+        </g>
+        <g>
+          <rect x="1021" y="122" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1036" y="132" class="t-backend" font-size="8" text-anchor="middle">HTTP</text>
+        </g>
+        <g>
+          <rect x="881.8" y="178" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="906" y="188" class="t-security" font-size="8" text-anchor="middle">上限超過</text>
+        </g>
+        <g>
+          <rect x="14" y="90" width="150.4" height="16" rx="3" class="c-mask"/>
+          <text x="18" y="103" class="t-cloud" font-size="9" font-weight="600">基盤側（基盤チームが管理）</text>
+        </g>
+        <g>
+          <rect x="794" y="90" width="172" height="16" rx="3" class="c-mask"/>
+          <text x="798" y="103" class="t-security" font-size="9" font-weight="600">利用者側（アプリチームが管理）</text>
+        </g>
+      </svg></figure>
+
+<p><strong>図の読み方</strong></p>
+<ul>
+<li>① ApiServerSource（基盤側）が Namespace を watch して CloudEvent にする。⚠ 停止中の変化は取りこぼす（評価マトリクス「検知層の耐障害性 ×」）</li>
+<li>② Broker（基盤側）が保管し、retry する</li>
+<li>③ Trigger（利用者側）が type で振り分ける。上限を超えたら DLQ へ</li>
+<li>④ 宛先は利用者側。宛先・条件の変更は通知側で済む（変更時の作業の表）</li>
+</ul>
+<p>（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）</p>
+<h2>Knative が保証する範囲</h2>
+<p><strong>Knative の保証は、Broker に入ったあとの配送まで。</strong> 永続化した土台に書き、retry と DLQ で配る。一方、Source がイベントを<strong>作る</strong>部分は別物で、取りこぼしはこちらで起きる。</p>
+<ul>
+<li><strong>Kubernetes API は、状態の置き場所であって、再生できるイベントログではない。</strong> watch が届くのは、つながっている相手だけ。古い resourceVersion からの再開には期限があり、切れると 410 Gone になって list からやり直しになる。</li>
+<li><strong>これに対して、再生できる入力ならやり直せる。</strong> たとえば KafkaSource は consumer offset から読み直せる。<code>initialOffset</code> で <code>earliest</code> を選ぶこともできる（<a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/sources/kafka-source/README.md">KafkaSource のドキュメント</a>）。</li>
+<li><strong>ApiServerSource の配送保証</strong>（at-least-once かどうか）は、Knative のドキュメントにも issue にも、明記は見つからなかった。</li>
+</ul>
+<h2>なぜ取りこぼすか</h2>
+<div class="dgm"><div class="cap">通常の informer と ApiServerSource の違い。再 list で差分が出たとき、削除イベントを合成できるかどうか</div><svg class="fig" viewBox="0 0 1000 330" role="img" aria-label="取りこぼしの仕組み"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-plain" x="10" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="20" y="46">通常の informer（client-go の DeltaFIFO）</text><rect class="zone zone-plain" x="510" y="30" width="480" height="260" rx="8"/><text class="t-zone" x="520" y="46">ApiServerSource の adapter</text><rect class="nd nd-comp" x="25" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="35" y="79">再 list</text><text class="t-mono" x="35" y="95">410 Gone や再接続のあと</text><rect class="nd nd-state" x="260" y="60" width="215" height="54" rx="6"/><text class="t-ink" x="270" y="79">手元のキャッシュ</text><text class="t-mono" x="270" y="95">前回の一覧</text><rect class="nd nd-ext" x="25" y="170" width="450" height="60" rx="6"/><text class="t-ink" x="35" y="189">Replace が差分をとる</text><text class="t-mono" x="35" y="205">消えたもの → DeletedFinalStateUnknown</text><rect class="nd nd-comp" x="525" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="535" y="79">再 list</text><text class="t-mono" x="535" y="95">410 Gone や再起動のあと</text><rect class="nd nd-bad" x="760" y="60" width="215" height="54" rx="6"/><text class="t-ink" x="770" y="79">キャッシュ無し</text><text class="t-mono" x="770" y="95">素通しの Store</text><rect class="nd nd-bad" x="525" y="170" width="450" height="60" rx="6"/><text class="t-ink" x="535" y="189">Replace も Resync も何もしない</text><text class="t-mono" x="535" y="205">delegate.go:126-133 → 削除は作られない</text><path class="ln ln-http" d="M155,114 L217,170" marker-end="url(#a-http)"/><path class="ln ln-http" d="M339,114 L281,170" marker-end="url(#a-http)"/><path class="ln ln-bad" d="M655,114 L717,170" marker-end="url(#a-bad)"/><path class="ln ln-bad" d="M839,114 L781,170" marker-end="url(#a-bad)"/><path class="ln ln-http" d="M20,320 L48,320" marker-end="url(#a-http)"/><text class="t-mono" x="54" y="324">HTTP</text><rect class="nd nd-state" x="104.8" y="312" width="16" height="12" rx="2"/><text class="t-mono" x="126.8" y="324">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>通常の informer</strong>（client-go v0.35.7 の <code>tools/cache/delta_fifo.go</code>）は、<code>Replace</code> のときに手元のキャッシュと新しい一覧を比べる。消えたものについては、<code>DeletedFinalStateUnknown</code> の削除イベントを合成する（<code>queueActionLocked(Deleted, DeletedFinalStateUnknown{...})</code>）。</li>
+<li><strong>ApiServerSource の <code>resourceDelegate</code></strong> は、キャッシュを持たない素通しの Store で、<code>Replace</code> と <code>Resync</code> が何もしない（<a href="https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/adapter/apiserver/delegate.go">delegate.go</a> の 126〜133 行）。そのため、再 list で差分が出ても、削除イベントは作られない。</li>
+</ul>
+<p>取りこぼしが起きる場面は 3 つに分けられる。</p>
+<table>
+<thead>
+<tr>
+<th>場面</th>
+<th>取りこぼすか</th>
+<th>根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(a) adapter の再起動・ロールアウト・退避</td>
+<td><strong>取りこぼす</strong>。その間に消えたものは、起動時の list に出てこない</td>
+<td><a href="report.html#run5">run5</a>・<a href="report.html#run13">run13-B</a>・<a href="report.html#run15">run15-B</a></td>
+</tr>
+<tr>
+<td>(b) watch の resourceVersion が古くなり、410 Gone で再 list になる</td>
+<td><strong>取りこぼしうる</strong>（adapter が生きていても）。reflector は <code>isExpiredError</code> で再 list に入り、delegate は差分を出さない</td>
+<td>client-go の <code>reflector.go</code>（<code>isExpiredError</code>・<code>relistResourceVersion</code>）。実測はしていない</td>
+</tr>
+<tr>
+<td>(c) 短い切断で、resourceVersion から再開できる</td>
+<td><strong>失わない</strong>。watch は再開した地点からイベントを受け直す</td>
+<td>reflector の通常の動き</td>
+</tr>
+</tbody>
+</table>
+<p><strong>自前の informer でも同じことが起きる。</strong> <code>DeletedFinalStateUnknown</code> が出るのは、同じプロセスの中で再 list したときだけ。プロセスを再起動するとキャッシュは空から始まるので、止まっていた間の削除は届かなかった（<a href="report.html#run18">run18</a>、client-go v0.35.7 で書いた 39 行の watcher）。</p>
+<p><strong>複数レプリカでも補えない。</strong> adapter は <code>MakeReceiveAdapter</code> が 1 レプリカで作る。Deployment を 2 にすると、ApiServerSource の controller に戻されずに 2 台で動いたが、2 台とも送った（同じ削除が 2 通、<a href="report.html#run15">run15</a> の追試）。リーダー選出は無い（receive adapter の <code>main.go</code> は <code>WithHAEnabled</code> を呼んでいない）。台数を増やせば、どちらか 1 台が生きていれば届く確率は上がる。ただし重複が増えるので、決定的な id で消す前提になる。</p>
+<h2>アーキテクチャ</h2>
+<div class="dgm"><div class="cap">検知層（adapter）と配送層（Broker / Trigger）で、状態の持ち方が違う</div><svg class="fig" viewBox="0 0 1000 470" role="img" aria-label="Knative Eventing のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="230" height="150" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="10" y="200" width="470" height="230" rx="8"/><text class="t-zone" x="20" y="216">knative-eventing namespace（Platform）</text><rect class="zone zone-app" x="260" y="30" width="480" height="150" rx="8"/><text class="t-zone" x="270" y="46">notify / App の namespace</text><rect class="zone zone-ext" x="760" y="30" width="230" height="400" rx="8"/><text class="t-zone" x="770" y="46">受け手</text><rect class="nd nd-app" x="25" y="60" width="200" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-crd" x="275" y="60" width="220" height="66" rx="6"/><text class="t-ink" x="285" y="79">ApiServerSource</text><text class="t-mono" x="285" y="95">mode: Resource</text><text class="t-mono" x="285" y="111">serviceAccountName</text><rect class="nd nd-comp" x="510" y="60" width="215" height="70" rx="6"/><text class="t-ink" x="520" y="79">receive adapter</text><text class="" x="520" y="95">Deployment 1 レプリカ</text><text class="t-mono" x="520" y="111">reflector・状態は持たない</text><rect class="nd nd-comp" x="25" y="230" width="215" height="70" rx="6"/><text class="t-ink" x="35" y="249">eventing-controller</text><text class="t-mono" x="35" y="265">adapter を作る</text><text class="t-mono" x="35" y="281">SubjectAccessReview で権限確認</text><rect class="nd nd-comp" x="255" y="230" width="210" height="54" rx="6"/><text class="t-ink" x="265" y="249">broker-ingress</text><text class="t-mono" x="265" y="265">水平スケール可</text><rect class="nd nd-state" x="255" y="305" width="210" height="70" rx="6"/><text class="t-ink" x="265" y="324">Broker / Channel の実装</text><text class="" x="265" y="340">InMemory: 永続化なし</text><text class="t-mono" x="265" y="356">Kafka / RabbitMQ / NATS</text><rect class="nd nd-comp" x="25" y="330" width="215" height="54" rx="6"/><text class="t-ink" x="35" y="349">broker-filter</text><text class="t-mono" x="35" y="365">Trigger の filter と delivery</text><rect class="nd nd-ext" x="775" y="60" width="200" height="54" rx="6"/><text class="t-ink" x="785" y="79">受け手 Service</text><text class="t-mono" x="785" y="95">空の 2xx を返す</text><rect class="nd nd-ext" x="775" y="330" width="200" height="54" rx="6"/><text class="t-ink" x="785" y="349">deadLetterSink</text><text class="t-mono" x="785" y="365">knativeerror* 属性付き</text><path class="ln ln-watch" d="M534,130 L510,140 L240,140 L125,104 L125,104" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="158" y="129" width="44" height="15" rx="3"/><text class="t-mono" x="180" y="140" text-anchor="middle">watch</text><path class="ln ln-http" d="M240,265 L600,265 L614,130" marker-end="url(#a-http)"/><rect class="lbl-bg" x="428" y="248" width="123" height="15" rx="3"/><text class="t-mono" x="490" y="259" text-anchor="middle">Deployment を作る</text><path class="ln ln-ce" d="M598,130 L560,200 L360,200 L360,230" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="450" y="189" width="80" height="15" rx="3"/><text class="t-mono" x="490" y="200" text-anchor="middle">CloudEvent</text><path class="ln ln-ce" d="M360,284 L360,305" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M255,348 L240,349" marker-end="url(#a-ce)"/><path class="ln ln-ce" d="M240,364 L745,395 L745,87 L775,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="692" y="230" width="106" height="15" rx="3"/><text class="t-mono" x="745" y="241" text-anchor="middle">retry・backoff</text><path class="ln ln-ce" d="M187,384 L240,410 L745,410 L745,357 L775,357" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="717" y="399" width="56" height="15" rx="3"/><text class="t-mono" x="745" y="410" text-anchor="middle">上限超過</text><path class="ln ln-watch" d="M20,460 L48,460" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="464">watch</text><path class="ln ln-http" d="M112.0,460 L140.0,460" marker-end="url(#a-http)"/><text class="t-mono" x="146.0" y="464">HTTP</text><path class="ln ln-ce" d="M196.8,460 L224.8,460" marker-end="url(#a-ce)"/><text class="t-mono" x="230.8" y="464">CloudEvent</text><rect class="nd nd-state" x="324.8" y="452" width="16" height="12" rx="2"/><text class="t-mono" x="346.8" y="464">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>検知層（adapter）は状態を持たない。</strong> adapter は informer の store を自前の delegate で実装していて、<code>Replace</code> と <code>Resync</code> が何もしない（<a href="https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/adapter/apiserver/delegate.go">pkg/adapter/apiserver/delegate.go</a>）。起動時の初期 list で得たオブジェクトはすべて add イベントとして送る。しかし、前回の状態と突き合わせて「その間に消えたもの」を出す仕組みは無い。</li>
+<li><strong>resync は 10 時間に 1 回</strong>（同ディレクトリ <code>adapter.go</code> の <code>resyncPeriod := 10 * time.Hour</code>）。</li>
+<li><strong>adapter は 1 レプリカ固定。</strong> <code>MakeReceiveAdapter</code> が <code>replicas := int32(1)</code> で Deployment を作る（<a href="https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/reconciler/apiserversource/resources/receive_adapter.go">receive_adapter.go</a>）。</li>
+<li>adapter の共通基盤は <code>WithHAEnabled</code> でリーダー選出に入れる。ただし <code>apiserver_receive_adapter</code> の <code>main.go</code> はこれを呼んでいない（呼んでいるのは mtping）。</li>
+<li><strong>配送層は状態を持てる。</strong> InMemoryChannel は README に "No Persistence" とあり、ベストエフォート。永続化できる実装は、Kafka Broker・RabbitMQ Broker・NATS JetStream Channel の 3 つがある。それぞれが何を保証するかは、<a href="recommended.html#broker">推奨構成の詳細の「Broker の永続化の選択肢」</a>で比べた。</li>
+</ul>
+<h2>権限分離</h2>
+<div class="dgm"><div class="cap">Platform が CRD・コントローラと Application を見る権限を持ち、App は自分の namespace で Broker / Trigger / 受け手を持つ</div><svg class="fig" viewBox="0 0 1000 430" role="img" aria-label="Knative の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="360" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="360" rx="8"/><text class="t-zone" x="520" y="46">App 側（team-a namespace）</text><rect class="nd nd-crd" x="25" y="60" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="79">Knative Eventing のインストール</text><text class="t-mono" x="35" y="95">CRD・eventing-controller・broker-*</text><text class="t-mono" x="35" y="111">ClusterRole: knative-*-namespaced-admin</text><rect class="nd nd-crd" x="25" y="155" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="174">ApiServerSource（notify namespace）</text><text class="t-mono" x="35" y="190">Platform が作る</text><rect class="nd nd-crd" x="25" y="235" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="254">RoleBinding in argocd</text><text class="t-mono" x="35" y="270">applications: get/list/watch</text><text class="t-mono" x="35" y="286">→ adapter の ServiceAccount</text><rect class="nd nd-comp" x="25" y="320" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="339">Platform の Broker</text><text class="t-mono" x="35" y="355">EventPolicy で送り手を制限（要 OIDC）</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">team-a の Broker / Trigger</text><text class="t-mono" x="535" y="95">knative-eventing-namespaced-admin</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">受け手 Service と Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は App が持つ</text><rect class="nd nd-bad" x="525" y="225" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="244">team-a が作る ApiServerSource</text><text class="t-mono" x="535" y="260">argocd を見る権限が無く Ready=False</text><rect class="nd nd-bad" x="525" y="310" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="329">team-a の Pod から偽の delete を POST</text><text class="t-mono" x="535" y="345">EventPolicy なしでは届いた（run9）</text><path class="ln ln-rbac" d="M475,91 L525,91" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="438" y="80" width="123" height="15" rx="3"/><text class="t-mono" x="500" y="91" text-anchor="middle">namespaced-admin</text><path class="ln ln-rbac" d="M250,235 L250,209" marker-end="url(#a-rbac)"/><path class="ln ln-ce" d="M475,347 L500,347 L500,87 L525,87" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="374" y="316" width="253" height="15" rx="3"/><text class="t-mono" x="500" y="327" text-anchor="middle">Trigger（cross-namespace は alpha）</text><path class="ln ln-bad" d="M525,342 L475,342" marker-end="url(#a-bad)"/><path class="ln ln-ce" d="M20,420 L48,420" marker-end="url(#a-ce)"/><text class="t-mono" x="54" y="424">CloudEvent</text><path class="ln ln-rbac" d="M148.0,420 L176.0,420" marker-end="url(#a-rbac)"/><text class="t-mono" x="182.0" y="424">権限付与</text></svg></div>
+<table>
+<thead>
+<tr>
+<th>誰が</th>
+<th>何をする</th>
+<th>根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform</td>
+<td>CRD とコントローラを入れる。namespace 単位の権限は、集約された ClusterRole <code>knative-eventing-namespaced-admin</code> などとして配られる</td>
+<td><code>config/core/roles/clusterrole-namespaced.yaml</code></td>
+</tr>
+<tr>
+<td>Platform</td>
+<td>ApiServerSource の ServiceAccount に、<code>argocd</code> namespace の applications の <code>get</code> / <code>list</code> / <code>watch</code> を与える。eventing-controller は SubjectAccessReview でこの 3 つを確かめ、足りなければ <code>SufficientPermissions=False</code> にする</td>
+<td><a href="https://github.com/knative/eventing/blob/knative-v1.23.0/pkg/reconciler/apiserversource/apiserversource.go">apiserversource.go</a> の <code>runAccessCheck</code></td>
+</tr>
+<tr>
+<td>App</td>
+<td>自分の namespace に Broker・Trigger・受け手を作り、送信先の資格情報を持つ</td>
+<td><a href="report.html#run9">run9</a> で <code>can-i</code> が yes</td>
+</tr>
+<tr>
+<td>App</td>
+<td>Platform の Broker を購読するには、cross-namespace event links（alpha、既定で無効）と <code>knsubscribe</code> の権限が要る。無効なら、Platform 側がイベントを App の Broker へ転送する Trigger を持つ</td>
+<td><a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/cross-namespace-event-links.md">cross-namespace-event-links.md</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>越境（<a href="report.html#run9">run9</a> で実測）:</strong></p>
+<ul>
+<li><code>team-a</code> に <code>edit</code> と <code>knative-*-namespaced-admin</code> を与えた ServiceAccount で、<code>argocd</code> を見る ApiServerSource を作った。作成はできたが、<code>SufficientPermissions=False</code>（"cannot get, list, watch resource applications … in Namespace argocd"）で、Ready にならなかった。自分に RoleBinding を足そうにも、<code>argocd</code> への <code>create rolebindings</code> は no だった。<strong>他チームの Application は覗けない。</strong></li>
+<li>一方で、<code>team-a</code> の Pod から Platform の Broker の ingress へ、<code>Ce-Type: dev.knative.apiserver.resource.delete</code> の<strong>偽のイベントを POST でき、Platform の受け手まで届いた。</strong> 既定では Broker が送り手を検証しないため。EventPolicy で送り手を制限できるが、それには <code>authentication-oidc</code> の有効化が前提になる（<a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/features/authorization.md">authorization.md</a>）。この対策は実測していない。受け手でも、<code>Ce-Source</code> が API server であることなどを検証する。</li>
+</ul>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Knative Eventing 本体（CRD 17・ワークロード 5・ClusterRole 36）と Broker の実装・その土台の導入（kind で数えた値は概要ページ）</td>
+<td>初回</td>
+</tr>
+<tr>
+<td>1 マイナーずつのアップグレード（本体は過去 1 年で 16 リリース・5 マイナー）</td>
+<td>継続</td>
+</tr>
+<tr>
+<td>ApiServerSource の ServiceAccount に、対象の get/list/watch を与える</td>
+<td>対象を増やすたび</td>
+</tr>
+<tr>
+<td>取りこぼしの安全網（突き合わせ Service と PingSource）の運用</td>
+<td>継続</td>
+</tr>
+<tr>
+<td>EventPolicy（OIDC）で送り手を制限する</td>
+<td>任意</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自分の namespace に Trigger（と Broker）を置き、delivery の retry・DLQ を決める</td>
+</tr>
+<tr>
+<td>受け手を用意し、<code>id</code> で重複を消す</td>
+</tr>
+<tr>
+<td>DLQ に落ちたイベントを処理する</td>
+</tr>
+</tbody>
+</table>
+<h2>評価</h2>
+<p><strong>削除完了の検知: ○。</strong> <code>dev.knative.apiserver.resource.delete</code> が、オブジェクトの消滅から 5 ms で届いた（<a href="report.html#run3">run3</a>）。本文は消える直前の Application で、<code>deletionTimestamp</code> と最後に残った finalizer が入っている。デプロイ完了は、更新のたびに <code>resource.update</code> が届くだけ（作成 1 回で 14 件）。Synced かつ Healthy かの判定は、受け手が本文を見て行う。Trigger のフィルタは CloudEvents の属性で分けるもので、本文の <code>status</code> では絞れない。</p>
+<p><strong>検知層の耐障害性: ×。</strong> adapter を止めている間に消えた Application の delete は、復旧後も届かなかった（<a href="report.html#run5">run5</a>）。理由は上のとおりで、状態を持たず、初期 list と前回の状態を突き合わせないため。</p>
+<p>オブジェクトがまだ残っている間に復旧すれば、その後の DELETE は届く（<a href="report.html#run4">run4</a>。自前 finalizer が消滅を止めていた）。finalizer 方式（⑤）を併用していれば、adapter が止まっていても、Application は adapter の復旧後まで残る。</p>
+<p><strong>配送層の回復性: ◎。</strong> Broker と Trigger（その下の Subscription）の <code>delivery</code> に、<code>retry</code>・<code>backoffPolicy</code>（linear / exponential）・<code>backoffDelay</code>・<code>deadLetterSink</code> を書ける（<a href="https://github.com/knative/docs/blob/main/docs/versioned/eventing/event-delivery.md">event-delivery.md</a>）。</p>
+<p><a href="report.html#run8">run8</a> で、宛先を常に 500 にして確かめた。初回のあと retry を 3 回（間隔 0.5 → 1 → 2 秒）行い、最後に DLQ へ送った。DLQ には <code>Ce-Knativeerrorcode: 500</code>・<code>Ce-Knativeerrordest</code>・<code>Ce-Knativeerrordata</code> が付き、<code>Ce-Id</code> は初回と同じだった。</p>
+<p>Kafka Broker と RabbitMQ Broker は、4 つのパラメータすべてに対応している。RabbitMQ Broker は、delivery spec が無いと最初の失敗で NACK して捨てるので、必ず書く。MTChannelBasedBroker は、下にある Channel しだい。circuit breaker は Knative には無い。受け手の前に service mesh を置いて持たせる。</p>
+<p>adapter から Broker への送信は、失敗するとログを出して終わる（<code>sendCloudEvent</code>）。<strong>検知層と配送層の境目にも取りこぼしがある。</strong></p>
+<p><strong>配送保証: ○。</strong> Broker に入ったイベントは、永続化した実装なら at-least-once。Kafka は topic に書き、RabbitMQ は publisher confirm を待ち、NATS JetStream は明示的な ack を待つ（いずれも文献ベース）。retry をまたいでも <code>Ce-Id</code> が変わらないので、受け手はこれで重複を除ける。</p>
+<p>ただし adapter は、送るたびに新しい UUID を振る（<code>event.SetID(uuid.New().String())</code>）。同じ削除を、再起動の前後などで別々に送った場合は、別の ID になる。冪等キーには、本文の Application の <code>uid</code> を使う。</p>
+<p>順序は実装しだいで、どれも文献ベース。Kafka Broker は <code>delivery.order: ordered</code> を指定すればパーティション単位で保つ。RabbitMQ Broker は Trigger の並列度を 1（既定）にすれば保つ。NATS JetStream は、<code>MsgId</code> による重複除去が <code>duplicateWindow</code> の間だけ効く。</p>
+<p><strong>可用性: ○。</strong> Kafka Broker は、制御面の HA とデータプレーンの水平スケールを謳っている（Kafka Broker の README）。RabbitMQ は quorum queue、NATS JetStream はストリームの replicas で複製できる（文献ベース）。Operator の <code>spec.high-availability.replicas</code> で、制御面のレプリカを増やせる（文献ベース）。ただし adapter は 1 レプリカ固定で、検知層は SPOF のまま残る。複数レプリカ構成は実測していない。</p>
+<p><strong>疎結合: ◎。</strong> 送信先を足すときは Trigger を 1 枚足すだけで、送る側には手を入れない。</p>
+<p><strong>スケーラビリティ: ◎。</strong> broker-ingress と broker-filter は、Deployment として水平にスケールできる。ファンアウトは Trigger の数で宣言する。</p>
+<p><strong>可観測性: ◎。</strong> イベントは CloudEvents そのもので、<code>Ce-Id</code>・<code>Ce-Type</code>・<code>Ce-Subject</code> などが付く。<code>config-observability</code> に <code>tracing-protocol</code>・<code>tracing-endpoint</code>・<code>metrics-protocol</code> があり、OTLP で出せる（<a href="https://github.com/knative/eventing/blob/knative-v1.23.0/config/core/configmaps/observability.yaml">observability.yaml</a>）。adapter の送信は otelhttp を通る（delegate.go のコメント）。<code>traceparent</code> が受け手まで伝わるかは、トレースを有効にして確かめていない。</p>
+<p><strong>セキュリティ・権限分離: ○。</strong> 分離でき、他チームの Application を覗くこともできない。ただし偽装を防ぐには、EventPolicy と OIDC の設定が要る。</p>
+<p><strong>運用負荷: △。</strong> 入れる部品が多い（eventing-core、Broker の実装、その下の Kafka / RabbitMQ / NATS）。バージョンと Kubernetes の組み合わせにも縛りがある（v1.23.0 は Kubernetes 1.34 以上が必要）。</p>
+<p><strong>レイテンシ: ◎。</strong> オブジェクトの消滅から受け手まで 5 ms（<a href="report.html#run3">run3</a>）。</p>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>
