@@ -622,6 +622,69 @@ def static_page(fname, label, topic, metrics, warnings) -> str:
                  metrics.get("fetched_at", "—"))
 
 
+# 話題③ アイデア。実測値を使わない構想置き場なので、PAGES・ナビ・外枠を既存の話題と
+# 共有しない（共有すると既存ページの HTML に差分が出る）。CSS だけ同じものを埋め込む。
+IDEA_MARKS = {
+    "[確認済み]": '<span class="pill p-active">確認済み</span>',
+    "[未確認]": '<span class="pill p-stale">未確認</span>',
+}
+
+
+def idea_pages(warnings: list[str]) -> dict[str, str]:
+    """docs/src/ideas/*.md を 1 本 1 ページに描く。index.md が入口で、ナビの先頭に来る。"""
+    srcs = sorted((SRC / "ideas").glob("*.md"), key=lambda p: (p.name != "index.md", p.name))
+    if srcs and srcs[0].name != "index.md":
+        warnings.append("ideas/ に index.md が無い")
+    parsed = []
+    for src in srcs:
+        raw = src.read_text(encoding="utf-8")
+        for mark, pill in IDEA_MARKS.items():
+            raw = raw.replace(mark, pill)
+        head, _, rest = raw.partition("\n")
+        title = head[2:].strip() if head.startswith("# ") else src.stem
+        sub = ""
+        if rest.lstrip().startswith("> "):
+            sub, _, rest = rest.lstrip().partition("\n")
+            sub = sub[2:].strip()
+        parsed.append((src.stem + ".html", title, sub, rest))
+
+    def label(fname, title):
+        return "一覧" if fname == "index.html" else title.split(" — ")[0]
+
+    out = {}
+    for fname, title, sub, body_md in parsed:
+        items = "".join(
+            f'<a href="{f}" class="{"on" if f == fname else ""}">{esc(label(f, t))}</a>'
+            for f, t, _, _ in parsed)
+        conv = md_lib.Markdown(extensions=["tables", "fenced_code", "attr_list", "md_in_html"])
+        out[fname] = f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(title)}</title>
+<style>{CSS}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>{esc(title)}</h1>
+  <p class="sub">{esc(sub)}</p>
+</header>
+<nav class="nav">{items}</nav>
+{conv.convert(body_md)}
+<footer>
+  ここは構想置き場で、未検証の主張を含む。各主張の <b>確認済み</b> / <b>未確認</b> は本文の印のとおり。
+  確認済みは末尾の出典で裏を取ったもの、未確認はまだ試していないもの。<br>
+  正本は <code>docs/src/ideas/*.md</code>。この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
+</footer>
+</div>
+</body>
+</html>
+"""
+    return out
+
+
 def page(reg, metrics, rows, warnings) -> str:
     today = dt.date.today()
     tl_target = [r for r in rows if r["layer"] != "L0"]
@@ -825,7 +888,7 @@ def main() -> int:
             written.append(rel)
 
     STATIC_ROWS[:] = rows
-    # 話題③ パターン・カタログ。PAGES にもナビにも入れない別系統（patterns_page.py）。
+    # 話題④ パターン・カタログ。PAGES にもナビにも入れない別系統（patterns_page.py）。
     emit("patterns", "index.html", patterns_page.render(SRC, CSS, warnings))
     emit("patterns", "harness-form.html", patterns_page.render_form(SRC, CSS, warnings))
     emit("landscape", "index.html", page(reg, metrics, rows, warnings))
@@ -836,6 +899,8 @@ def main() -> int:
             emit(topic, fname, static_page(fname, label, topic, metrics, warnings))
         else:
             emit(topic, fname, layer_page(fname, label, sel, rows, metrics, warnings))
+    for fname, html_text in idea_pages(warnings).items():
+        emit("ideas", fname, html_text)
 
     if written:
         print("生成: " + "、".join(written))

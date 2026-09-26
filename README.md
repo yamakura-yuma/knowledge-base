@@ -13,17 +13,19 @@ docs/
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
-    patterns/           # 話題③ ハーネスのパターン・カタログ
+    argocd-notify/      # 話題③ Argo CD の完了通知
+    patterns/           # 話題④ ハーネスのパターン・カタログ
     data/               # 取得物・状態（metrics.json / status.json / candidates.json / articles.json）
   site/                 # 生成物。直接編集しない
-    landscape/  tool-research/  patterns/
+    landscape/  tool-research/  argocd-notify/  patterns/
 ```
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
-uv run docs/collect_candidates.py  # パターンの出典候補を集める（話題③）
-uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める（話題③）
-uv run docs/build.py           # HTML を生成する
+uv run docs/collect_candidates.py  # パターンの出典候補を集める（話題④）
+uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める（話題④）
+uv run docs/build.py           # HTML を生成する（landscape / tool-research / patterns）
+uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
 
 ## いま入っているもの
@@ -54,7 +56,18 @@ uv run docs/build.py           # HTML を生成する
 正本は dotfiles リポジトリの [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)
 （手元では `~/dotfiles/docs/`）で、ハーネスを変えたときに一緒に変わるものはすべてそちらに書く。
 
-### 話題③ ハーネスのパターン・カタログ
+### 話題③ Argo CD の完了通知：イベントをどう発行するか
+
+Argo CD の `Application` や Namespace の作成・更新・削除から、「デプロイ完了」「削除完了」の
+イベントをどう発行するかを、kind 上の実測とソースを根拠に比べたもの。
+
+- [`docs/site/argocd-notify/index.html`](./docs/site/argocd-notify/index.html) — 概要と評価マトリクス。
+  方式ごとのページ（Notifications / PostSync・PostDelete / Knative / Argo Events /
+  finalizer / API stream）と実測の報告書へはここから辿る
+- 正本は [`docs/src/argocd-notify/`](./docs/src/argocd-notify/)。ほかの話題とは独立していて、
+  `docs/build_argocd_notify.py` だけで生成する（Node と `apm install` が要る）
+
+### 話題④ ハーネスのパターン・カタログ
 
 各ハーネス・スキル集から学べる**型**（ツールではなく）を、プロンプト ⊂ ハーネス ⊂ ループ ⊂ グラフ
 の 4 層に分けて並べ、自作ハーネス（`~/dotfiles` の core-principal）での状態（採用済・部分的・

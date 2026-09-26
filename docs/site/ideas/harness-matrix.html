@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ハーネスの組み合わせ表 — 土台 × ペルソナ × モデル × ツール</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#807e78; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line);
+       letter-spacing:-.01em; }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto;
+        margin:14px 0; color:var(--ink); }
+  pre code { background:none; padding:0; }
+  ul { margin:10px 0; padding-left:20px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+           vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em;
+       text-transform:uppercase; white-space:nowrap; }
+  .note { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--l1);
+          border-radius:8px; padding:14px 18px; margin:20px 0; font-size:13.5px; color:var(--ink-2); }
+  .note strong { color:var(--ink); }
+
+  /* ---- 凡例・ピル ---- */
+  .pill { display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 7px;
+          border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
+          border:1px solid currentColor; }
+  .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
+
+  /* ---- 層の図 ---- */
+  .layers { display:grid; gap:8px; margin:18px 0; }
+  .lay { display:grid; grid-template-columns:130px 1fr; gap:14px; align-items:start;
+         background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .lay b { font-family:var(--mono); font-size:12px; }
+  .lay.L1 b{color:var(--l1)} .lay.L2 b{color:var(--l2)}
+  .lay.L3 b{color:var(--l3)} .lay.L0 b{color:var(--l0)}
+  .lay div { font-size:13.5px; color:var(--ink-2); }
+
+  /* ---- タイムライン ---- */
+  .tl { display:grid; grid-template-columns:150px 1fr; gap:2px 10px; margin:18px 0 8px;
+        font-size:12px; }
+  .tl-axis, .tl-track { display:grid; grid-template-columns:repeat(var(--cols),1fr);
+                        grid-column:2 !important; }
+  .tl-axis { border-bottom:1px solid var(--line); padding-bottom:3px; margin-bottom:5px; }
+  .tick { font-family:var(--mono); font-size:10.5px; color:var(--ink-3);
+          border-left:1px solid var(--line); padding-left:4px; }
+  .tl-name { font-size:11.5px; color:var(--ink-2); text-align:right; white-space:nowrap;
+             overflow:hidden; text-overflow:ellipsis; line-height:16px; }
+  .tl-name.approx { color:var(--ink-3); font-style:italic; }
+  .tl-track { height:16px; align-items:center; }
+  .bar { height:8px; border-radius:2px; display:block; }
+  .bar.l-L1{background:var(--l1)} .bar.l-L2{background:var(--l2)} .bar.l-L3{background:var(--l3)}
+  .bar.s-ended { background:var(--dead) !important; }
+  .bar.s-stale { opacity:.42; }
+  .bar.s-hot { box-shadow:0 0 0 2px color-mix(in srgb, var(--hot) 45%, transparent); }
+  /* 表示範囲より前に始まっているバーは、左端を斜めに切って「ここが起点ではない」ことを示す */
+  .bar.clipped { border-radius:0 2px 2px 0;
+                 clip-path:polygon(4px 0, 100% 0, 100% 100%, 0 100%); }
+  .legend { font-size:12px; color:var(--ink-3); margin:6px 0 0; }
+  .legend span { margin-right:14px; white-space:nowrap; }
+  .sw { display:inline-block; width:14px; height:8px; border-radius:2px; vertical-align:1px;
+        margin-right:5px; }
+
+  /* ---- CSS だけの絞り込み（JS を使わない） ---- */
+  .filters { position:absolute; opacity:0; pointer-events:none; }
+  .fbar { display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 4px; }
+  .fbar label { font-family:var(--mono); font-size:11.5px; padding:3px 10px; border-radius:5px;
+                border:1px solid var(--line); color:var(--ink-2); cursor:pointer;
+                background:var(--surface); user-select:none; }
+  #f-all:checked  ~ .fbar label[for=f-all],
+  #f-L1:checked   ~ .fbar label[for=f-L1],
+  #f-L2:checked   ~ .fbar label[for=f-L2],
+  #f-L3:checked   ~ .fbar label[for=f-L3],
+  #f-L0:checked   ~ .fbar label[for=f-L0],
+  #f-live:checked ~ .fbar label[for=f-live],
+  #f-dead:checked ~ .fbar label[for=f-dead]
+    { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  #f-L1:checked ~ .tblwrap tr:not([data-layer=L1]),
+  #f-L2:checked ~ .tblwrap tr:not([data-layer=L2]),
+  #f-L3:checked ~ .tblwrap tr:not([data-layer=L3]),
+  #f-L0:checked ~ .tblwrap tr:not([data-layer=L0]),
+  #f-live:checked ~ .tblwrap tr[data-status=ended],
+  #f-live:checked ~ .tblwrap tr[data-status=stale],
+  #f-dead:checked ~ .tblwrap tr[data-status=hot],
+  #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=unknown]
+    { display:none; }
+
+  /* ラジオは見えないが focus は残す。キーボードでも絞り込みを操作できるようにする。 */
+  #f-all:focus-visible ~ .fbar label[for=f-all],
+  #f-L1:focus-visible ~ .fbar label[for=f-L1],
+  #f-L2:focus-visible ~ .fbar label[for=f-L2],
+  #f-L3:focus-visible ~ .fbar label[for=f-L3],
+  #f-L0:focus-visible ~ .fbar label[for=f-L0],
+  #f-live:focus-visible ~ .fbar label[for=f-live],
+  #f-dead:focus-visible ~ .fbar label[for=f-dead]
+    { outline:2px solid var(--l1); outline-offset:2px; }
+
+  /* ---- ページ間ナビ ---- */
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .sub2 { color:var(--ink-2); font-size:13.5px; margin:14px 0 0; }
+
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr));
+              gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; font-family:var(--mono); }
+
+  .tblwrap { overflow-x:auto; }
+  .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
+  .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+  .c-layer, .c-date, .c-num { font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+                              white-space:nowrap; }
+  .c-num { text-align:right; }
+  .c-sum { color:var(--ink-2); min-width:22em; }
+  .succ { font-family:var(--mono); font-size:10.5px; color:var(--ink-3); margin-left:6px; }
+  .unsure { display:block; margin-top:3px; font-size:11.5px; color:var(--stale); }
+  .approx { border-bottom:1px dotted var(--ink-3); }
+
+  /* ---- 詳細カード ---- */
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+          padding:18px 22px; margin:18px 0; }
+  .card h3 { margin:0 0 8px; font-size:16px; }
+  .card .meta { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono);
+                font-size:11px; color:var(--ink-3); margin-bottom:12px;
+                padding-bottom:10px; border-bottom:1px solid var(--line); }
+  .card .meta .k { color:var(--ink-3); opacity:.7; margin-right:5px; }
+  .card h4 { font-size:13px; margin:16px 0 4px; color:var(--ink);
+              letter-spacing:.02em; }
+  .card h5 { font-size:12.5px; margin:12px 0 4px; color:var(--ink-2); font-weight:600; }
+  .card p { font-size:14px; }
+  .card .todo { color:var(--ink-3); font-style:italic; }
+  .src { margin-top:14px; padding-top:10px; border-top:1px solid var(--line);
+         font-family:var(--mono); font-size:10.5px; color:var(--ink-3); }
+  .src a { color:var(--ink-3); margin-right:10px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  @media (max-width:760px) {
+    .wrap { padding:32px 14px 64px; }
+    .lay { grid-template-columns:1fr; gap:4px; }
+    .tl { grid-template-columns:104px 1fr; }
+    .tl-name { font-size:10.5px; }
+    .c-sum { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>ハーネスの組み合わせ表 — 土台 × ペルソナ × モデル × ツール</h1>
+  <p class="sub">アイデア（未検証）。スキルを全部積むのをやめ、役割ごとに組んだハーネスを起動時に差し込み、評価で比べる構想。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">一覧</a><a href="harness-matrix.html" class="on">ハーネスの組み合わせ表</a></nav>
+<div class="note"><strong>アイデア（未検証）。</strong>
+このページは構想で、試していない部分を含む。主張ごとに <span class="pill p-active">確認済み</span> / <span class="pill p-stale">未確認</span> を付けた。
+確認済みは末尾の出典で裏を取ったもの、未確認は試すまで分からないもの。</div>
+
+<h2>たとえ話 — 道具箱を役割ごとに詰め替える</h2>
+<p>大工さんが、持っている道具を全部腰にぶら下げて現場に出ると、重いうえに、どれを使うか毎回迷う。
+だから普通は、今日の仕事（解体・下地・仕上げ）に合わせて道具箱を詰め替えて持っていく。
+道具箱の中身は現場に置きっぱなしにせず、帰るときに持ち帰る。現場は施主の家だからだ。</p>
+<p>エージェントのスキルも同じで、<strong>役割（ペルソナ）ごとに詰めた道具箱（ハーネス）を、起動するときだけ手渡す</strong>。
+道具箱は作業場（worktree）の外に置く。作業場に置くと、施主に渡す荷物（push）に混ざる。</p>
+<pre><code>  worktree の外（ハーネスの置き場。push されない）                 worktree（対象リポジトリ。push される）
+ ┌──────────────────────────────────────────────────┐           ┌─────────────────────────────────┐
+ │ harnesses/yystack-dev-opus55/apm.yml  ← 1 ハーネス │           │ .claude/skills/   ← tracked のもの │
+ │   土台 stack + ペルソナ + モデル差分 を依存に並べる │           │ apm.yml / apm.lock.yaml          │
+ │   apm.lock.yaml で版を固定                       │           │ ソースコード                     │
+ │        │ apm install --root DIR                  │           └─────────────────────────────────┘
+ │        ▼                                         │                        ▲
+ │   展開先 DIR  ──(apm pack --format agent-plugin)──┼─→ plugin ─┐            │ ここに置くと
+ └──────────────────────────────────────────────────┘           │            │ ✗ tracked を上書きし push に混ざる
+                                                                ▼            │ ✗ .git/info/exclude は効かない
+  起動時に差す:  claude --plugin-dir &lt;plugin&gt; --model &lt;model&gt;   ─→ セッションが worktree で動く
+                 copilot --plugin-dir …   (✗ skills がモデルに見えない報告あり)
+                 CODEX_HOME=… codex -c skills.config=[…]
+
+  評価:  claude plugin eval  ── ハーネス A の結果 JSON ┐
+                             ── ハーネス B の結果 JSON ┴→ 並べて比べる     ツール横断は Harbor</code></pre>
+
+<p>図の ✗ は、この構想で避けたい問題か、既知の不具合。どちらも下の節で出典つきで扱う。</p>
+<hr />
+<h2>問題 — スキルは増やすほど一覧が重くなる</h2>
+<p>Claude Code では、スキルの本文は呼ばれたときだけ読まれるが、<strong>一覧（name と description）は毎回の文脈に常駐する</strong>。
+<span class="pill p-active">確認済み</span> 公式 docs の表では、既定のスキルは "Description always in context, full skill loads when invoked"。
+1 スキルあたり description と <code>when_to_use</code> を合わせて 1,536 文字で切られる。<span class="pill p-active">確認済み</span></p>
+<p>したがって、スキルを足すほど常駐分が増える。加えて、似た description が並ぶと
+<strong>どれを呼ぶかの選択がぶれる</strong>と見ている。<span class="pill p-stale">未確認</span> 手元で測ったことはない。評価の節の仕組みで測るつもり。</p>
+<h2>構想 — 4 つの軸の組み合わせで 1 ハーネス</h2>
+<p>ハーネスを次の 4 軸の組み合わせとして作る。<span class="pill p-stale">未確認</span> 構想そのもの。</p>
+<table>
+<thead>
+<tr>
+<th>軸</th>
+<th>例</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>土台 stack</td>
+<td>他者の stack ベース / 自作の yystack ベース</td>
+<td>ルール・フック・共通スキル</td>
+</tr>
+<tr>
+<td>ペルソナ</td>
+<td>coordinator / po / dev / qa</td>
+<td>その役割で使うスキルだけ</td>
+</tr>
+<tr>
+<td>モデル向け差分層</td>
+<td>Opus 5.5 用</td>
+<td>モデルの癖に合わせた言い回しや既定値</td>
+</tr>
+<tr>
+<td>ツール</td>
+<td>Claude Code / Codex / Copilot CLI</td>
+<td>差し込み方がツールごとに違う（次節）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>1 ハーネス = apm.yml 1 つ</strong>で、4 軸の部品を依存として並べ、<code>apm.lock.yaml</code> で版を固定する。
+全組み合わせを作るのではなく、<strong>使う組み合わせだけ作る</strong>。4 × 4 × n × 3 を全部揃える必要はない。</p>
+<h2>置き場所の要件 — worktree の外に置き、起動時に差す</h2>
+<p>ペルソナのファイルを対象リポジトリの worktree に展開すると、push に混ざる。</p>
+<ul>
+<li>対象リポジトリが自分でハーネスを持っていると、<code>.claude/skills</code> や <code>apm.yml</code> / <code>apm.lock.yaml</code> が tracked になっている。
+  そこへ別のペルソナを展開すると tracked ファイルを上書きし、差分として push に乗る。
+  <span class="pill p-active">確認済み</span> このリポジトリ自身も <code>apm.yml</code> と <code>apm.lock.yaml</code> を tracked にしている（<code>git ls-files</code>）。</li>
+<li><code>.git/info/exclude</code> で隠す手は使えない。exclude は全 worktree で 1 つを共有しており
+  （<code>git rev-parse --git-path info/exclude</code> が共通の <code>.git/</code> を指す）、しかも既に tracked のファイルには効かない。<span class="pill p-active">確認済み</span></li>
+</ul>
+<p>よって要件は、<strong>ハーネスは worktree の外に置き、起動するときに差し込む</strong>こと。</p>
+<h2>起動時に差す手段</h2>
+<p>ツールごとに、セッションだけに効く差し込み口がある。</p>
+<h3>Claude Code</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>何ができるか</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>claude --plugin-dir &lt;dir&gt;</code></td>
+<td>ディレクトリか <code>.zip</code> の plugin を<strong>そのセッションだけ</strong>読む。繰り返し指定できる</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td><code>--model</code></td>
+<td>セッションのモデルを指定。<code>model</code> 設定と <code>ANTHROPIC_MODEL</code> より優先</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td><code>skillOverrides</code>（設定）</td>
+<td>スキルごとに <code>on</code> / <code>name-only</code> / <code>user-invocable-only</code> / <code>off</code>。SKILL.md を書き換えずに一覧から外せる</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td><code>disable-model-invocation: true</code>（frontmatter）</td>
+<td>description が文脈から消え、<code>/name</code> でしか呼べなくなる</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>サブエージェントの <code>skills:</code></td>
+<td><strong>preload するだけで、絞れない</strong>。書いていないスキルも Skill ツールで呼べる。絞るなら Skill ツールごと外すしかない</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+</tbody>
+</table>
+<p>最後の行が効いてくる。サブエージェント単位でペルソナを切るという道は無く、
+<strong>ペルソナはセッション単位（= 起動単位）で切る</strong>ことになる。</p>
+<h3>Copilot CLI</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>何ができるか</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--plugin-dir=DIRECTORY</code></td>
+<td>ローカルの plugin を読む。複数回指定できる</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>同上の不具合</td>
+<td><code>--plugin-dir</code> の skills が起動時には見つかるのに、対話セッションのモデルからは使えない（#4883、1.0.86-0、2026-09-16 に close）。<code>/skills</code> と <code>/env</code> に出ない（#4886、1.0.86-1、open）</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td><code>COPILOT_HOME</code></td>
+<td>設定ディレクトリ（既定 <code>~/.copilot</code>）を差し替える。<code>--config-dir</code> は legacy 扱い</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+</tbody>
+</table>
+<h1>4883 が close された版で直っているかは試していない。<span class="pill p-stale">未確認</span></h1>
+<h3>Codex CLI</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>何ができるか</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CODEX_HOME</code></td>
+<td>ローカル状態の置き場（既定 <code>~/.codex</code>）を差し替える</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td><code>-c skills.config=[…]</code></td>
+<td>1 回の実行だけ任意の設定キーを上書き。skills.config をこれで渡すと効く、と #20210 の報告者が確かめている</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>project 層の <code>.codex/config.toml</code></td>
+<td><code>[[skills.config]]</code> を書いても<strong>無視される</strong>（#20210。enhancement として自動 close）</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>サブエージェント単位</td>
+<td>agent TOML の <code>[[skills.config]]</code> は有効化・無効化どちらも効かない（#14161）</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+</tbody>
+</table>
+<p>Codex もサブエージェント単位では絞れないので、Claude Code と同じくセッション単位で切る。</p>
+<h3>apm（0.31）</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>何ができるか</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apm pack --format agent-plugin</code></td>
+<td>apm パッケージから Portable Agent Plugins v1 の bundle を出す</td>
+<td><span class="pill p-active">確認済み</span> 手元の 0.31.0 の <code>--help</code></td>
+</tr>
+<tr>
+<td><code>apm install --root DIR</code></td>
+<td><code>$PWD</code> の代わりに DIR へ展開する（<code>apm_modules/</code>、<code>apm.lock.yaml</code>、<code>.claude/</code> 等）</td>
+<td><span class="pill p-active">確認済み</span> 同上</td>
+</tr>
+</tbody>
+</table>
+<p>この 2 つを繋ぐと「worktree の外で組んで、plugin として差す」の形になる。
+<strong>ただし <code>apm pack</code> の出力をそのまま <code>--plugin-dir</code> に渡せるかは試していない。</strong><span class="pill p-stale">未確認</span>
+なお apm は 2026-09-25 に 0.32.0 が出ている。</p>
+<h2>評価 — ハーネスどうしを数字で比べる</h2>
+<table>
+<thead>
+<tr>
+<th>何を比べるか</th>
+<th>手段</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ハーネスあり / なし</td>
+<td><code>claude plugin eval</code>。各ケースを plugin あり・なしの 2 アームで既定 3 回ずつ流し、差（Δ）を出す。v2.1.269 以降</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>ハーネス A / B</td>
+<td>eval は「あり / なし」しか比べないので、A と B をそれぞれ流し、結果の <code>aggregate-result.json</code> を並べる</td>
+<td><span class="pill p-stale">未確認</span></td>
+</tr>
+<tr>
+<td>モデル</td>
+<td>eval に <code>--model</code> があり、試す側のモデルを 1 回の実行ごとに固定できる。複数モデルを 1 回で回す仕組みは docs に無い</td>
+<td><span class="pill p-active">確認済み</span> / 一括は <span class="pill p-stale">未確認</span></td>
+</tr>
+<tr>
+<td>ツール横断</td>
+<td>Harbor（エージェントの評価と改善の枠組み）でツールをまたいで同じ課題を流す</td>
+<td><span class="pill p-stale">未確認</span></td>
+</tr>
+</tbody>
+</table>
+<p>課題集は、過去に Orca のワーカーへ出した依頼文から作る。実際に使った仕事なので、
+ペルソナが役に立つかをそのまま測れるはず。<span class="pill p-stale">未確認</span>
+スキルの効き方を測る公開ベンチとしては SkillsBench がある。<span class="pill p-active">確認済み</span> 存在のみ。</p>
+<h2>並列開発 — 系統ごとにワーカー 1 人</h2>
+<p>ハーネスの系統（例: 他者 stack ベース、yystack ベース）ごとに Orca の worktree ワーカーを 1 人立てて並行に作る。
+系統が互いのファイルに触れないので、衝突しない。<span class="pill p-stale">未確認</span></p>
+<h2>既存 OSS との関係</h2>
+<table>
+<thead>
+<tr>
+<th>名前</th>
+<th>何を借りるか</th>
+<th>注意点</th>
+<th>印</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BMAD-METHOD</td>
+<td>ペルソナの中身（product・architecture・UX・development・testing の視点）。比較のベースライン候補</td>
+<td>セットアップが対象プロジェクトに <code>_bmad/</code> を作り、共有設定とスクリプトを置く前提。worktree の外に置く要件と衝突する</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>skills-manager（xingkongliang）</td>
+<td>「プリセット = スキルの名前付きグループ」の考え方だけ。プリセットがペルソナにあたる</td>
+<td>プリセットの適用は一回きりのコピーで、同期しない。版の固定が無く再現性が弱い</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+<tr>
+<td>Agent-Profiles</td>
+<td>構想段階とされるもの</td>
+<td>指している対象を特定できていない。同名のリポジトリ・issue が複数ある</td>
+<td><span class="pill p-stale">未確認</span></td>
+</tr>
+<tr>
+<td>microsoft/apm#2341</td>
+<td>apm.yml の中に名前付きの依存プロファイルを持つ提案。入れば「1 ハーネス = apm.yml 1 つ」を 1 ファイルにまとめられる</td>
+<td>open だが <code>status/needs-design</code> と <code>status/deferred</code> が付いており、当面は入らない</td>
+<td><span class="pill p-active">確認済み</span></td>
+</tr>
+</tbody>
+</table>
+<h2>未確認のことと、次の一歩</h2>
+<p>試せば確かめられる問いを並べる。</p>
+<ol>
+<li><code>apm pack --format agent-plugin</code> の出力を <code>claude --plugin-dir</code> がそのまま読めるか。<span class="pill p-stale">未確認</span></li>
+<li>Orca のワーカー起動に、<code>--plugin-dir</code> や <code>--model</code> のような追加の起動引数を渡せるか。<span class="pill p-stale">未確認</span></li>
+<li><code>claude plugin eval</code> で、ハーネスとモデルの組み合わせを一括で切り替えて回せるか。<code>--model</code> で 1 回ずつ切り替えられることは確認済みで、まとめて回す手段が無いかが未確認。<span class="pill p-stale">未確認</span></li>
+</ol>
+<p><strong>最初の一歩は、yystack を層（土台 / ペルソナ / モデル差分）に分け、2 版を起動時に切り替えられるところまで。</strong>
+評価や他ツールへの展開はその後に回す。</p>
+<h2>出典</h2>
+<ul>
+<li>Claude Code — Skills: <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a></li>
+<li>Claude Code — Sub-agents（<code>skills:</code> の preload）: <a href="https://code.claude.com/docs/en/sub-agents">https://code.claude.com/docs/en/sub-agents</a></li>
+<li>Claude Code — CLI reference（<code>--plugin-dir</code>、<code>--model</code>）: <a href="https://code.claude.com/docs/en/cli-reference">https://code.claude.com/docs/en/cli-reference</a></li>
+<li>Claude Code — Plugin evals（<code>claude plugin eval</code>）: <a href="https://code.claude.com/docs/en/plugin-evals">https://code.claude.com/docs/en/plugin-evals</a></li>
+<li>Copilot CLI — config directory（<code>COPILOT_HOME</code>）: <a href="https://github.com/github/docs/blob/main/content/copilot/reference/copilot-cli-reference/cli-config-dir-reference.md">https://github.com/github/docs/blob/main/content/copilot/reference/copilot-cli-reference/cli-config-dir-reference.md</a></li>
+<li>Copilot CLI — command reference（<code>--plugin-dir</code>）: <a href="https://github.com/github/docs/blob/main/content/copilot/reference/copilot-cli-reference/cli-command-reference.md">https://github.com/github/docs/blob/main/content/copilot/reference/copilot-cli-reference/cli-command-reference.md</a></li>
+<li>github/copilot-cli#4883: <a href="https://github.com/github/copilot-cli/issues/4883">https://github.com/github/copilot-cli/issues/4883</a></li>
+<li>github/copilot-cli#4886: <a href="https://github.com/github/copilot-cli/issues/4886">https://github.com/github/copilot-cli/issues/4886</a></li>
+<li>Codex — Advanced config（<code>CODEX_HOME</code>、<code>-c</code>）: <a href="https://learn.chatgpt.com/docs/config-file/config-advanced">https://learn.chatgpt.com/docs/config-file/config-advanced</a></li>
+<li>Codex — Skills（<code>[[skills.config]]</code>）: <a href="https://learn.chatgpt.com/docs/build-skills">https://learn.chatgpt.com/docs/build-skills</a></li>
+<li>openai/codex#20210: <a href="https://github.com/openai/codex/issues/20210">https://github.com/openai/codex/issues/20210</a></li>
+<li>openai/codex#14161: <a href="https://github.com/openai/codex/issues/14161">https://github.com/openai/codex/issues/14161</a></li>
+<li>apm: <a href="https://github.com/microsoft/apm">https://github.com/microsoft/apm</a>（<code>apm pack</code> / <code>apm install --root</code> は手元の 0.31.0 の <code>--help</code> で確認）</li>
+<li>microsoft/apm#2341: <a href="https://github.com/microsoft/apm/issues/2341">https://github.com/microsoft/apm/issues/2341</a></li>
+<li>BMAD-METHOD: <a href="https://github.com/bmad-code-org/BMAD-METHOD">https://github.com/bmad-code-org/BMAD-METHOD</a>（<code>_bmad/</code> は docs/start/install-bmad.md）</li>
+<li>skills-manager: <a href="https://github.com/xingkongliang/skills-manager">https://github.com/xingkongliang/skills-manager</a></li>
+<li>Harbor: <a href="https://github.com/harbor-framework/harbor">https://github.com/harbor-framework/harbor</a></li>
+<li>SkillsBench: <a href="https://github.com/benchflow-ai/skillsbench">https://github.com/benchflow-ai/skillsbench</a></li>
+</ul>
+<p>確認日はすべて 2026-09-26。</p>
+<footer>
+  ここは構想置き場で、未検証の主張を含む。各主張の <b>確認済み</b> / <b>未確認</b> は本文の印のとおり。
+  確認済みは末尾の出典で裏を取ったもの、未確認はまだ試していないもの。<br>
+  正本は <code>docs/src/ideas/*.md</code>。この HTML は <code>docs/build.py</code> の生成物なので直接編集しないこと。
+</footer>
+</div>
+</body>
+</html>

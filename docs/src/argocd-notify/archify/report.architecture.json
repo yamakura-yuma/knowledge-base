@@ -1,0 +1,161 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "検証環境：kind 1 ノードに全方式を入れ、受け手の時刻で比べた",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "argo",
+   "type": "backend",
+   "label": "① Argo CD v3.5.3",
+   "sublabel": "argocd ns",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ on-deleted は開始"
+  },
+  {
+   "id": "kn",
+   "type": "messagebus",
+   "label": "② Knative v1.23",
+   "sublabel": "Broker は InMemory",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 保管しない"
+  },
+  {
+   "id": "src",
+   "type": "security",
+   "label": "③ ApiServerSource",
+   "sublabel": "obs ns",
+   "pos": [
+    300,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 停止中は取りこぼす"
+  },
+  {
+   "id": "mc",
+   "type": "backend",
+   "label": "Metacontroller・Argo Events",
+   "sublabel": "run ごとに入替",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "demo",
+   "type": "external",
+   "label": "④ テスト用アプリ",
+   "sublabel": "demo ns",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "⑤ 受け手 Pod",
+   "sublabel": "受信時刻を記録",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（argocd・knative-eventing・obs）",
+   "wraps": [
+    "argo",
+    "kn",
+    "src",
+    "mc"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（demo・team-a）",
+   "wraps": [
+    "demo",
+    "rcv"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "argo",
+   "to": "demo",
+   "label": "デプロイ・削除",
+   "variant": "emphasis",
+   "fromSide": "top",
+   "toSide": "top",
+   "via": [
+    [
+     126,
+     70
+    ],
+    [
+     906,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "c1",
+   "from": "src",
+   "to": "kn",
+   "label": "CloudEvent"
+  },
+  {
+   "id": "c2",
+   "from": "src",
+   "to": "rcv",
+   "label": "配る",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "mc",
+   "to": "src",
+   "label": "並べて比較",
+   "variant": "dashed"
+  }
+ ]
+}
