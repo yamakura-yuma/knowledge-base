@@ -38,8 +38,9 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   （`docs/src/argocd-notify/archify/`）を `<!-- archify: 名前 -->` で参照し、ビルドが
   `apm_modules` の archify で描いて、JS を含まない `<svg>` 要素だけを埋め込む（要 Node と `apm install`）
 - `docs/src/patterns/` — 話題④ ハーネスのパターン・カタログ。`catalog.yaml` が正本
-  （行はパターン、4 層 × 自作ハーネスでの状態）。HTML は `docs/patterns_page.py` が描き、
-  既存の話題の `PAGES`・ナビには入れていない（既存ページに差分を出さないため）。
+  （行はパターン、4 層 × 自作ハーネスでの状態。開発の段階（仕様〜振り返り）でも引ける）。
+  HTML は `docs/patterns_page.py` が描き、既存の話題の `PAGES`・ナビには入れていない
+  （既存ページに差分を出さないため）。
   `harness-form.md` はハーネスの形式についての見立て（意見）で、`harness-form.html` に出し、
   要約をカタログの冒頭に置く
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値

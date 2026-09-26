@@ -103,7 +103,8 @@ uv run docs/collect_candidates.py   # docs/src/data/candidates.json を更新す
    読むのは README と、リポジトリ内の公式ドキュメント・SKILL.md だけ
 2. そこにあるパターン（ツールではなく型）を 4 層（prompt / harness / loop / graph）の
    どれかに置き、既存の行と同じ働きなら行を増やさず `sources` に足す。`evidence` には
-   原文を短く引く。引けない主張は載せない
+   原文を短く引く。引けない主張は載せない。開発のどの段階で効くかを `stage` に書く
+   （鍵と定義は `stage_criteria`。段階によらず効くものは書かない）
 3. `~/dotfiles` を読んで `state` を決める（基準は `catalog.yaml` の `state_criteria`）。
    採用済・部分的には `self` に根拠のファイルを書く。dotfiles 側は変更しない
 4. 記事の使用報告を見直す。`uv run docs/collect_articles.py` が
@@ -112,7 +113,8 @@ uv run docs/collect_candidates.py   # docs/src/data/candidates.json を更新す
    当てはまるパターンの `reports` に原文を短く引いて足す（`polarity` は positive / negative /
    mixed）。どの型にも当てはまらなければ、既存と同じ形式で行を足す。ハーネスの型の話で
    なければ `verdict: irrelevant` と理由だけ残す。記事は `sources` には入れない
-5. `uv run docs/build.py` を流し、パターンの警告が出ないことを確かめる
+5. `state` か `stage` を変えたら、`layer_findings` と `stage_findings` の件数と文言を読み直す
+6. `uv run docs/build.py` を流し、パターンの警告が出ないことを確かめる
 
 ### 8. 変更点をまとめる
 

@@ -32,6 +32,13 @@ STATES = ["adopted", "partial", "missing", "watch"]
 STATE_JA = {"adopted": "採用済", "partial": "部分的", "missing": "未採用", "watch": "観察"}
 # 図に出す 3 状態。観察は採否を決めていないので、棒の外に数だけ出す。
 BAR_STATES = ["adopted", "partial", "missing"]
+# 開発の段階。4 層（ハーネスのどこに入るか）とは別の軸で、開発のいつ効くかを表す。
+# stage を持たないパターンは段階によらず効く「横断」として扱う。
+STAGES = ["spec", "plan", "implement", "verify", "review", "ship", "retro"]
+STAGE_JA = {"spec": "仕様", "plan": "計画", "implement": "実装", "verify": "検証",
+            "review": "レビュー", "ship": "統合", "retro": "振り返り"}
+# 形でも見分けられるよう、状態ごとに印を変える（色だけに頼らない）
+STATE_MARK = {"adopted": "●", "partial": "◐", "missing": "○", "watch": "·"}
 
 PAGE_CSS = """
   .pt-fig { margin:20px 0 8px; }
@@ -84,6 +91,14 @@ PAGE_CSS = """
              border-radius:10px; padding:1px 8px; margin-left:6px; vertical-align:middle; }
   .legend-crit { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px;
                  color:var(--ink-2); margin:8px 0 0; }
+  .sx { list-style:none; margin:0; padding:0; font-size:12.5px; }
+  .sx li { margin:0 0 3px; }
+  .sx a { color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--ink-3); }
+  .sm { font-family:var(--mono); margin-right:3px; }
+  .sm-adopted { color:var(--adopted); } .sm-partial { color:var(--partial); }
+  .sm-missing { color:var(--missing); } .sm-watch { color:var(--watch); }
+  .pt td.stg { white-space:nowrap; }
+  .pt tr:target td { background:var(--hl); }
 """
 
 
@@ -102,6 +117,15 @@ def check(cat: dict, warnings: list[str]) -> None:
     for l in LAYERS:
         if not (cat.get("layer_findings") or {}).get(l):
             warnings.append(f"層の要約（layer_findings）が無い: {l}")
+    for s in STAGES + ["cross"]:
+        if not (cat.get("stage_criteria") or {}).get(s):
+            warnings.append(f"段階の定義（stage_criteria）が無い: {s}")
+        if not (cat.get("stage_findings") or {}).get(s):
+            warnings.append(f"段階の要約（stage_findings）が無い: {s}")
+    for p in reports.all_patterns(cat):
+        for s in p.get("stage") or []:
+            if s not in STAGES:
+                warnings.append(f"パターンの段階が不正: {p.get('id')} {s}")
     srcs = {s["id"] for s in cat.get("sources", [])}
     seen = set()
     for p in cat.get("patterns", []):
@@ -178,6 +202,97 @@ def fig_counts(c: dict) -> str:
         out.append(f'<text x="{x + 8:.1f}" y="{y + 22}" font-size="12" class="ink2">{tail}</text>')
     out.append("</svg>")
     return "".join(out)
+
+
+# ---------------------------------------------------------------- 開発の段階
+
+def stage_counts(pats: list[dict]) -> dict[str, dict[str, int]]:
+    """段階ごとの採否の件数。複数の段階にまたがるパターンは、それぞれの段階で 1 件と数える。"""
+    c = {s: {st: 0 for st in STATES} for s in STAGES}
+    for p in pats:
+        for s in p.get("stage") or []:
+            if s in c and p.get("state") in STATES:
+                c[s][p["state"]] += 1
+    return c
+
+
+def fig_stages(sc: dict) -> str:
+    """段階を左から右へ並べ、各段階に採否の丸を積む。どの段階に穴が多いかを見る図。"""
+    W, n, gap, top, per_row, pip = 760, len(STAGES), 14, 34, 5, 16
+    bw = (W - 20 - gap * (n - 1)) / n
+    rows = max(-(-sum(sc[s][st] for st in BAR_STATES) // per_row) for s in STAGES)
+    bh = 50 + rows * pip
+    H = top + bh + 30
+    worst = max(STAGES, key=lambda s: sc[s]["missing"])
+    out = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="開発の段階ごとの採用状況">',
+           '<defs><marker id="st-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" '
+           'orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink-3)"/></marker></defs>']
+    x = 10
+    for st in BAR_STATES:
+        out.append(_stage_pip(st, x + 6, 14) +
+                   f'<text x="{x + 16}" y="18.5" font-size="12.5" class="ink2">{STATE_JA[st]}</text>')
+        x += 86
+    for i, s in enumerate(STAGES):
+        x = 10 + i * (bw + gap)
+        out.append(f'<rect x="{x:.1f}" y="{top}" width="{bw:.1f}" height="{bh}" rx="6" '
+                   f'fill="var(--surface)" stroke="var(--line)"/>'
+                   f'<text x="{x + bw / 2:.1f}" y="{top + 24}" text-anchor="middle" font-size="14" '
+                   f'font-weight="600">{STAGE_JA[s]}</text>')
+        k = 0
+        for st in BAR_STATES:
+            for _ in range(sc[s][st]):
+                out.append(_stage_pip(st, x + 14 + (k % per_row) * pip, top + 44 + (k // per_row) * pip))
+                k += 1
+        m = sc[s]["missing"]
+        hl = ' style="fill:var(--missing);font-weight:600"' if s == worst else ""
+        out.append(f'<text x="{x + bw / 2:.1f}" y="{top + bh + 20}" text-anchor="middle" font-size="12" '
+                   f'class="ink2"{hl}>'
+                   f'未採用 {m}</text>')
+        if i < n - 1:
+            out.append(f'<path d="M{x + bw + 2:.1f},{top + 20} h{gap - 4}" stroke="var(--ink-3)" '
+                       f'stroke-width="1.5" marker-end="url(#st-ah)"/>')
+    out.append("</svg>")
+    return "".join(out)
+
+
+def _stage_pip(state: str, x: float, y: float) -> str:
+    """段階の図の丸。採用済は塗り、部分的は半分、未採用は輪だけにして、色が無くても読めるようにする。"""
+    if state == "adopted":
+        return f'<circle cx="{x:.1f}" cy="{y}" r="5.5" fill="var(--adopted)"/>'
+    if state == "partial":
+        return (f'<circle cx="{x:.1f}" cy="{y}" r="5" fill="none" stroke="var(--partial)" stroke-width="1.8"/>'
+                f'<path d="M{x:.1f},{y - 5} A5,5 0 0 0 {x:.1f},{y + 5} Z" fill="var(--partial)"/>')
+    return f'<circle cx="{x:.1f}" cy="{y}" r="5" fill="none" stroke="var(--missing)" stroke-width="1.8"/>'
+
+
+def _mark(state: str) -> str:
+    return f'<span class="sm sm-{esc(state)}" title="{STATE_JA.get(state, "")}">{STATE_MARK.get(state, "")}</span>'
+
+
+def stage_label(p: dict) -> str:
+    """表の行でパターン名の下に出す段階。段階を持たないものは横断。"""
+    return "・".join(STAGE_JA[s] for s in p.get("stage") or [] if s in STAGE_JA) or "横断"
+
+
+def stage_table(cat: dict) -> str:
+    """行が段階、列が 4 層＋AI slop の索引。セルのパターン名は下の表の行へのリンク。"""
+    slop = {p["id"] for p in cat.get("slop_patterns") or []}
+    crit, finds = cat.get("stage_criteria") or {}, cat.get("stage_findings") or {}
+    sorder = {"missing": 0, "partial": 1, "watch": 2, "adopted": 3}
+    rows = []
+    for s in STAGES + ["cross"]:
+        hit = [p for p in reports.all_patterns(cat)
+               if (s in (p.get("stage") or [])) or (s == "cross" and not p.get("stage"))]
+        cells = ""
+        for col in LAYERS + ["slop"]:
+            ps = sorted((p for p in hit if ("slop" if p["id"] in slop else p.get("layer")) == col),
+                        key=lambda p: (sorder.get(p.get("state"), 9), p.get("name", "")))
+            items = "".join(f'<li>{_mark(p.get("state"))}<a href="#p-{esc(p["id"])}">{esc(p["name"])}</a></li>'
+                            for p in ps)
+            cells += f'<td>{("<ul class=" + chr(34) + "sx" + chr(34) + ">" + items + "</ul>") if items else "—"}</td>'
+        rows.append(f'<tr><td style="min-width:8em"><strong>{STAGE_JA.get(s, "横断")}</strong><br>'
+                    f'<small>{esc(crit.get(s))}</small></td><td style="min-width:14em">{esc(finds.get(s))}</td>{cells}</tr>')
+    return "".join(rows)
 
 
 # ---------------------------------------------------------------- 図 2: 4 層の入れ子（グラレコ風）
@@ -417,8 +532,8 @@ def catalog_table(cat: dict, layer: str) -> str:
         gc = (f'<span class="gc">効果 {IMPACT_JA[p["impact"]]}</span> {esc(p["gain"])}<br>'
               f'<span class="gc">手間 {EFFORT_JA[p["effort"]]}</span> {esc(p["cost"])}') if p.get("gain") else "—"
         rows.append(
-            f'<tr class="r s-{esc(p.get("state"))}">'
-            f'<td><strong>{esc(p.get("name"))}</strong></td>'
+            f'<tr class="r s-{esc(p.get("state"))}" id="p-{esc(p.get("id"))}">'
+            f'<td><strong>{esc(p.get("name"))}</strong><br><span class="ly">{stage_label(p)}</span></td>'
             f'<td>{("<ul>" + refs + "</ul>") if refs else "<small>記事のみ</small>"}</td>'
             f'<td>{esc(p.get("problem"))}</td>'
             f'<td>{gc}</td>'
@@ -616,6 +731,19 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 <strong>{LAYER_JA[thinnest]}</strong>。</figcaption></figure>
 <div class="legend-crit">{crit}</div>
 
+<h2>開発の段階から引く</h2>
+<p>4 層は「ハーネスのどこに入るか」で分けた。ここでは同じパターンを「開発のどの段階で効くか」で引き直す。
+段階の分け方は、仕様 → 計画 → 実装 → 検証 → レビュー → 統合の流れに、ハーネス自体を直す振り返りを足した 7 つ。
+1 つのパターンが複数の段階にまたがることがあり、段階によらず効くもの（文脈・権限・索引など）は横断の行にまとめた。
+AI slop の軸のパターンも同じ表に入れている。名前を押すと下の表の行へ飛ぶ。</p>
+<figure class="pt-fig">{fig_stages(stage_counts(reports.all_patterns(cat)))}
+<figcaption>段階ごとの採否（AI slop の軸を含む。複数の段階にまたがるものはそれぞれで数える）。
+未採用がいちばん多いのは<strong>{STAGE_JA[max(STAGES, key=lambda s: stage_counts(reports.all_patterns(cat))[s]["missing"])]}</strong>。</figcaption></figure>
+<p><small>印は {"　".join(f"{STATE_MARK[s]} {STATE_JA[s]}" for s in STATES)}。</small></p>
+<div class="tablewrap"><table><thead><tr><th>段階</th><th>この段階で分かったこと</th>
+{"".join(f"<th>{LAYER_JA[l]}</th>" for l in LAYERS)}<th>AI slop</th></tr></thead>
+<tbody>{stage_table(cat)}</tbody></table></div>
+
 <h2>カタログの作り方</h2>
 <figure class="pt-fig">{fig_flow(cat, cand, c)}</figure>
 
@@ -623,7 +751,7 @@ def render(src: pathlib.Path, base_css: str, warnings: list[str]) -> str:
 1 行にまとめ、出典を並べた。各表は未採用 → 部分的 → 観察 → 採用済の順。</p>
 {radios}<div class="pt-fbar">{fbar}</div>
 {"".join(sections)}
-{reports.slop_section(cat)}
+{reports.slop_section(cat, stage_label)}
 
 <h2>出典（{len(cat.get("sources", []))}）</h2>
 <p>公式ドキュメントか README に書かれていることだけを根拠にした。版は GitHub のリリース、
