@@ -1,42 +1,42 @@
 # Argo CD Application の完了通知
 
-> **前提は Knative Eventing の導入。** そのうえで、Argo CD の `Application` のデプロイ完了（Synced かつ Healthy）と、Namespace の削除完了（Terminating が終わり完全に消えた時点）を、基盤側の設定（Argo CD・`argocd-notifications-cm`・Namespace を消す Job）に触らずに外へ届ける組み方を示す。Knative を使わない 5 方式との比較は参考として残した。根拠は kind 上の Argo CD v3.5.3 と Knative Eventing v1.23.0 での実測と、各プロジェクトのソース・公式ドキュメント。
+> **論点は、イベントの発行部分をどう作るか。** Argo CD の `Application` や Namespace などのリソースが作成・更新・削除されたときに、「デプロイ完了」「削除完了」のイベントを確実に発行したい。発行の仕方（Argo CD の通知機能、hook の Job、watch、finalizer、突き合わせ）を比べ、基盤側の設定に触らずに済み、取りこぼしが少ない組み方を示す。発行したイベントの配送（Knative の Broker、直接 HTTP など）はその後段で、発行の選び方とは分けて扱う。根拠は kind 上の Argo CD v3.5.3 での実測と、各プロジェクトのソース・公式ドキュメント。
 
 ## このページを一言で {#grareco}
 
-<p class="eli5">アプリを置く部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで建物の中に、郵便局（Knative Eventing）を一つ置きます。郵便局の受付係（ApiServerSource）は Kubernetes に「アプリの配置は終わったか」「この Namespace はまだあるか」を問い合わせ続け、デプロイが終わったとき・Namespace が完全に消えたときに手紙を作ります。手紙はすべて同じ窓口（Broker）に集まり、あなたが自分の部屋に置いた仕分け箱（Trigger）を通って届きます。受付係がうたた寝しても、一分ごとに名簿と見比べる係（PingSource で起きる観測 Service）が落とした分を拾うので、手紙はあとから必ず届きます。管理会社の仕組みには、どこにも手を入れません。</p>
+<p class="eli5">Kubernetes では、アプリ（Application）や部屋（Namespace）が作られたり、書き換えられたり、消されたりします。知りたいのは「配置が終わった」「部屋が完全に消えた」という出来事で、それを誰かが手紙（イベント）にして出さないと、外の人には伝わりません。この調査の問いは、その手紙を誰が・どうやって書くかです。建物の管理会社（基盤チーム）の掲示板（Argo CD の通知機能）に任せると、片づけの「開始」で鳴ってしまい、中身を変えるにも管理会社に頼むことになります。アプリ自身の Job に書かせると、宛先が落ちたとき片づけが止まります。部屋を外から見張る係（watch）は速いけれど、居眠りしている間の出来事を見逃します。「まだ捨てないで」の札（finalizer）を貼れば見逃しませんが、係が倒れると全員の片づけが止まります。名簿と部屋を定期的に見比べる係（突き合わせ）は遅いけれど、あとから必ず拾います。書き上がった手紙をどう配るか（郵便局＝Knative の Broker に預けるか、直接届けるか）は、その次の話です。</p>
 
 <!-- archify: index.architecture -->
 
 **図の読み方**
 
-- 左の枠は Argo CD と Namespace（基盤側、通知のために触らない）、中央の枠は Knative Eventing（基盤側の通知基盤）、右の枠は利用者側
-- ① Application と ② Namespace を消す Job は既存の部品。Knative からは watch するだけ
-- ③ ApiServerSource が Application の変化と Namespace の消滅を CloudEvent にして Broker に入れる。⚠ 止まっている間の変化は取りこぼす（取りこぼす条件の表「受信役の停止中の削除」）
-- ④ 観測 Service が Application の変化から「デプロイ完了」を判定して送る。PingSource で毎分起き、③の取りこぼしも同じ id で拾う。Namespace の削除は EventTransform が `uid:deleted` の id を付ける
-- ⑤ Broker が唯一の入口。⚠ 保管しない InMemoryChannel だと再起動で失う（取りこぼす条件の表）
-- ⑥⑦ 利用者側は自分の Namespace の Trigger と受け手だけを持つ。宛先・条件・本文の変更はここで済む（変更時の作業の表で「通知側」）
+- ① 左の枠は、変化の起点になるリソース（Application・Namespace）。基盤側のもので、通知のためには触らない
+- ② 中央の枠が、この調査で選ぶ「発行部分」。Argo CD の Notifications・PostSync/PostDelete の Job・finalizer は、それぞれ ⚠ の問題を持つ（評価マトリクスの ×・△）
+- ③ watch（Knative の ApiServerSource、Argo Events、自前の informer など）は、変化を即座にイベントにする。⚠ 止まっている間の変化は取りこぼす（取りこぼす条件の表）
+- ④ 突き合わせは、uid 一覧と list を定期的に比べ、③の取りこぼしを拾い直す。遅延は周期ぶん
+- ⑤ どの発行元からも、同じ変化には同じ id の CloudEvent を出す。重複は受け手が id で消す
+- ⑥ 配送は発行の後段で、利用者側の宛先へ届ける（Broker・直接 HTTP など）。発行の選び方とは別に決める
 
-（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点。）
+（色と線の読み方: 橙の破線の枠が基盤側と発行部分、赤の破線の枠が利用者側。緑の線は主な流れ、「⚠」は問題点。）
 
 ---
 
 ## 結論
 
-**前提:** Knative Eventing を導入する。Namespace は基盤側の Job が消す。基盤側の設定（Argo CD 本体、`argocd-notifications-cm`、Namespace を消す Job）は、通知を足したり変えたりするときに触らない。
+**問い:** リソース（Application・Namespace）の作成・更新・削除から、「デプロイ完了」「削除完了」のイベントをどう発行するか。
 
-**推奨: 基盤側の設定に手を入れず、Knative で外から観測する。入口は Broker 1 つ。**
+**推奨: 発行は、基盤側の設定に触らない「watch ＋ 突き合わせ」で行う。** watch で即座に発行し、止まっていた間の取りこぼしは定期的な突き合わせで拾い直す。どちらの経路も同じ変化に同じ id を付けるので、受け手が 1 通にできる。下の表は、その発行部分を Knative Eventing の部品（ApiServerSource・PingSource）で組んだ場合の例。watch と突き合わせは Argo Events や自前のプログラムでも組めるので、Knative は発行の必須条件ではない。配送（Broker・Trigger）は発行とは別の選択になる。
 
 | 何を | どう取るか | CloudEvents の id |
 |---|---|---|
 | デプロイ完了 | ApiServerSource で Application を watch し、観測 Service が「Synced かつ Healthy で、operation が Succeeded」を判定して送る。条件は Notifications の `on-deployed` と同じ式 | `<uid>:<revision>:deployed` |
 | 削除完了 | ApiServerSource でラベル付きの Namespace を watch する。DELETE（完全に消えた時点）を EventTransform で変換する | `<Namespace の uid>:deleted` |
 | 安全網（両方） | PingSource が毎分、観測 Service に突き合わせをさせる。止まっていた間の変化を拾い、同じ id で送る | 同上 |
-| 配送 | 宛先ごとの Trigger・retry・DLQ はアプリ側の namespace に置く。受け手は id で重複を消す | — |
+| 配送（発行の後段） | Knative を使う場合は、宛先ごとの Trigger・retry・DLQ をアプリ側の namespace に置く。受け手は id で重複を消す | — |
 
 **選んだ理由:**
 
-1. 通知の追加・変更がすべて通知側（obs とアプリの namespace）で済み、基盤側の設定を一度も触らない（[採点表](criteria.html#change)）。
+1. 発行部分が Argo CD の外にあるので、通知の追加・変更がすべて通知側で済み、基盤側の設定を一度も触らない（[採点表](criteria.html#change)）。
 2. 必要な権限は、applications と namespaces の get/list/watch だけ。Application の annotation も、Argo CD の RBAC も使わない。
 3. 削除は Namespace が完全に消えた時点で取れる。watch の取りこぼしは突き合わせが拾う（[報告書 run15](report.html#run15)）。
 4. 同じ変化が複数の経路から届いても、決定的な id で受け手が 1 通にできる（[報告書 run13・run19](report.html#run19)）。
@@ -58,7 +58,7 @@
 <tr><td><a href="knative.html">③ Knative</a></td><td>○ DELETE</td><td>× 停止中は取りこぼす</td><td>◎ retry・backoff・DLQ</td><td>○ 永続 Broker で at-least-once</td><td>○ 制御面・Kafka 系は HA、adapter は 1</td><td>◎ Trigger を足すだけ</td><td>◎ データプレーン水平</td><td>◎ OTLP・CloudEvents</td><td>○ ns 内で完結、偽装に EventPolicy</td><td>△ 部品が多い</td><td>◎ 5 ms</td></tr>
 <tr><td><a href="argo-events.html">④ Argo Events</a></td><td>○ DELETE</td><td>× 停止中は取りこぼす</td><td>○ retry・dlqTrigger</td><td>△ 既定 at-most-once</td><td>○ Active-Passive</td><td>○ Sensor の編集</td><td>○ Sensor 単位</td><td>△ Prometheus</td><td>○ ns 内で完結</td><td>△ EventBus が要る</td><td>◎ 7 ms</td></tr>
 <tr><td><a href="finalizer.html">⑤ finalizer（Metacontroller）</a></td><td>◎ 消滅を保証</td><td>◎ 復旧後に拾う</td><td>○ 送れるまで呼び直す</td><td>◎ at-least-once＋uid</td><td>× 止まると削除も止まる</td><td>○ Broker に出せば ◎</td><td>△ 単一リーダー</td><td>○ hook で OTel</td><td>△ ClusterRole を絞る</td><td>○ hook 1 つ</td><td>○ 約 10 ms</td></tr>
-<tr><td><strong>推奨: Knative で観測</strong><br>ApiServerSource＋突き合わせ</td><td>◎ Namespace の消滅</td><td>○ 突き合わせが拾う</td><td>◎ Broker の retry・DLQ</td><td>◎ 決定的 id</td><td>○ 削除を止めない</td><td>◎ Trigger を足すだけ</td><td>◎ データプレーン水平</td><td>◎ CloudEvents</td><td>◎ get/list/watch のみ</td><td>○ 部品 3 つ</td><td>◎ 即時（安全網は 1 分）</td></tr>
+<tr><td><strong>推奨: watch＋突き合わせ</strong><br>例: ApiServerSource＋PingSource</td><td>◎ Namespace の消滅</td><td>○ 突き合わせが拾う</td><td>◎ Broker の retry・DLQ</td><td>◎ 決定的 id</td><td>○ 削除を止めない</td><td>◎ Trigger を足すだけ</td><td>◎ データプレーン水平</td><td>◎ CloudEvents</td><td>◎ get/list/watch のみ</td><td>○ 部品 3 つ</td><td>◎ 即時（安全網は 1 分）</td></tr>
 <tr><td><a href="api-stream.html">⑥ API stream</a></td><td>○ DELETED</td><td>× 取りこぼす</td><td>× 無い</td><td>× 詰まると捨てる</td><td>△ 自前</td><td>△ 自前</td><td>△ 自前</td><td>△ 自前</td><td>○ Argo CD の RBAC で絞られる</td><td>× 自作</td><td>◎ 2 ms</td></tr>
 </tbody>
 </table>
@@ -88,7 +88,7 @@
 
 | 方式 | 宛先の追加 | 条件の変更 | 送信内容の変更 |
 |---|---|---|---|
-| **推奨（Knative で観測）** | 通知側（アプリの Trigger） | 通知側（観測 Service） | 通知側（観測 Service か EventTransform） |
+| **推奨（watch＋突き合わせ）** | 通知側（アプリの Trigger） | 通知側（観測 Service） | 通知側（観測 Service か EventTransform） |
 | ① Notifications | 基盤側（`argocd-notifications-cm`）。self-service なら通知側 | 基盤側（trigger） | 基盤側（template） |
 | ② PostSync / PostDelete | 全アプリのマニフェスト | 同左 | 同左 |
 | ③ Knative ApiServerSource 単体 | 通知側 | 通知側 | 通知側 |
