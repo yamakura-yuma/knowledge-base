@@ -12,16 +12,16 @@ docs/
   build.py  fetch_metrics.py
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
-    dotfiles/           # 話題② dotfiles の構成検討
+    tool-research/      # 話題② ハーネスに入れる外部ツールの調査
     argocd-notify/      # 話題③ Argo CD の完了通知
     data/               # 取得物・状態（metrics.json / status.json）
   site/                 # 生成物。直接編集しない
-    landscape/  dotfiles/  argocd-notify/
+    landscape/  tool-research/  argocd-notify/
 ```
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
-uv run docs/build.py           # HTML を生成する（landscape / dotfiles）
+uv run docs/build.py           # HTML を生成する（landscape / tool-research）
 uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
 
@@ -40,24 +40,26 @@ uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 「いまホットか」の判定はすべてその数字から機械的に出している。
 裏が取れなかった値は空欄のままにしてあり、推測では埋めていない。
 
-### 話題② dotfiles の構成検討
+### 話題② ハーネスに入れる外部ツールの調査
 
-ランドスケープで並べたツールのうち、実際に手元で使っているものの話。
+ランドスケープで並べたツールのうち、手元のハーネスに入れているもの・入れるか検討したものを、
+対抗馬と並べて調べた話。ハーネスを変えても書き換わらない、ツールそのものについての調査だけを置く。
 
-- [`docs/site/dotfiles/dotfiles.html`](./docs/site/dotfiles/dotfiles.html)
-  — このホストのエージェント環境が、どう組み立てられているか
-  （正本 [`docs/src/dotfiles/dotfiles.md`](./docs/src/dotfiles/dotfiles.md)）
-- [`docs/site/dotfiles/context-optimization.html`](./docs/site/dotfiles/context-optimization.html)
+- [`docs/site/tool-research/context-optimization.html`](./docs/site/tool-research/context-optimization.html)
   — Headroom / CodeGraph / graphify を対抗馬と並べて比較する
-  （正本 [`docs/src/dotfiles/context-optimization.md`](./docs/src/dotfiles/context-optimization.md)）
+  （正本 [`docs/src/tool-research/context-optimization.md`](./docs/src/tool-research/context-optimization.md)）
 
-### 話題③ Argo CD Application の完了通知
+ハーネスそのもの（何をどこへ配り、どう検証しているか）の説明はここには置かない。
+正本は dotfiles リポジトリの [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)
+（手元では `~/dotfiles/docs/`）で、ハーネスを変えたときに一緒に変わるものはすべてそちらに書く。
 
-Argo CD の `Application` のデプロイ完了・削除完了を検知して外部へ送る方式を、
-kind 上の実測とソースを根拠に比べたもの。
+### 話題③ Argo CD の完了通知：イベントをどう発行するか
+
+Argo CD の `Application` や Namespace の作成・更新・削除から、「デプロイ完了」「削除完了」の
+イベントをどう発行するかを、kind 上の実測とソースを根拠に比べたもの。
 
 - [`docs/site/argocd-notify/index.html`](./docs/site/argocd-notify/index.html) — 概要と評価マトリクス。
   方式ごとのページ（Notifications / PostSync・PostDelete / Knative / Argo Events /
-  自前 finalizer / API stream）へはここから辿る
+  finalizer / API stream）と実測の報告書へはここから辿る
 - 正本は [`docs/src/argocd-notify/`](./docs/src/argocd-notify/)。ほかの話題とは独立していて、
-  `docs/build_argocd_notify.py` だけで生成する
+  `docs/build_argocd_notify.py` だけで生成する（Node と `apm install` が要る）

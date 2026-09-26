@@ -146,45 +146,6 @@
   .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
   .pcard span { color:var(--ink-3); font-size:12px; font-family:var(--mono); }
 
-  /* ---- 図のための部品（dotfiles ページで使う） ---- */
-  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
-         padding:16px 18px; margin:18px 0; }
-  .dgm > .cap { font-family:var(--mono); font-size:11px; color:var(--ink-3);
-                margin:-4px 0 12px; letter-spacing:.02em; }
-  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .box { border:1px solid var(--line); border-radius:6px; padding:11px 13px;
-         background:var(--bg); }
-  .box b { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
-  .box span, .box p { font-size:12px; color:var(--ink-2); margin:0; line-height:1.6; }
-  .box.k1 { border-left:3px solid var(--l1); }
-  .box.k2 { border-left:3px solid var(--l2); }
-  .box.k3 { border-left:3px solid var(--l3); }
-  .box.bad { border-left:3px solid var(--hot); }
-  .box.ok  { border-left:3px solid var(--ok); }
-  .down { text-align:center; color:var(--ink-3); font-family:var(--mono);
-          font-size:15px; line-height:1.2; margin:7px 0; }
-
-  /* src ──▶ dst の対応表 */
-  .map { display:grid; grid-template-columns:1fr 26px 1fr; gap:3px 10px; align-items:center;
-         font-family:var(--mono); font-size:11.5px; }
-  .map .s { text-align:right; color:var(--l1); word-break:break-all; }
-  .map .a { color:var(--ink-3); text-align:center; }
-  .map .d { color:var(--l3); word-break:break-all; }
-  .map .h { color:var(--ink-3); font-size:10.5px; padding-bottom:5px;
-            border-bottom:1px solid var(--line); margin-bottom:4px; }
-  .map .h.r { text-align:right; }
-
-  /* 判定の縦レール */
-  .rail { display:grid; grid-template-columns:1fr 128px; gap:9px; align-items:center; }
-  .rail .q { border:1px solid var(--line); border-left:3px solid var(--stale);
-             border-radius:6px; padding:9px 12px; background:var(--bg); font-size:12.5px; }
-  .rail .q b { color:var(--ink); }
-  .rail .v { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
-  .rail .v .no { color:var(--hot); font-weight:600; }
-  .rail .v .yes { color:var(--ok); }
-  .tie { height:10px; border-left:1px dashed var(--line); margin-left:14px; }
-
   .tblwrap { overflow-x:auto; }
   .c-name { font-weight:600; color:var(--ink); white-space:nowrap; }
   .c-name a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
@@ -221,12 +182,6 @@
     .tl { grid-template-columns:104px 1fr; }
     .tl-name { font-size:10.5px; }
     .c-sum { display:none; }
-    .row3, .row2 { grid-template-columns:1fr; }
-    .map { grid-template-columns:1fr; gap:1px; }
-    .map .s { text-align:left; }
-    .map .a, .map .h { display:none; }
-    .map .d { padding-left:14px; margin-bottom:5px; }
-    .rail { grid-template-columns:1fr; gap:3px; }
   }
 </style>
 </head>
@@ -236,7 +191,7 @@
   <h1>AI コーディングツール・ランドスケープ</h1>
   <p class="sub">78 項目を 4 層に分けて並べた。星の数・直近リリース・アーカイブ状態は GitHub API の実測値（取得日 <b>2026-09-21</b>）で、状態の判定はすべてその数字から機械的に出している。詳細は層ごとのページに分けた。</p>
 </header>
-<nav class="nav"><a href="../landscape/index.html" class="on">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../dotfiles/context-optimization.html" class="">文脈の最適化</a><a href="../dotfiles/dotfiles.html" class="">dotfiles 構成</a></nav>
+<nav class="nav"><a href="../landscape/index.html" class="on">全体</a><a href="../landscape/l1-terminal.html" class="">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../tool-research/context-optimization.html" class="">文脈の最適化</a></nav>
 
 <h2>1. この分類はどうやって導いたか</h2>
 <p>
@@ -347,7 +302,7 @@ L3  共通基盤          MCP / AGENTS.md / Agent Skills / apm …       全層�
 
 <h2>4. 層ごとのページ</h2>
 <p>詳細はここには置かず、層ごとのページに分けてある。1 ページが長くなりすぎると読めないため。</p>
-<div class="pagegrid"><a class="pcard" href="../landscape/l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="../landscape/l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="../landscape/l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="../landscape/l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="../dotfiles/context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a><a class="pcard" href="../dotfiles/dotfiles.html"><b>dotfiles 構成</b><span>このホストのエージェント環境が、どう組み立てられているか</span></a></div>
+<div class="pagegrid"><a class="pcard" href="../landscape/l1-terminal.html"><b>ターミナル</b><span>L1・19 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l1-ide.html"><b>IDE</b><span>L1・12 項目（詳細 6）</span></a><a class="pcard" href="../landscape/l1-cloud.html"><b>クラウド</b><span>L1・12 項目（詳細 1）</span></a><a class="pcard" href="../landscape/l2.html"><b>モデルアクセス</b><span>L2・9 項目（詳細 4）</span></a><a class="pcard" href="../landscape/l3.html"><b>共通基盤</b><span>L3・17 項目（詳細 11）</span></a><a class="pcard" href="../landscape/l0.html"><b>モデル提供元</b><span>L0・9 項目（詳細 0）</span></a><a class="pcard" href="../tool-research/context-optimization.html"><b>文脈の最適化</b><span>いま手元で使っている Headroom / CodeGraph / graphify を、対抗馬と並べて比較する</span></a></div>
 
 <h2>5. この表が答えていないこと</h2>
 <p>ランドスケープの類は、何を載せたかより<strong>何を載せなかったか</strong>で誤解を生む。先に書いておく。</p>
