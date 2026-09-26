@@ -1,0 +1,155 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Argo Events：EventBus に乗る前と、既定の 1 回送信が弱い",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "Namespace",
+   "sublabel": "Pod の入れ物",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "es",
+   "type": "security",
+   "label": "① EventSource",
+   "sublabel": "変化を拾う",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 停止中は取りこぼす"
+  },
+  {
+   "id": "bus",
+   "type": "messagebus",
+   "label": "② EventBus",
+   "sublabel": "JetStream に保管",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sn",
+   "type": "security",
+   "label": "③ Sensor",
+   "sublabel": "条件で絞る",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 既定は at-most-once"
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "④ 宛先",
+   "sublabel": "HTTP",
+   "pos": [
+    1080,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "Secret",
+   "sublabel": "宛先の鍵",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "ns",
+    "es",
+    "bus"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "sn",
+    "rcv",
+    "sec"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "es",
+   "to": "ns",
+   "label": "watch"
+  },
+  {
+   "id": "c1",
+   "from": "es",
+   "to": "bus",
+   "label": "publish",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c2",
+   "from": "bus",
+   "to": "sn",
+   "label": "subscribe",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "sn",
+   "to": "rcv",
+   "label": "trigger",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "sec",
+   "to": "sn",
+   "label": "鍵",
+   "variant": "dashed"
+  }
+ ]
+}

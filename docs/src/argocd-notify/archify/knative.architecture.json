@@ -1,0 +1,159 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Knative：Broker から先は強く、入口の ApiServerSource が弱い",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "Namespace",
+   "sublabel": "Pod の入れ物",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "src",
+   "type": "security",
+   "label": "① ApiServerSource",
+   "sublabel": "変化を watch",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 停止中は取りこぼす"
+  },
+  {
+   "id": "brk",
+   "type": "messagebus",
+   "label": "② Broker",
+   "sublabel": "保管・再送",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "retry・DLQ"
+  },
+  {
+   "id": "tr",
+   "type": "backend",
+   "label": "③ Trigger",
+   "sublabel": "type で振り分け",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "④ 宛先",
+   "sublabel": "Slack など",
+   "pos": [
+    1080,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "dlq",
+   "type": "database",
+   "label": "DLQ",
+   "sublabel": "届かなかった分",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "ns",
+    "src",
+    "brk"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "tr",
+    "rcv",
+    "dlq"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "src",
+   "to": "ns",
+   "label": "watch"
+  },
+  {
+   "id": "c1",
+   "from": "src",
+   "to": "brk",
+   "label": "CloudEvent",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c2",
+   "from": "brk",
+   "to": "tr",
+   "label": "転送",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "tr",
+   "to": "rcv",
+   "label": "HTTP",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "tr",
+   "to": "dlq",
+   "label": "上限超過",
+   "variant": "security",
+   "labelAt": [
+    906,
+    188
+   ]
+  }
+ ]
+}

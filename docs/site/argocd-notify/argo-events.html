@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>④ Argo Events</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#95938c; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* ページ冒頭のたとえ話（eli5） */
+  .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>④ Argo Events</h1>
+  <p class="sub">resource EventSource が Application を informer で監視し、イベントを EventBus（JetStream など）に書き込む。Sensor がそれを購読し、フィルタを通ったものだけ trigger（HTTP など）で送る。<strong>削除完了は 7 ms で届く。ただし検知層は、停止中に起きた削除を取りこぼす。配送層は、設定しないと at-most-once で動く。</strong></p>
+</header>
+<nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="on">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
+<p class="eli5">Argo Events は、駅とバスにたとえられます。停留所（EventSource）で変化を拾い、バス（EventBus）に乗せ、終点の係（Sensor）が条件に合うものだけを届けます。バスに乗ったあとは、席（保管）が確保されるので安心です。危ないのは二か所で、停留所の Pod が止まっている間の乗客は乗れません。もう一つは、終点の係が初期設定では一回しか届けようとせず、宛先がエラーを返しても「届けた」と扱うことです。</p>
+
+<figure class="arch"><svg viewBox="0 0 1322 416" role="img" lang="en" aria-labelledby="ax-argo-events-architecture-archify-diagram-title ax-argo-events-architecture-archify-diagram-description">
+        <title id="ax-argo-events-architecture-archify-diagram-title">Argo Events：EventBus に乗る前と、既定の 1 回送信が弱い</title>
+        <desc id="ax-argo-events-architecture-archify-diagram-description">An architecture diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-argo-events-architecture-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-argo-events-architecture-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-argo-events-architecture-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-argo-events-architecture-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-argo-events-architecture-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-argo-events-architecture-grid)" />
+        <rect x="10" y="80" width="752" height="114" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="790" y="80" width="492" height="268" rx="8" class="c-security-group" stroke-width="1"/>
+        <path d="M 300 142 L 212 142" class="a-default" stroke-width="1.5" marker-end="url(#ax-argo-events-architecture-arrowhead)"/>
+        <path d="M 472 142 L 560 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-architecture-arrowhead-emphasis)"/>
+        <path d="M 732 142 L 820 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-architecture-arrowhead-emphasis)"/>
+        <path d="M 992 142 L 1080 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-argo-events-architecture-arrowhead-emphasis)"/>
+        <path d="M 906 264 L 906 174" class="a-dashed" stroke-width="1.5" marker-end="url(#ax-argo-events-architecture-arrowhead-dashed)"/>
+        <g id="ax-argo-events-architecture-node-ns" tabindex="0" role="button" aria-label="Focus Namespace, Pod の入れ物, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>Namespace · Pod の入れ物 · 基盤側（基盤チームが管理）</title>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(46 116) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="126" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Namespace</text>
+        <text x="126" y="156" class="t-muted" font-size="9" text-anchor="middle">Pod の入れ物</text>
+        </g>
+        <g id="ax-argo-events-architecture-node-es" tabindex="0" role="button" aria-label="Focus ① EventSource, 変化を拾う, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>① EventSource · 変化を拾う · 基盤側（基盤チームが管理） · ⚠ 停止中は取りこぼす</title>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(306 116) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="386" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① EventSource</text>
+        <text x="386" y="156" class="t-muted" font-size="9" text-anchor="middle">変化を拾う</text>
+        <text x="386" y="166" class="t-security" font-size="7" text-anchor="middle">⚠ 停止中は取りこぼす</text>
+        </g>
+        <g id="ax-argo-events-architecture-node-bus" tabindex="0" role="button" aria-label="Focus ② EventBus, JetStream に保管, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>② EventBus · JetStream に保管 · 基盤側（基盤チームが管理）</title>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(566 116) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="646" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">② EventBus</text>
+        <text x="646" y="156" class="t-muted" font-size="9" text-anchor="middle">JetStream に保管</text>
+        </g>
+        <g id="ax-argo-events-architecture-node-sn" tabindex="0" role="button" aria-label="Focus ③ Sensor, 条件で絞る, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>③ Sensor · 条件で絞る · 利用者側（アプリチームが管理） · ⚠ 既定は at-most-once</title>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(826 116) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="906" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ Sensor</text>
+        <text x="906" y="156" class="t-muted" font-size="9" text-anchor="middle">条件で絞る</text>
+        <text x="906" y="166" class="t-security" font-size="7" text-anchor="middle">⚠ 既定は at-most-once</text>
+        </g>
+        <g id="ax-argo-events-architecture-node-rcv" tabindex="0" role="button" aria-label="Focus ④ 宛先, HTTP, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>④ 宛先 · HTTP · 利用者側（アプリチームが管理）</title>
+          <rect x="1080" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="1080" y="110" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(1086 116) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="1166" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">④ 宛先</text>
+        <text x="1166" y="156" class="t-muted" font-size="9" text-anchor="middle">HTTP</text>
+        </g>
+        <g id="ax-argo-events-architecture-node-sec" tabindex="0" role="button" aria-label="Focus Secret, 宛先の鍵, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>Secret · 宛先の鍵 · 利用者側（アプリチームが管理）</title>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(826 270) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="906" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Secret</text>
+        <text x="906" y="310" class="t-muted" font-size="9" text-anchor="middle">宛先の鍵</text>
+        </g>
+        <g>
+          <rect x="239" y="122" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="256" y="132" class="t-muted" font-size="8" text-anchor="middle">watch</text>
+        </g>
+        <g>
+          <rect x="494.2" y="122" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="516" y="132" class="t-backend" font-size="8" text-anchor="middle">publish</text>
+        </g>
+        <g>
+          <rect x="749.4" y="122" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+          <text x="776" y="132" class="t-backend" font-size="8" text-anchor="middle">subscribe</text>
+        </g>
+        <g>
+          <rect x="1014.2" y="122" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="1036" y="132" class="t-backend" font-size="8" text-anchor="middle">trigger</text>
+        </g>
+        <g>
+          <rect x="891" y="244" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="906" y="254" class="t-messagebus" font-size="8" text-anchor="middle">鍵</text>
+        </g>
+        <g>
+          <rect x="14" y="90" width="150.4" height="16" rx="3" class="c-mask"/>
+          <text x="18" y="103" class="t-cloud" font-size="9" font-weight="600">基盤側（基盤チームが管理）</text>
+        </g>
+        <g>
+          <rect x="794" y="90" width="172" height="16" rx="3" class="c-mask"/>
+          <text x="798" y="103" class="t-security" font-size="9" font-weight="600">利用者側（アプリチームが管理）</text>
+        </g>
+      </svg></figure>
+
+<p><strong>図の読み方</strong></p>
+<ul>
+<li>① EventSource（基盤側）が変化を拾う。⚠ 停止中の変化は取りこぼす（評価マトリクス「検知層の耐障害性 ×」）</li>
+<li>② EventBus（基盤側、JetStream）に入ったあとは保管される</li>
+<li>③ Sensor（利用者側）が条件で絞る。⚠ 既定は at-most-once（評価マトリクス「配送保証 △」）</li>
+<li>④ 宛先と鍵は利用者側に置く</li>
+</ul>
+<p>（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）</p>
+<h2>アーキテクチャ</h2>
+<div class="dgm"><div class="cap">EventBus が検知層と配送層の間に入り、そこから先は永続化される</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="Argo Events のアーキテクチャ"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="220" height="150" rx="8"/><text class="t-zone" x="20" y="46">argocd namespace</text><rect class="zone zone-platform" x="250" y="30" width="510" height="330" rx="8"/><text class="t-zone" x="260" y="46">argo-events namespace</text><rect class="zone zone-ext" x="780" y="30" width="210" height="330" rx="8"/><text class="t-zone" x="790" y="46">外部</text><rect class="nd nd-app" x="25" y="60" width="190" height="44" rx="6"/><text class="t-ink" x="35" y="79">Application（CR）</text><rect class="nd nd-comp" x="265" y="60" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="79">EventSource の Pod</text><text class="" x="275" y="95">informer（Add/Update/Delete）</text><text class="t-mono" x="275" y="111">Active-Passive・状態なし</text><rect class="nd nd-state" x="265" y="170" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="189">EventBus（JetStream）</text><text class="" x="275" y="205">3 レプリカ・PV 推奨</text><text class="t-mono" x="275" y="221">ここから先は永続化</text><rect class="nd nd-comp" x="265" y="275" width="280" height="70" rx="6"/><text class="t-ink" x="275" y="294">Sensor の Pod</text><text class="" x="275" y="310">filter（data / Lua script）</text><text class="t-mono" x="275" y="326">retryStrategy・dlqTrigger</text><rect class="nd nd-comp" x="560" y="60" width="185" height="70" rx="6"/><text class="t-ink" x="570" y="79">controller-manager</text><text class="t-mono" x="570" y="95">ES / Sensor / EventBus</text><text class="t-mono" x="570" y="111">を Deployment にする</text><rect class="nd nd-ext" x="795" y="275" width="180" height="44" rx="6"/><text class="t-ink" x="805" y="294">HTTP trigger</text><rect class="nd nd-ext" x="795" y="170" width="180" height="44" rx="6"/><text class="t-ink" x="805" y="189">dlqTrigger</text><path class="ln ln-watch" d="M265,89 L215,86" marker-end="url(#a-watch)"/><rect class="lbl-bg" x="218" y="76" width="44" height="15" rx="3"/><text class="t-mono" x="240" y="87" text-anchor="middle">watch</text><path class="ln ln-ce" d="M405,130 L405,170" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="376" y="139" width="58" height="15" rx="3"/><text class="t-mono" x="405" y="150" text-anchor="middle">publish</text><path class="ln ln-ce" d="M405,240 L405,275" marker-end="url(#a-ce)"/><rect class="lbl-bg" x="369" y="246" width="73" height="15" rx="3"/><text class="t-mono" x="405" y="258" text-anchor="middle">subscribe</text><path class="ln ln-http" d="M545,306 L795,299" marker-end="url(#a-http)"/><path class="ln ln-http" d="M545,302 L770,290 L770,192 L795,192" marker-end="url(#a-http)"/><rect class="lbl-bg" x="702" y="230" width="56" height="15" rx="3"/><text class="t-mono" x="730" y="241" text-anchor="middle">上限超過</text><path class="ln ln-watch" d="M20,390 L48,390" marker-end="url(#a-watch)"/><text class="t-mono" x="54" y="394">watch</text><path class="ln ln-http" d="M112.0,390 L140.0,390" marker-end="url(#a-http)"/><text class="t-mono" x="146.0" y="394">HTTP</text><path class="ln ln-ce" d="M196.8,390 L224.8,390" marker-end="url(#a-ce)"/><text class="t-mono" x="230.8" y="394">CloudEvent</text><rect class="nd nd-state" x="324.8" y="382" width="16" height="12" rx="2"/><text class="t-mono" x="346.8" y="394">状態を持つ場所</text></svg></div>
+<ul>
+<li><strong>検知層（EventSource）は状態を持たない。</strong> informer に <code>DeleteFunc</code> を登録しているので DELETE は届く（<a href="https://github.com/argoproj/argo-events/blob/v1.9.11/pkg/eventsources/sources/resource/start.go">pkg/eventsources/sources/resource/start.go</a>）。ただし、止まっている間に消えたものは復旧後に出てこない（<a href="report.html#run4">run4</a>・<a href="report.html#run5">run5</a>）。</li>
+<li><strong>EventBus から先は永続化される。</strong> 本番では EventBus に PV を付けることが推奨されている（<a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/dr_ha_recommendations.md">dr_ha_recommendations.md</a>）。</li>
+</ul>
+<h2>権限分離</h2>
+<div class="dgm"><div class="cap">クラスタスコープのインストールでは Platform が controller を持ち、App は自分の namespace で EventBus・EventSource・Sensor を作る</div><svg class="fig" viewBox="0 0 1000 400" role="img" aria-label="Argo Events の権限分離"><defs><marker id="a-watch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-watch"/></marker><marker id="a-http" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-http"/></marker><marker id="a-ce" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-ce"/></marker><marker id="a-patch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-patch"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-bad"/></marker><marker id="a-rbac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ar-rbac"/></marker></defs><rect class="zone zone-platform" x="10" y="30" width="480" height="330" rx="8"/><text class="t-zone" x="20" y="46">Platform 側</text><rect class="zone zone-app" x="510" y="30" width="480" height="330" rx="8"/><text class="t-zone" x="520" y="46">App 側（team-a namespace）</text><rect class="nd nd-crd" x="25" y="60" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="79">Argo Events のインストール</text><text class="t-mono" x="35" y="95">CRD・controller-manager</text><text class="t-mono" x="35" y="111">aggregate-to-edit / admin の ClusterRole</text><rect class="nd nd-crd" x="25" y="160" width="450" height="70" rx="6"/><text class="t-ink" x="35" y="179">RoleBinding in argocd</text><text class="t-mono" x="35" y="195">applications: list/watch</text><text class="t-mono" x="35" y="211">→ EventSource の ServiceAccount</text><rect class="nd nd-crd" x="25" y="260" width="450" height="54" rx="6"/><text class="t-ink" x="35" y="279">namespaced インストール（任意）</text><text class="t-mono" x="35" y="295">--namespaced --managed-namespace</text><rect class="nd nd-comp" x="525" y="60" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="79">EventBus / EventSource / Sensor</text><text class="t-mono" x="535" y="95">edit があれば作れる（run9）</text><rect class="nd nd-comp" x="525" y="140" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="159">Sensor が参照する Secret</text><text class="t-mono" x="535" y="175">送信先の資格情報は App が持つ</text><rect class="nd nd-bad" x="525" y="225" width="450" height="54" rx="6"/><text class="t-ink" x="535" y="244">argocd を見る EventSource</text><text class="t-mono" x="535" y="260">watcher SA に list 権限なし</text><path class="ln ln-rbac" d="M475,91 L525,91" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="460" y="80" width="80" height="15" rx="3"/><text class="t-mono" x="500" y="91" text-anchor="middle">edit に集約</text><path class="ln ln-rbac" d="M475,221 L525,226" marker-end="url(#a-rbac)"/><rect class="lbl-bg" x="410" y="230" width="181" height="15" rx="3"/><text class="t-mono" x="500" y="242" text-anchor="middle">Platform が与えない限り不可</text><path class="ln ln-rbac" d="M20,390 L48,390" marker-end="url(#a-rbac)"/><text class="t-mono" x="54" y="394">権限付与</text></svg></div>
+<table>
+<thead>
+<tr>
+<th>誰が</th>
+<th>何をする</th>
+<th>根拠</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform</td>
+<td>CRD と controller-manager を入れる。インストールに含まれる <code>argo-events-aggregate-to-edit</code> などの ClusterRole が、既定の <code>edit</code> / <code>admin</code> に Argo Events の CR を足す</td>
+<td>v1.9.11 の <code>install.yaml</code></td>
+</tr>
+<tr>
+<td>Platform</td>
+<td>resource EventSource の ServiceAccount に、<code>argocd</code> namespace の applications の <code>list</code> / <code>watch</code> を与える</td>
+<td><a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/service-accounts.md">service-accounts.md</a></td>
+</tr>
+<tr>
+<td>Platform（任意）</td>
+<td>controller を <code>--namespaced --managed-namespace</code> で namespace ごとに動かす</td>
+<td><a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/managed-namespace.md">managed-namespace.md</a></td>
+</tr>
+<tr>
+<td>App</td>
+<td>自分の namespace に EventBus・EventSource・Sensor を作り、Sensor が参照する Secret に資格情報を持つ</td>
+<td><a href="report.html#run9">run9</a> で <code>can-i</code> が yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>越境（<a href="report.html#run9">run9</a>）:</strong> <code>team-a</code> の <code>edit</code> だけで、EventBus・EventSource・Sensor は作れた。しかし EventSource の ServiceAccount には <code>argocd</code> の applications を <code>list</code> する権限が無く（<code>can-i</code> は no）、自分で与えることもできない。</p>
+<p>EventSource の Pod そのものは、kind のノードで inotify の上限に当たって CrashLoop になった。そのため、「Forbidden で止まる」ところまでは見ていない。権限が無いことは <code>can-i</code> で確かめた。</p>
+<p><strong>偽装:</strong> 同じ namespace の EventBus に書き込めるのは、同じ namespace の部品に限られる（EventBus は namespace ごとに作る）。チームごとに EventBus を分ければ、他チームへの偽装の経路は無い。これは文献と構成から読んだもので、実測はしていない。</p>
+<h2>導入・運用の労力</h2>
+<h3>基盤側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+<th>頻度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Argo Events 本体（CRD・controller-manager）の導入と追従</td>
+<td>継続</td>
+</tr>
+<tr>
+<td>EventSource の ServiceAccount に、対象の list/watch を与える</td>
+<td>対象を増やすたび</td>
+</tr>
+</tbody>
+</table>
+<h3>利用者側の作業</h3>
+<table>
+<thead>
+<tr>
+<th>作業</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自分の namespace に EventBus・EventSource・Sensor を置く（<code>atLeastOnce</code> と <code>policy.status.allow</code> を必ず指定）</td>
+</tr>
+<tr>
+<td>Sensor が参照する Secret と受け手を用意する</td>
+</tr>
+</tbody>
+</table>
+<h2>評価</h2>
+<p><strong>削除完了の検知: ○。</strong> オブジェクトの消滅から 7 ms で DELETE が届いた（<a href="report.html#run3">run3</a>）。</p>
+<p><strong>デプロイ完了: 重複する。</strong> UPDATE を <code>status.health.status=Healthy</code> などのデータフィルタで絞ると、完了時に 4 回届いた。さらに削除開始の直後にも 2〜3 回届いた（<a href="report.html#run3">run3</a> で 2 回、<a href="report.html#run6">run6</a> で 3 回）。削除直後の更新では、status がまだ Synced / Healthy のままだから。Lua スクリプトのフィルタで <code>deletionTimestamp</code> があるものを除くと、この誤報は止まった（完了時の 4 回は残る）。</p>
+<p><strong>検知層の耐障害性: ×。</strong> EventSource を止めている間に消えた Application の DELETE は、届かなかった（<a href="report.html#run4">run4</a>・<a href="report.html#run5">run5</a>）。</p>
+<p><strong>配送層の回復性: ○。</strong> trigger に <code>retryStrategy</code>（steps・duration・factor・jitter）を書ける。<code>atLeastOnce: true</code> にすれば、上限を超えたとき <code>dlqTrigger</code> に回す（<a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/sensors/more-about-sensors-and-triggers.md">more-about-sensors-and-triggers.md</a>）。</p>
+<p><a href="report.html#run8">run8</a> では、<strong>HTTP trigger は既定で 500 を成功扱いにし、1 回で終わった。</strong> <code>policy.status.allow: [200, 201, 202]</code> を足すと、retry を 3 回（間隔 0.6 → 1.2 秒）行ってから <code>dlqTrigger</code> に送った。circuit breaker は無いが、<code>rateLimit</code> はある。</p>
+<p><strong>配送保証: △。</strong> <code>atLeastOnce</code> の既定は false で、コメントには "Trigger execution will use at-most-once semantics" とある（<code>pkg/apis/events/v1alpha1/sensor_types.go</code>）。true にすれば at-least-once になる。重複を除く仕組みは Sensor 側に無いので、受け手で Application の <code>uid</code> を使って冪等にする。</p>
+<p><strong>可用性: ○。</strong> resource EventSource と Sensor は、<code>spec.replicas &gt; 1</code> で Active-Passive になる。リーダー選出は NATS か Kubernetes の Lease で行う（<a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/eventsources/ha.md">eventsources/ha.md</a>、<a href="https://github.com/argoproj/argo-events/blob/v1.9.11/docs/sensors/ha.md">sensors/ha.md</a>）。複数レプリカでの動きは実測していない。</p>
+<p><strong>疎結合: ○。</strong> EventBus を挟むので、送り手と受け手は分かれている。ただし送信先を足すには Sensor を編集する。</p>
+<p><strong>スケーラビリティ: ○。</strong> Sensor を増やせば、同じ EventBus から別々に購読できる。1 つの Sensor の中の処理は、アクティブな 1 Pod が担う。</p>
+<p><strong>可観測性: △。</strong> Prometheus のメトリクス（<code>argo_events_events_sent_total</code>・<code>argo_events_events_sent_failed_total</code> など）はある。v1.9.11 の <code>pkg/</code> には OpenTelemetry への依存が見当たらない。HTTP trigger の送信に CloudEvents のヘッダは付かなかった（実測）。</p>
+<p><strong>セキュリティ・権限分離: ○。</strong> 分離できる。Application を見る権限は Platform が与える。</p>
+<p><strong>運用負荷: △。</strong> EventBus（JetStream 3 レプリカ・PV）と controller が増える。</p>
+<p><strong>レイテンシ: ◎。</strong> オブジェクトの消滅から 7 ms（<a href="report.html#run3">run3</a>）。</p>
+<footer>
+  正本は <code>docs/src/argocd-notify/*.md</code>。この HTML は <code>docs/build_argocd_notify.py</code>
+  の生成物なので直接編集しないこと。実測は kind 上の Argo CD v3.5.3 で行い、条件は概要ページの末尾に書いた。
+  GitHub の数字は 2026-09-25 に <code>gh api</code> で取った値。
+</footer>
+</div>
+</body>
+</html>

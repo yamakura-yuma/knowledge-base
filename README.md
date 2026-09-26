@@ -13,14 +13,16 @@ docs/
   src/                  # 正本。手で書くもの
     landscape/          # 話題① AI ツールのランドスケープ
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
+    argocd-notify/      # 話題③ Argo CD の完了通知
     data/               # 取得物・状態（metrics.json / status.json）
   site/                 # 生成物。直接編集しない
-    landscape/  tool-research/
+    landscape/  tool-research/  argocd-notify/
 ```
 
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る
-uv run docs/build.py           # HTML を生成する
+uv run docs/build.py           # HTML を生成する（landscape / tool-research）
+uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
 ```
 
 ## いま入っているもの
@@ -50,3 +52,14 @@ uv run docs/build.py           # HTML を生成する
 ハーネスそのもの（何をどこへ配り、どう検証しているか）の説明はここには置かない。
 正本は dotfiles リポジトリの [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)
 （手元では `~/dotfiles/docs/`）で、ハーネスを変えたときに一緒に変わるものはすべてそちらに書く。
+
+### 話題③ Argo CD の完了通知：イベントをどう発行するか
+
+Argo CD の `Application` や Namespace の作成・更新・削除から、「デプロイ完了」「削除完了」の
+イベントをどう発行するかを、kind 上の実測とソースを根拠に比べたもの。
+
+- [`docs/site/argocd-notify/index.html`](./docs/site/argocd-notify/index.html) — 概要と評価マトリクス。
+  方式ごとのページ（Notifications / PostSync・PostDelete / Knative / Argo Events /
+  finalizer / API stream）と実測の報告書へはここから辿る
+- 正本は [`docs/src/argocd-notify/`](./docs/src/argocd-notify/)。ほかの話題とは独立していて、
+  `docs/build_argocd_notify.py` だけで生成する（Node と `apm install` が要る）

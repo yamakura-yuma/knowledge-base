@@ -1,0 +1,103 @@
+{
+ "schema_version": 1,
+ "diagram_type": "sequence",
+ "meta": {
+  "title": "on-deleted が鳴る時点（run3 の実測）",
+  "viewBox": [
+   980,
+   520
+  ],
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "participants": [
+  {
+   "id": "user",
+   "type": "external",
+   "label": "削除者",
+   "sublabel": "kubectl delete"
+  },
+  {
+   "id": "app",
+   "type": "database",
+   "label": "App",
+   "sublabel": "基盤側（argocd ns）"
+  },
+  {
+   "id": "ncc",
+   "type": "backend",
+   "label": "通知係",
+   "sublabel": "基盤側"
+  },
+  {
+   "id": "res",
+   "type": "frontend",
+   "label": "Pod 等",
+   "sublabel": "利用者側"
+  },
+  {
+   "id": "slack",
+   "type": "external",
+   "label": "Slack",
+   "sublabel": "宛先"
+  }
+ ],
+ "segments": [
+  {
+   "from": 150,
+   "to": 260,
+   "label": "① 0.05 秒"
+  },
+  {
+   "from": 276,
+   "to": 440,
+   "label": "② 3.45〜6.80 秒"
+  }
+ ],
+ "messages": [
+  {
+   "from": "user",
+   "to": "app",
+   "y": 180,
+   "label": "削除を依頼",
+   "variant": "default"
+  },
+  {
+   "from": "ncc",
+   "to": "app",
+   "y": 216,
+   "label": "deletionTimestamp を見る",
+   "variant": "return"
+  },
+  {
+   "from": "ncc",
+   "to": "slack",
+   "y": 250,
+   "label": "⚠ on-deleted（まだ何も消えていない）",
+   "variant": "security"
+  },
+  {
+   "from": "app",
+   "to": "res",
+   "y": 320,
+   "label": "Pod などが消える（3.45 秒）",
+   "variant": "default"
+  },
+  {
+   "from": "res",
+   "to": "app",
+   "y": 380,
+   "label": "App が消える（6.80 秒）",
+   "variant": "return"
+  },
+  {
+   "from": "ncc",
+   "to": "slack",
+   "y": 420,
+   "label": "⚠ 消えた時点の通知は無い",
+   "variant": "dashed"
+  }
+ ]
+}

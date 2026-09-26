@@ -1,0 +1,154 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Notifications：設定は基盤側の ConfigMap に書く",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "app",
+   "type": "external",
+   "label": "① Application",
+   "sublabel": "状態が変わる",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ctl",
+   "type": "backend",
+   "label": "② 通知コントローラ",
+   "sublabel": "trigger を評価",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 4 回失敗で諦める"
+  },
+  {
+   "id": "cm",
+   "type": "security",
+   "label": "③ notifications-cm",
+   "sublabel": "trigger・template",
+   "pos": [
+    300,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 変更は基盤側"
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "notifications-secret",
+   "sublabel": "Slack のトークン",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "slack",
+   "type": "frontend",
+   "label": "④ Slack",
+   "sublabel": "宛先",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "dev",
+   "type": "external",
+   "label": "アプリの開発者",
+   "sublabel": "通知を足したい",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "app",
+    "ctl",
+    "cm",
+    "sec"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "slack",
+    "dev"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "ctl",
+   "to": "app",
+   "label": "watch"
+  },
+  {
+   "id": "c1",
+   "from": "cm",
+   "to": "ctl",
+   "label": "読む"
+  },
+  {
+   "id": "c2",
+   "from": "sec",
+   "to": "ctl",
+   "label": "鍵",
+   "variant": "dashed"
+  },
+  {
+   "id": "c3",
+   "from": "ctl",
+   "to": "slack",
+   "label": "webhook",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "dev",
+   "to": "cm",
+   "label": "⚠ 編集を頼む",
+   "variant": "security"
+  }
+ ]
+}
