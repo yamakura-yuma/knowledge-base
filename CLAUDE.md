@@ -38,8 +38,9 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   （`docs/src/argocd-notify/archify/`）を `<!-- archify: 名前 -->` で参照し、ビルドが
   `apm_modules` の archify で描いて、JS を含まない `<svg>` 要素だけを埋め込む（要 Node と `apm install`）
 - `docs/src/patterns/` — 話題④ ハーネスのパターン・カタログ。`catalog.yaml` が正本
-  （行はパターン、4 層 × 自作ハーネスでの状態）。HTML は `docs/patterns_page.py` が描き、
-  既存の話題の `PAGES`・ナビには入れていない（既存ページに差分を出さないため）。
+  （行はパターン、4 層 × 自作ハーネスでの状態。開発の段階（仕様〜振り返り）でも引ける）。
+  HTML は `docs/patterns_page.py` が描き、既存の話題の `PAGES`・ナビには入れていない
+  （既存ページに差分を出さないため）。
   `harness-form.md` はハーネスの形式についての見立て（意見）で、`harness-form.html` に出し、
   要約をカタログの冒頭に置く
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
@@ -48,9 +49,13 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
 - `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
-  `docs/collect_candidates.py` / `docs/patterns_page.py` — 生成系。このリポジトリのコードはこれだけ。
+  `docs/collect_candidates.py` / `docs/collect_articles.py` / `docs/patterns_page.py` /
+  `docs/patterns_reports.py` — 生成系。このリポジトリのコードはこれだけ。
   `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
-  候補はランドスケープの母集団（`registry.yaml`）には入れない
+  候補はランドスケープの母集団（`registry.yaml`）には入れない。
+  `collect_articles.py` は Zenn・Qiita・Hacker News・dev.to の人気記事を
+  `data/articles.json` に落とす。記事はパターンの使用報告の候補で、読んで
+  `catalog.yaml` に反映するのは人（またはエージェント）の仕事
 - `.apm/skills/` — このリポジトリ固有のエージェント設定
 
 ## コマンド
@@ -58,6 +63,7 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
 ```bash
 uv run docs/fetch_metrics.py   # GitHub から実測値を取る。認証は gh に任せる
 uv run docs/collect_candidates.py  # パターンの出典候補を集める。gh の認証が必須
+uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める。認証は不要
 uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
 uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する

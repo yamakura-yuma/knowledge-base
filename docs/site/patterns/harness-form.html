@@ -232,6 +232,14 @@
              border-radius:10px; padding:1px 8px; margin-left:6px; vertical-align:middle; }
   .legend-crit { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px;
                  color:var(--ink-2); margin:8px 0 0; }
+  .sx { list-style:none; margin:0; padding:0; font-size:12.5px; }
+  .sx li { margin:0 0 3px; }
+  .sx a { color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--ink-3); }
+  .sm { font-family:var(--mono); margin-right:3px; }
+  .sm-adopted { color:var(--adopted); } .sm-partial { color:var(--partial); }
+  .sm-missing { color:var(--missing); } .sm-watch { color:var(--watch); }
+  .pt td.stg { white-space:nowrap; }
+  .pt tr:target td { background:var(--hl); }
 </style></head>
 <body><div class="wrap pt">
 <header><h1>Thin Harness, Fat Skills — どういう形式のハーネスがよいか（見立て）</h1><p class="sub">これは調べた事実ではなく<strong>意見</strong>。今後の AI エージェントによるコーディングを前提に、ハーネスの形式を選んだ見立てを書いた。事実として書いた部分（機能・引用）は、パターン・カタログと同じく公式ドキュメントか README で裏を取ってある。取れないものは「ユーザーの観察」と書き分けた。</p>
@@ -348,7 +356,7 @@
 </tr>
 </tbody>
 </table>
-<p>カタログで未採用・部分的の 36 件を手間で分けると、手間 1（文面を足す）が 14 件、手間 2（フック・スクリプト・settings）が 17 件、手間 3（ハーネスの外の基盤か、Claude Code に無い機能が要る）が 5 件だった（<code>catalog.yaml</code> から生成時に数えている）。手間 3 の 5 件は 「ツール呼び出しごとに LLM が審査する」、「スクリプトからツールを呼び、途中結果を文脈に入れない」、「上限付きで、開始時に固定するメモリ」、「モデルが書いたスクリプトでサブエージェントの並びを組む」、「外部イベント（PR・チャット）を起点にエージェントを立てる」。このうち独自ループでなければ実現できないのは「ツール呼び出しごとの LLM 審査」と「上限付きで、開始時に固定するメモリ」くらいで、残りは上に積む形のまま足せる。</p><h2>自作ハーネス（core-principal）に当てはめると<span class="opinion">意見</span></h2><table>
+<p>カタログで未採用・部分的の 53 件を手間で分けると、手間 1（文面を足す）が 27 件、手間 2（フック・スクリプト・settings）が 21 件、手間 3（ハーネスの外の基盤か、Claude Code に無い機能が要る）が 5 件だった（<code>catalog.yaml</code> から生成時に数えている）。手間 3 の 5 件は 「ツール呼び出しごとに LLM が審査する」、「スクリプトからツールを呼び、途中結果を文脈に入れない」、「上限付きで、開始時に固定するメモリ」、「モデルが書いたスクリプトでサブエージェントの並びを組む」、「外部イベント（PR・チャット）を起点にエージェントを立てる」。このうち独自ループでなければ実現できないのは「ツール呼び出しごとの LLM 審査」と「上限付きで、開始時に固定するメモリ」くらいで、残りは上に積む形のまま足せる。</p><h2>自作ハーネス（core-principal）に当てはめると<span class="opinion">意見</span></h2><table>
 <thead>
 <tr>
 <th></th>
@@ -362,7 +370,7 @@
 </tr>
 <tr>
 <td>足りない投資</td>
-<td><strong>検証</strong>：上位 5 の 1 位「完了は検証の証拠で宣言し、証明したら止まる」。<strong>境界</strong>：サンドボックスと承認ポリシー。ハーネス層がいちばん薄い</td>
+<td><strong>検証</strong>：上位 5 に入る「完了は検証の証拠で宣言し、証明したら止まる」。<strong>境界</strong>：サンドボックスと承認ポリシー。ハーネス層はループ層と並んで未採用の割合が最も高い（半数）。<strong>知識</strong>：人のレビューを楽にする型（差分を縦に薄く切る、PR に検証の前後を書く）が上位 5 に 2 つ入った。どちらもスキルか依頼文の型として書ける</td>
 </tr>
 <tr>
 <td>減らすもの</td>

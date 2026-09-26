@@ -2,11 +2,21 @@
 #
 # このファイルが話題④の正本。行はパターン（ツールではない）。同じ働きを複数の出典が
 # 持つときは 1 行にまとめ、sources に並べる。HTML は docs/build.py が
-# docs/patterns_page.py 経由で docs/site/patterns/index.html に描く。
+# docs/patterns_page.py（記事の部分は docs/patterns_reports.py）経由で
+# docs/site/patterns/index.html に描く。
+#
+# 証拠は 2 種類あり、混ぜない。
+#   - sources（出典）: 「何ができるか」の証拠。公式ドキュメントか README（リポジトリ内の
+#     docs / SKILL.md を含む）に限る。evidence にはそのページの原文を短く引く。
+#   - reports（使用報告）: 「使った人に効いたか」の証拠。技術記事（kind: article、末尾の
+#     articles）に、筆者自身が使った結果として書かれているものに限る。quote には記事の原文を
+#     短く引き、polarity に positive（効いた）/ negative（効かなかった・害があった）/ mixed
+#     （条件付き）を書く。記事を sources に入れない。機能の説明は reports に入れない。
 #
 # 縛り:
-#   - 出典は公式ドキュメントか README（リポジトリ内の docs / SKILL.md を含む）に限る。
-#     evidence にはそのページの原文を短く引く。引けないものは載せない。
+#   - どちらも原文を引けないものは載せない。
+#   - 行は sources か reports のどちらかを持つ。reports だけの行は「記事の使用報告から
+#     足した型」の節にまとめ、公式の裏付けが無いことが読んで分かるようにする。
 #   - state は自作ハーネス（~/dotfiles の core-principal）を読んで決める。基準は
 #     state_criteria。self には ~/dotfiles からの相対パスを書く。
 #   - 出典候補（docs/src/data/candidates.json）から出典に上げたものは kind: candidate。
@@ -22,10 +32,33 @@ state_criteria:
 
 # 層ごとの節の冒頭に出す「この層で何が分かったか」。state を変えたら読み直すこと。
 layer_findings:
-  prompt: 常駐させる文面を絞る型（階層化した指示、ルールは橋渡しだけ）は揃っている。無いのは、手順の省略を防ぐ型（言い訳と反論の表、プレイブックを ToDo に写す）。
-  harness: いちばん薄い層（18 件中 8 件が未採用）。止めるフックと文脈の節約は揃っているが、権限を段階的に緩める型（サンドボックスと承認のプリセット、呼び出しごとの審査）と、サブエージェントごとの権限分離が無い。
-  loop: 振り返りとハーネス自身の検査（make ci、行動評価）は揃っている。無いのは、1 回の作業の中で「続けるか止めるか」を機械が判定する型（目標までの自動継続、TDD ゲート、閾値付きの審査）。
-  graph: coordinator と worker、worktree による隔離は採用済みで、いちばん埋まっている層。無いのは、複数の案や観点を並列に出して統合する型と、PR やチャットのイベントを起点にエージェントを立てる型。
+  prompt: 常駐させる文面を絞る型（階層化した指示、ルールは橋渡しだけ）は揃っている。無いのは、手順の省略を防ぐ型（言い訳と反論の表、プレイブックを ToDo に写す）と、レビューの指摘を人が読める形にする型（重大度を付けて絞る、中身と機械的な変更を分けて見せる）。記事の使用報告はルールを短くする型に集まり（肯定 5）、常設の指示ファイルそのものには否定が 3 件ある。
+  harness: ループ層と並んで未採用の割合がいちばん高い層（24 件中 11 件）。止めるフックと文脈の節約は揃っているが、権限を段階的に緩める型（サンドボックスと承認のプリセット、呼び出しごとの審査）と、サブエージェントごとの権限分離が無い。
+  loop: 振り返りとハーネス自身の検査（make ci、行動評価）は揃っている。無いのは、1 回の作業の中で「続けるか止めるか」を機械が判定する型（目標までの自動継続、TDD ゲート、閾値付きの審査）と、レビューの中身を確かめる型（差分と仕様の突き合わせ、所見の反証、差分の外への影響）。記事で肯定の報告が 3 件あるのに未採用なのは、役割を分けたレビューの反復。
+  graph: coordinator と worker、worktree による隔離は採用済みで、プロンプト層と並んで未採用の割合がいちばん低い。無いのは、作業を縦に薄く切って 1 単位 1 差分にする型、レビューの網羅をコードで担保する型、複数の案や観点を並列に出して統合する型、PR やチャットのイベントを起点にエージェントを立てる型。
+
+# 開発の段階（stage）。4 層とは別の軸で、パターンが開発のどの段階で効くかを表す。
+# パターンの stage にはここの鍵を 0 個以上書く。書かないものは「横断」（cross）として扱う。
+stage_criteria:
+  spec: 何を作るかを決める。要件を詰め、範囲と完了条件を書く
+  plan: どう割り、どの順で、誰に渡すかを決める
+  implement: コードを書き、直す。1 回の作業をどう進めるか
+  verify: 書いたものを、テスト・型検査・実行で機械的に確かめる
+  review: 書いたのとは別の目（エージェントか人）が差分を読む
+  ship: PR を作り、マージし、後片付けする
+  retro: 終わった作業から、ハーネス自体を直す
+  cross: 段階によらず常に効く（文脈・権限・索引・スキルの読み込み）
+
+# 段階ごとの行に出す「この段階で何が分かったか」。stage か state を変えたら読み直すこと。
+stage_findings:
+  spec: 要件を一問ずつ詰める道具（grilling）は採用済み。詰めた結果は依頼文に書くが、ファイルとして残る仕様書と、範囲外・テストの継ぎ目まで書く型が無い。
+  plan: coordinator が依頼文を書いて worker に渡す形は採用済み。無いのは、作業を人が 1 回で読める大きさの縦の単位に割る型で、上位 5 に入る。
+  implement: パターンがいちばん多い段階（18 件）。隔離と文脈の渡し方は揃っているが、1 回の作業の中で止まらず逸れずに進める型（目標までの自動継続、振り子の検出、参照の実在確認）は未採用。
+  verify: 採用済みが 1 件も無い段階。完了の報告に証拠を書かせる規範（部分的）があるだけで、テスト・linter・実アプリの操作で機械に確かめさせる型が無い。
+  review: 未採用がいちばん多い段階（16 件中 12 件）で、採用済みは 0 件。別の文脈でレビューする考え方は書いてあるが起動する仕組みが無く、網羅の担保・所見の反証・重大度の付け方も無い。Open Code Review と security-audit はどちらも、LLM に任せるのを判断だけに絞り、網羅と検証はコードと別のエージェントで担保している。
+  ship: 取り消せない操作で止まる、完了を自分から拾う、は（一部）ある。人が PR を読む負担を減らす型（検証の前後と戻せるかを本文に書く、中身と機械的な変更を分ける）は、「決めたことを PR 本文に書く」という規範の手前で止まっている。
+  retro: 未採用が 1 件も無い唯一の段階。ハーネス自体の検査と振り返りが、開発の流れの中でいちばん厚い。
+  cross: 段階によらず効くもの（28 件）。層で見たときのハーネス層の穴（権限の段階的な緩和、サブエージェントごとの権限分離）はここに集まっている。
 
 # 未採用・部分的の行に付ける、取り込んだ場合の効果（impact）と手間（effort）。
 # 「次に取り込む候補」はこの 2 つから機械的に並べる。
@@ -38,7 +71,9 @@ priority_criteria:
     1: 既存の置き場所（ルール・スキル・フック・agents/）に 1 つ足すだけ
     2: 新しいスクリプトを書くか、設定の方法を調べる必要がある
     3: ハーネスの外の基盤か、Claude Code に無い機能が要る
-  order: 効果 − 手間 の大きい順。同点なら効果の高い順、さらに出典の多い順
+  order: 効果 − 手間 の大きい順。同点なら効果の高い順、次に使用報告の 肯定 − 否定 の多い順、さらに出典の多い順
+  # 使用報告は効果・手間の見積もりを覆さず、同点の並びだけを決める。記事は媒体ごとに反応数の
+  # 尺度が違い、本数も話題の流行に引きずられるので、主キーにすると流行順になる。
 
 sources:
   # ---- 公式（指定の抽出対象）
@@ -153,6 +188,61 @@ sources:
     repo: addyosmani/agent-skills
     version: 0.6.10 (2026-09-18)
     dogfood: null
+  # ---- slop 対策の出典（AI slop の軸で使う）
+  - id: humanizer
+    name: Humanizer
+    kind: candidate
+    url: https://github.com/blader/humanizer
+    repo: blader/humanizer
+    version: v3.0.0 (2026-09-06)
+    dogfood: null
+  - id: humanizer-ja
+    name: Humanizer JA
+    kind: candidate
+    url: https://github.com/gonta223/humanizer-ja
+    repo: gonta223/humanizer-ja
+    version: リリースなし (2026-03-23)
+    dogfood: null
+  # ---- コードレビューと開発プロセスの出典（open-code-review は候補の rank 21、他は指定で足した）
+  - id: open-code-review
+    name: Open Code Review
+    kind: candidate
+    url: https://github.com/alibaba/open-code-review
+    repo: alibaba/open-code-review
+    version: v1.12.9 (2026-09-22)
+    dogfood:
+      quote: It originated as Alibaba Group's internal official AI code review assistant — over the past two years, it has served tens of thousands of developers
+      url: https://github.com/alibaba/open-code-review/blob/main/README.md
+  - id: cloudflare-security-audit
+    name: security-audit（Cloudflare）
+    kind: candidate
+    url: https://github.com/cloudflare/security-audit-skill
+    repo: cloudflare/security-audit-skill
+    version: リリースなし (2026-09-14)
+    dogfood:
+      quote: This skill seeded Cloudflare's vulnerability discovery harness
+      url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+  - id: mattpocock-skills
+    name: Matt Pocock skills
+    kind: candidate
+    url: https://github.com/mattpocock/skills
+    repo: mattpocock/skills
+    version: v1.2.3 (2026-08-06)
+    dogfood: null
+  - id: ai-hero
+    name: AI Hero（AI Coding Crash Course）
+    kind: candidate
+    url: https://github.com/ai-hero-dev/ai-coding-crash-course
+    repo: ai-hero-dev/ai-coding-crash-course
+    version: リリースなし (2026-09-17)
+    dogfood: null
+  - id: sandcastle
+    name: Sandcastle
+    kind: candidate
+    url: https://github.com/mattpocock/sandcastle
+    repo: mattpocock/sandcastle
+    version: v0.12.0 (2026-06-29)
+    dogfood: null
 
 patterns:
   # =================================================================== prompt
@@ -169,6 +259,27 @@ patterns:
       - source: codex-cli
         url: https://developers.openai.com/codex/guides/agents-md
         evidence: Files closer to your current directory override earlier guidance because they appear later in the combined prompt.
+    reports:
+      - article: zenn:2512-full-ai-cofing
+        polarity: mixed
+        quote: "LLM は「無理矢理にでも質問を生み出す。些細な矛盾点をつつく」という状態に陥ります"
+        note: 「矛盾点は必ず質問しろ」のような汎用の常設指示は、入れっぱなしにすると質問をこじつけ始めた
+      - article: zenn:65b9a99d22ce2b
+        polarity: negative
+        quote: "セッションが長くなるにつれて守られなくなる可能性があります。"
+        note: 常設の CLAUDE.md に置いたルールは会話に埋もれていく、という指摘。観測ではなく推論
+      - article: hn:46098838
+        polarity: mixed
+        quote: "As a result, Claude will ignore the contents of your CLAUDE.md if it decides that it is not relevant to its current task."
+        note: プロキシで見ると CLAUDE.md は「関係なければ無視してよい」という注記付きで注入されており、どの作業にも当てはまる内容でないと無視されやすい
+      - article: hn:48883275
+        polarity: negative
+        quote: "Claude Code 2.1.207 ignored AGENTS.md entirely and only ingested the file when renamed CLAUDE.md"
+        note: 72KB の指示ファイルで毎リクエスト約 2 万トークン増えた。加えて当時の版は AGENTS.md を黙って無視していた
+      - article: devto:3335508
+        polarity: negative
+        quote: "even with a decent CLAUDE.md, I was still babysitting every session."
+        note: CLAUDE.md に規約を書いても TDD やテスト実行を毎回言い直す必要があったので、手順をスキルに移した
 
   - id: rule-as-pointer
     name: 常駐ルールは規範と橋渡しだけにする
@@ -180,6 +291,27 @@ patterns:
       - source: self
         url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/instructions/core-principal.instructions.md
         evidence: このファイルは毎プロンプト読み込まれる。だから内容は、数行で完結する規範か、「この場面ではこれを使う」という橋渡しだけに限る。
+    reports:
+      - article: zenn:65b9a99d22ce2b
+        polarity: positive
+        quote: "例えば50行のルールをCLAUDE.mdに書くということは、毎回のセッションで50行分のコンテキストを無条件に消費するということです。"
+        note: CLAUDE.md は開始時に要る情報だけに絞り、規約類は外へ出す。公式仕様からの推論で、実測は無い
+      - article: qiita:356e5f1dba112a075be1
+        polarity: positive
+        quote: "`git status` を聞いただけのターンでも、その2000行ぶんのトークンを毎回お前が払っている。"
+        note: CLAUDE.md を数行に削り、特定の作業にだけ要る知識はスキルへ移せと勧める（一般論寄り）
+      - article: qiita:d6c83ea50b82e1c2602c
+        polarity: positive
+        quote: "35行に削って残りを`.claude/rules/`に分離したCLAUDE.md。同じ指示を出しても、後者の方がClaudeの出力品質が明らかに高いのです。"
+        note: CLAUDE.md を 100 行から 35 行に削り、規約を paths 指定のルールへ移したら出力が良くなった（Before/After 1 例）
+      - article: qiita:1ad4e4ccaf47816c63e0
+        polarity: positive
+        quote: "結果、Claude Codeは重要な指示を見落とすことが増えました。コンテキストの優先度が平坦になり、何が重要かわからなくなっていたのです。"
+        note: 200 行を超える CLAUDE.md で見落としが増えたので、判断に関わる情報だけを残し、規約は Linter とルールファイルへ移した
+      - article: hn:46098838
+        polarity: positive
+        quote: "At HumanLayer, our root CLAUDE.md file is less than sixty lines."
+        note: ルートの CLAUDE.md を 60 行未満に保ち、作業別の説明は別ファイルに分けて一覧だけ載せる。効果の計測は無い
 
   - id: pushy-skill-description
     name: 起動条件を description に集め、強めに書く
@@ -196,6 +328,11 @@ patterns:
       - source: anthropic-skills
         url: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
         evidence: Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful.
+    reports:
+      - article: zenn:63d325934ba0de
+        polarity: positive
+        quote: "自然な文章で呼び出し: codexと相談して とか、 レビューして といった文言で呼び出せる"
+        note: description に起動語を並べたら、スラッシュコマンド無しで自然な文から起動した
 
   - id: mandatory-skill-check
     name: 行動前にスキルの有無を必ず確かめさせる
@@ -216,6 +353,7 @@ patterns:
   - id: solution-ladder
     name: 最小解の段階ラダー
     layer: prompt
+    stage: [implement]
     problem: 標準ライブラリや既存機能で済む処理を自前で作り込む
     state: adopted
     self: [core-principal/apm.yml（ponytail スキル群を依存に取る）]
@@ -227,6 +365,7 @@ patterns:
   - id: anti-rationalization-table
     name: 言い訳と反論の表で手順の省略を防ぐ
     layer: prompt
+    stage: [implement]
     problem: 「テストは後で」のような言い訳で手順を飛ばす
     state: missing
     impact: 2
@@ -241,6 +380,7 @@ patterns:
   - id: playbook-steps-as-todos
     name: プレイブックの手順を ToDo にそのまま写す
     layer: prompt
+    stage: [plan]
     problem: 作業種別ごとに決めた手順を飛ばす。飛ばすなら理由を残させる
     state: missing
     impact: 2
@@ -255,6 +395,7 @@ patterns:
   - id: pause-only-irreversible
     name: 取り消せない操作のときだけ止まる
     layer: prompt
+    stage: [ship]
     problem: 取り消せる作業での確認をやめて自律性を上げ、取り消せない操作でだけ人を待つ
     state: partial
     impact: 2
@@ -267,10 +408,16 @@ patterns:
       - source: cursor-pstack
         url: https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/SKILL.md
         evidence: "Always pause for irreversible writes: force-push to shared branches, deploys, data deletion, customer messages."
+    reports:
+      - article: devto:4702045
+        polarity: positive
+        quote: "As you can see, our agent noticed that the tool call was marked as consequential and displayed a confirmation prompt before allowing it to proceed."
+        note: 重大と印の付いたツールだけ、実行前に承認を求めるようにした。自作の拡張のデモで、使用報告としては弱い
 
   - id: brand-contract-file
     name: 仕様ファイルを契約として毎回読ませる
     layer: prompt
+    stage: [spec, implement]
     problem: 生成のたびにトークンや文体がぶれる
     state: missing
     impact: 1
@@ -281,6 +428,11 @@ patterns:
       - source: open-design
         url: https://github.com/nexu-io/open-design/blob/main/README.md
         evidence: Every render reads the active package's `DESIGN.md` as the core brand contract.
+    reports:
+      - article: zenn:04387b258ba54e
+        polarity: mixed
+        quote: "TOKIUMグリーンを基調とした「いつもの」配色とすることで、既存製品とも調和のとれた統一感のあるデザインになっていると思います"
+        note: 社内のカラーパレットをもとに CSS を作らせると既存製品と統一感は出たが、AI っぽさは少し残った
 
   - id: output-prose-compression
     name: 出力の散文だけを圧縮する
@@ -310,6 +462,11 @@ patterns:
       - source: anthropic-skills
         url: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
         evidence: Metadata (name + description) - Always in context (~100 words)
+    reports:
+      - article: hn:46250332
+        polarity: positive
+        quote: "I used Claude Opus 4.5’s skill authoring skill to create this skill for creating Datasette plugins"
+        note: スキル作成用のスキルで作ったスキルを Codex CLI に入れて使い、プラグインを書かせられた。1 回の試行
 
   - id: hook-deterministic-block
     name: フックで決定的に拒否する
@@ -410,6 +567,7 @@ patterns:
   - id: edit-scope-freeze
     name: 編集してよい範囲を凍結する
     layer: harness
+    stage: [implement]
     problem: デバッグ中に関係ないコードまで「ついでに」直す
     state: partial
     impact: 1
@@ -422,6 +580,11 @@ patterns:
       - source: gstack
         url: https://github.com/garrytan/gstack/blob/main/freeze/SKILL.md.tmpl
         evidence: Blocks Edit and Write outside the allowed path.
+    reports:
+      - article: devto:4576085
+        polarity: positive
+        quote: "seven sequential, sealed-off batches, each with explicit guardrails (\"Do NOT implement...\", \"Do ONLY...\") to keep scope from drifting"
+        note: 実装を 7 つの封じたバッチに分け、各バッチに「これだけやる / これはやらない」を明示して範囲の逸脱を防いだ
 
   - id: subagent-scoped-tools
     name: サブエージェントごとに文脈と権限を絞る
@@ -437,6 +600,11 @@ patterns:
       - source: claude-code
         url: https://code.claude.com/docs/en/sub-agents
         evidence: Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions.
+    reports:
+      - article: qiita:356e5f1dba112a075be1
+        polarity: positive
+        quote: "毎回同じ依頼はサブエージェント化した瞬間に世界が変わる。"
+        note: tools を Read・Grep・Bash に絞ったレビュー専任のサブエージェントに任せ、本線を指揮役に保つ
 
   - id: reversible-output-compression
     name: 大きなツール出力を退避・圧縮し、元に戻せる鍵だけ返す
@@ -451,6 +619,11 @@ patterns:
       - source: deepseek-harness
         url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/spill.md
         evidence: persists caller-provided text and returns a model-facing locator with retrieval guidance.
+    reports:
+      - article: hn:47193064
+        polarity: positive
+        quote: "The raw page never enters context."
+        note: 取得したページは索引に入れて文脈には入れず、必要な部分だけ原文のまま検索で取り出す
 
   - id: programmatic-tool-calling
     name: スクリプトからツールを呼び、途中結果を文脈に入れない
@@ -465,6 +638,11 @@ patterns:
       - source: hermes-agent
         url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/code-execution.md
         evidence: intermediate tool results never enter the context window
+    reports:
+      - article: hn:47193064
+        polarity: positive
+        quote: "Built it for my own Claude Code sessions first. Noticed I could work 6x longer before context degradation."
+        note: スクリプトを別プロセスで走らせて stdout だけ返すようにしたら、315KB の生出力が 5.4KB になり、劣化までの時間が約 6 倍に延びた（作者本人の報告）
 
   - id: black-box-scripts
     name: 付属スクリプトは読まずに実行する
@@ -536,6 +714,11 @@ patterns:
       - source: ecc
         url: https://github.com/affaan-m/ECC/blob/main/skills/strategic-compact/SKILL.md
         evidence: "Auto-compaction triggers at arbitrary points: - Often mid-task, losing important context"
+    reports:
+      - article: qiita:356e5f1dba112a075be1
+        polarity: positive
+        quote: "圧縮の過程で「これから何をするつもりだったか」が要約に丸められて消える。"
+        note: 実装途中の /compact で設計を忘れたので、compact はコミット直後の区切りにだけ打ち、計画は PLAN.md に残させる
 
   - id: bounded-frozen-memory
     name: 上限付きで、開始時に固定するメモリ
@@ -565,6 +748,7 @@ patterns:
   - id: generated-verification-skill
     name: 実アプリを操作する検証手段をプロジェクトごとに作る
     layer: harness
+    stage: [verify]
     problem: 「コンパイルが通った」ではなく、利用者と同じ操作で振る舞いを証明する
     state: missing
     impact: 1
@@ -580,6 +764,7 @@ patterns:
   - id: continue-until-goal
     name: 終了条件を満たすまで自動で続ける（上限付き）
     layer: loop
+    stage: [implement]
     problem: 完了前に止まる。人が「続けて」と促さないと長い作業が進まない
     state: missing
     impact: 3
@@ -599,10 +784,16 @@ patterns:
       - source: hermes-agent
         url: https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/goals.md
         evidence: lightweight judge model checks whether the goal is satisfied by the assistant's last response.
+    reports:
+      - article: zenn:e3f648e335a947
+        polarity: mixed
+        quote: "ローカルでテストを回し、CC特有のAgentモードによる自律的な自己修正ループが回り切るのをターミナルのログを見ながらボーッと見つめるだけだ。"
+        note: 自己修正ループを回し切らせているが、無限ループに陥ると人が止めている。上限の仕組みは無い
 
   - id: fresh-agent-rounds
     name: 毎ラウンド新しいエージェントで回す（Ralph ループ）
     layer: loop
+    stage: [implement]
     problem: 会話履歴を引き継がず、前ラウンドの短い報告だけを渡して文脈の汚染を避ける
     state: missing
     impact: 2
@@ -613,10 +804,16 @@ patterns:
       - source: deepseek-harness
         url: https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/workflow/tool-ralph/README.md
         evidence: runs a foreground sequence of fresh child agents against one immutable objective
+    reports:
+      - article: zenn:empirical-prompt-tuning
+        polarity: positive
+        quote: "前回の指摘を全部学習してるのでそりゃ通る。改善した気分だけが残る。毎回新規 dispatch が正解。"
+        note: 評価役のサブエージェントを使い回すと前回の指摘を覚えて合格するだけになったので、毎回新しく立てるようにした
 
   - id: checkable-exit-predicate
     name: 確認できる終了条件を先に決める
     layer: loop
+    stage: [plan]
     problem: 長い自律実行が、途中で止まったり条件を緩めて完了扱いにしたりする
     state: partial
     impact: 2
@@ -633,6 +830,7 @@ patterns:
   - id: evidence-before-done
     name: 完了は検証の証拠で宣言し、証明したら止まる
     layer: loop
+    stage: [verify]
     problem: 検証を走らせずに「直った」と言う。逆に証明後も磨き込みを続けて膨らむ
     state: partial
     impact: 3
@@ -652,6 +850,7 @@ patterns:
   - id: plan-then-act
     name: 計画と実行を分ける
     layer: loop
+    stage: [plan]
     problem: 調べて計画する段階と編集する段階を分け、承認を挟んでから手を動かす
     state: partial
     impact: 1
@@ -667,10 +866,28 @@ patterns:
       - source: deepseek-harness
         url: https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/plan.md
         evidence: Plan mode is **soft guidance**.
+    reports:
+      - article: zenn:8783c6b3ead2cb
+        polarity: mixed
+        quote: "/grill-meを使い始めてからはプランモードを使わなくなりました。"
+        note: 計画モードの代わりに質問攻めのスキルで認識を揃え、その会話履歴を計画としてそのまま実装に移った
+      - article: qiita:114f53def8cb0db60f47
+        polarity: positive
+        quote: "それは、いきなりClaude Codeに作業させないことです。まず4つのドキュメントを用意します。"
+        note: PLAN / SPEC / TODO / KNOWLEDGE の 4 文書を先に作らせてから作業させ、手作業と同等の品質のまま速くなった
+      - article: qiita:d6c83ea50b82e1c2602c
+        polarity: positive
+        quote: "Claudeはまず計画を提示し、承認を得てから実装に入り、テストが通ることを確認してから完了を報告しました。"
+        note: 「3 ステップ以上は Plan モードで開始」を足す前は 3 回手戻りし、足した後は手戻りが無くなった
+      - article: hn:47106686
+        polarity: positive
+        quote: "The explicit “don’t implement yet” guard is essential. Without it, Claude will jump to code the moment it thinks the plan is good enough."
+        note: 計画を直させるたびに「まだ実装するな」と添え、計画が固まる前にコードへ飛ぶのを防いだ（組み込みの plan mode は使わず md ファイル）
 
   - id: gated-tdd
     name: RED → GREEN → REFACTOR を証跡付きで通す
     layer: loop
+    stage: [implement, verify]
     problem: 「TDD で」と言っても途中で忘れてテストを後回しにする
     state: missing
     impact: 1
@@ -685,6 +902,7 @@ patterns:
   - id: hillclimb
     name: 1 変更 1 計測で残すか戻すかを決める
     layer: loop
+    stage: [verify]
     problem: 検証していない変更を積み重ねる
     state: missing
     impact: 1
@@ -699,6 +917,7 @@ patterns:
   - id: role-review-rounds
     name: 役割別の審査を順序・閾値付きで回す
     layer: loop
+    stage: [review]
     problem: 計画や成果物を 1 つの観点でしか見ない。改善が収束しないときも上限で打ち切る
     state: missing
     impact: 2
@@ -712,10 +931,24 @@ patterns:
       - source: open-design
         url: https://github.com/nexu-io/open-design/blob/main/docs/critique-theater.md
         evidence: the run either ships (composite ≥ threshold) or runs another round.
+    reports:
+      - article: zenn:1c6c3b9333117c
+        polarity: positive
+        quote: "以下の5ステップを1ループとして、指摘がゼロになるまで最大6回回す。大体2〜3回で収束する。"
+        note: レビュー → トリアージ → 修正 → 検証を上限 6 回で回すと、2〜3 回で指摘が出なくなり、人のレビューをやめられた
+      - article: qiita:1ad4e4ccaf47816c63e0
+        polarity: positive
+        quote: "編集長エージェントを追加し、構成案と最終原稿の2段階でレビューを入れたことで、差し戻し前提の品質管理ができるようになりました。"
+        note: リサーチ → 構成 → 執筆の 3 段で手戻りが多発したので、構成案と最終原稿の 2 か所に差し戻せるレビュー役を足した
+      - article: devto:3335508
+        polarity: positive
+        quote: "None of these would have been caught by tests alone."
+        note: コミット前に攻撃者の視点で自己レビューさせ、ロックの無い状態遷移など 3 件をテストより先に捕まえた（同じエージェントの観点切替）
 
   - id: skill-eval-baseline
     name: スキルあり・なしを並べて効きを確かめる
     layer: loop
+    stage: [retro]
     problem: 書いたルールやスキルが本当に振る舞いを変えているか分からない
     state: adopted
     self: [core-principal/tests/eval/run.sh, core-principal/tests/eval/README.md]
@@ -726,10 +959,20 @@ patterns:
       - source: superpowers
         url: https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md
         evidence: If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
+    reports:
+      - article: zenn:empirical-prompt-tuning
+        polarity: positive
+        quote: "実際に手元 8 個の skill で試して、初稿 50 点が (AI 主観で) 80〜90 点まで上がった。"
+        note: スキルを白紙のサブエージェントに実行させ、不明瞭点と裁量で補った箇所を報告させて直すループで、8 スキルの採点が上がった（採点は AI の主観）
+      - article: zenn:empirical-prompt-tuning
+        polarity: mixed
+        quote: "序盤、シナリオが甘い反復で「全部 100%」と出て歓喜したが、別セッションで使ったら普通に詰まった。"
+        note: 本文をなぞるだけのシナリオでは満点でも実際には詰まった。端のシナリオを最低条件にした
 
   - id: harness-invariant-ci
     name: ハーネス自身の不変条件を CI で検査する
     layer: loop
+    stage: [retro]
     problem: 規則の引用と実物、生成物と正本がずれても誰も気づかない
     state: adopted
     self: [core-principal/tests/harness-check.sh, Makefile（make ci）]
@@ -741,6 +984,7 @@ patterns:
   - id: lessons-into-structure
     name: 繰り返す教訓は文章でなく仕組みに落とす
     layer: loop
+    stage: [retro]
     problem: 同じ指摘を何度もする。学びがセッションとともに消える
     state: adopted
     self: [core-principal/.apm/skills/core-retro/SKILL.md, core-principal/.apm/skills/core-harness/SKILL.md]
@@ -751,10 +995,20 @@ patterns:
       - source: self
         url: https://github.com/yamakura-yuma/dotfiles/blob/main/core-principal/.apm/skills/core-retro/SKILL.md
         evidence: Mechanical, decidable by a script | A target under `make ci`
+    reports:
+      - article: qiita:114f53def8cb0db60f47
+        polarity: positive
+        quote: "「先月の経費精算どうやったっけ？」「稼働報告のフォーマット変わったんだけど」といった質問にも、リポジトリ内のドキュメントを参照してすぐ答えてくれます。"
+        note: 作業ごとの README にハマりどころを即追記していき、翌月はそれを読ませて手順を再現させた
+      - article: hn:46723384
+        polarity: negative
+        quote: "it was getting littered with these kind of instructions to make Claude B do something instead of what it would try to do."
+        note: 別のエージェントの失敗を貼って CLAUDE.md を書き直させ続けたら命令だらけに肥大し、アカウントが停止された（原因は筆者の推測）
 
   - id: scoped-learning-promotion
     name: 学びを信頼度付きで貯め、複数プロジェクトで出たら全体へ上げる
     layer: loop
+    stage: [retro]
     problem: 固有の癖が別のプロジェクトに混ざる。逆に共通の学びが 1 か所に閉じる
     state: partial
     impact: 1
@@ -771,6 +1025,7 @@ patterns:
   - id: skill-curator
     name: 使われないスキルを active → stale → archived に回す
     layer: loop
+    stage: [retro]
     problem: 自動で書いたスキルや記憶が重複・陳腐化したまま溜まる
     state: partial
     impact: 1
@@ -787,6 +1042,7 @@ patterns:
   - id: debt-ledger
     name: 意図した手抜きに印を付け、台帳に集める
     layer: loop
+    stage: [retro]
     problem: わざと単純化した箇所が記録されず、後で直す予定が放置される
     state: adopted
     self: [core-principal/apm.yml（ponytail-debt）]
@@ -798,6 +1054,7 @@ patterns:
   - id: poll-not-wait
     name: 完了は通知を待たず、自分から突き合わせる
     layer: loop
+    stage: [ship]
     problem: セッションが終わると待ち受けごと消え、完了通知を取りこぼす
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/prompts/workers.prompt.md]
@@ -810,6 +1067,7 @@ patterns:
   - id: worktree-isolation
     name: 並列の作業を worktree で隔離する
     layer: graph
+    stage: [implement]
     problem: 並列に動くセッションの変更がぶつかる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-default-branch.json]
@@ -817,10 +1075,19 @@ patterns:
       - source: claude-code
         url: https://code.claude.com/docs/en/worktrees
         evidence: Isolate parallel Claude Code sessions in separate git worktrees so changes don't collide.
+      - source: sandcastle
+        url: https://github.com/mattpocock/sandcastle/blob/main/README.md
+        evidence: Sandcastle handles sandboxing the agent with a configurable branch strategy.
+    reports:
+      - article: zenn:claude-code-tips-findy-2026
+        polarity: negative
+        quote: "worktreeはNOT FOR MEだった"
+        note: 並列化に worktree を試したがエディタで追いにくく、連番付きの別フォルダに複数クローンする方式に替えた
 
   - id: coordinator-worker
     name: coordinator が配り、worker が実装する
     layer: graph
+    stage: [plan]
     problem: 多数のエージェントを並べると、誰が何をしていつ止まるか分からなくなる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md, core-principal/.apm/hooks/guard-coordinator-edit.json]
@@ -834,10 +1101,20 @@ patterns:
       - source: gstack
         url: https://github.com/garrytan/gstack/blob/main/README.md
         evidence: Without a process, ten agents is ten sources of chaos.
+    reports:
+      - article: zenn:5fee11d03a11a1
+        polarity: positive
+        quote: "将軍1名・家老1名・足軽8名の階層構造でAIエージェントを統制する。"
+        note: 人は将軍にだけ話しかけ、家老が分解して 8 体の足軽に配る構成にしたら、人の入力は承認と選択だけになった
+      - article: zenn:5fee11d03a11a1
+        polarity: positive
+        quote: "ポーリング方式だったら破産してたけど、イベント駆動にしたから待機中のAPI消費はゼロ。"
+        note: 待機中の worker を 5 秒おきのポーリングで起こすのをやめ、仕事があるときだけ send-keys で起こしたら、待機中の消費がゼロになった
 
   - id: fresh-context-per-task
     name: タスクごとに新しい文脈を組み立てて渡す
     layer: graph
+    stage: [implement]
     problem: 長い計画を 1 つの文脈で進めると汚れて品質が落ちる
     state: adopted
     self: [core-principal/.apm/skills/core-dispatch/SKILL.md]
@@ -846,10 +1123,20 @@ patterns:
       - source: superpowers
         url: https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/SKILL.md
         evidence: They should never inherit your session's context or history — you construct exactly what they need.
+    reports:
+      - article: zenn:2512-full-ai-cofing
+        polarity: positive
+        quote: "一番現実的なのは、出てきたものを元に、次の新しいセッションのために情報収集を行い、次の新たなセッションに使うです"
+        note: 誤った案が文脈に残ったセッションは直させ続けず捨て、得た情報だけを新しいセッションに持ち込むのが一番現実的だった
+      - article: hn:47106686
+        polarity: negative
+        quote: "I am not seeing the performance degradation everyone talks about after 50% context window."
+        note: 調査・計画・実装を 1 つの長いセッションで通しても劣化しなかった、という反証。計画ファイルが残ることを支えにしている
 
   - id: artifact-handoff
     name: 工程の成果物をファイルで次へ渡す
     layer: graph
+    stage: [plan, implement]
     problem: 工程間で前段の決定が引き継がれず抜け落ちる
     state: adopted
     self: [core-principal/.apm/prompts/worktree.prompt.md（~/.claude/worker-reports/<名前>.md）]
@@ -857,10 +1144,23 @@ patterns:
       - source: gstack
         url: https://github.com/garrytan/gstack/blob/main/README.md
         evidence: Each skill feeds into the next. `/office-hours` writes a design doc that `/plan-ceo-review` reads.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/.sandcastle/prompt.md
+        evidence: "Make a git commit. The commit message must: 1. Include key decisions made 2. Include files changed 3. Blockers or notes for next iteration"
+    reports:
+      - article: zenn:8783c6b3ead2cb
+        polarity: mixed
+        quote: "壁打ちしたセッション履歴自体が実装計画になるので"
+        note: 計画をファイルに落とさず会話に残したまま実装に移るほうがテンポが良かった。前提は 100 万トークンの文脈
+      - article: hn:47106686
+        polarity: positive
+        quote: "The written artifact (research.md) is critical. It’s not about making Claude do homework. It’s my review surface."
+        note: 調査と計画を research.md / plan.md に書かせ、人がそこに注記して戻す。コンパクションを経ても残る正本にした
 
   - id: fixed-lifecycle-pipeline
     name: 仕様 → 計画 → 実装 → レビュー → 出荷の工程を固定する
     layer: graph
+    stage: [spec, plan, implement, review, ship]
     problem: 要件が固まる前にいきなり実装に入る
     state: partial
     impact: 2
@@ -879,10 +1179,22 @@ patterns:
       - source: open-design
         url: https://github.com/nexu-io/open-design/blob/main/README.md
         evidence: brief → plugin → direction → design system → artifact → handoff → memory
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/README.md
+        evidence: "**Planning** — Writing a spec, turning it into multi-phase tickets, and implementing it phase by phase."
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/implement/SKILL.md
+        evidence: Once done, use /code-review to review the work.
+    reports:
+      - article: zenn:claude-code-tips-findy-2026
+        polarity: positive
+        quote: "各フェーズで確認を挟むので「勝手に突き進んで手戻り」が起きにくい"
+        note: 要件・設計・実装・レビューの工程を順に踏ませ、各工程で確認を挟んで手戻りを減らした。単純なバグ修正には要らないとしている
 
   - id: fresh-context-review
     name: 書いたのとは別の文脈でレビューする
     layer: graph
+    stage: [review]
     problem: 同じ文脈でのレビューは自分の盲点と、事実化した仮定を見落とす
     state: partial
     impact: 3
@@ -898,10 +1210,24 @@ patterns:
       - source: addy-agent-skills
         url: https://github.com/addyosmani/agent-skills/blob/main/skills/doubt-driven-development/SKILL.md
         evidence: Long sessions accumulate context that quietly turns assumptions into "facts" without anyone noticing.
+    reports:
+      - article: zenn:6aa18c80496ec6
+        polarity: positive
+        quote: "そのまま書くと危うい記述が計7件、事前に潰れています。"
+        note: 懐疑役 8 体に反証させ、事実誤認など 7 件を公開前に潰した。採否は人が決めた
+      - article: zenn:1c6c3b9333117c
+        polarity: positive
+        quote: "Codexの修正後、別のComposer 2セッションで「根本原因に対処しているか？バンドエイドになっていないか？」をチェックさせる。"
+        note: 修正を書いたのとは別のモデル・別のセッションに、根本原因への対処かを確かめさせた
+      - article: devto:4576085
+        polarity: mixed
+        quote: "I checked before touching anything: the line, and the code it described, simply didn't exist in the repo."
+        note: 別の環境を独立レビュアーにしたら、行番号付きの認証バグの指摘が来たが該当コードは実在しなかった。人の確認が要る
 
   - id: parallel-perspectives-merge
     name: 複数の観点（モデル・ペルソナ）を並列に走らせ、親が統合する
     layer: graph
+    stage: [review]
     problem: 1 つのモデルに役割を演じ分けさせても見落としが減らない
     state: missing
     impact: 2
@@ -915,10 +1241,20 @@ patterns:
       - source: addy-agent-skills
         url: https://github.com/addyosmani/agent-skills/blob/main/references/orchestration-patterns.md
         evidence: Multiple personas operate on the same input concurrently, each producing an independent report.
+    reports:
+      - article: zenn:6aa18c80496ec6
+        polarity: positive
+        quote: "Claude Codeはスケプティック（懐疑役）のサブエージェント3体を「読者視点」「主張の正しさ」「記事としての成立性」に分けて並列起動しました。"
+        note: 「敵対的検証して」と頼むと観点の違う懐疑役 3 体が並列に立ち、改善点ではなく判定と根拠が返ってきた
+      - article: zenn:6aa18c80496ec6
+        polarity: mixed
+        quote: "サブエージェントが立つかどうか・何体立つかは環境と文脈に依存します。"
+        note: 一言で多視点検証が走るかは入れているスキル次第で、立たなければ明示して頼む必要がある
 
   - id: arena-graft
     name: 並列の競作から土台を選び、他案の良い部分を移植する
     layer: graph
+    stage: [implement]
     problem: 1 回の試作で形が早く固まる
     state: missing
     impact: 1
@@ -948,6 +1284,11 @@ patterns:
       - source: caveman
         url: https://github.com/JuliusBrussee/caveman/blob/main/skills/cavecrew/SKILL.md
         evidence: Subagent tool results get injected into main context verbatim.
+    reports:
+      - article: hn:48883275
+        polarity: mixed
+        quote: "A small task that cost 121,000 tokens done directly cost 513,000 tokens when fanned out to two subagents."
+        note: 親に返るのは要約だけでも、各サブエージェントが毎ターン自分のシステムプロンプトを読み直すので、2 体に分けただけで総トークンが 4.2 倍になった
 
   - id: model-written-workflow
     name: モデルが書いたスクリプトでサブエージェントの並びを組む
@@ -968,6 +1309,7 @@ patterns:
   - id: headless-pipeline
     name: 非対話実行をスクリプトや CI に組み込む
     layer: graph
+    stage: [ship]
     problem: エージェントをパイプラインの 1 段にし、後段が機械的に読める出力を得る
     state: partial
     impact: 1
@@ -987,6 +1329,7 @@ patterns:
   - id: event-triggered-agents
     name: 外部イベント（PR・チャット）を起点にエージェントを立てる
     layer: graph
+    stage: [review, ship]
     problem: 人が起動しなくても、レビューやトリアージを決まった契機で走らせる
     state: missing
     impact: 2
@@ -1000,3 +1343,1023 @@ patterns:
       - source: cursor-pstack
         url: https://github.com/cursor/plugins/blob/main/pstack/automations/benny/README.md
         evidence: one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.
+    reports:
+      - article: zenn:e3f648e335a947
+        polarity: positive
+        quote: "自動でエラー原因の分析からソース修正のプルリクエスト作成までをおこなわせるフローを回している"
+        note: 監視ボットが障害ログを送ると原因分析から修正 PR まで自動で進み、人は翌朝マージを承認するだけになった
+
+  # =================================================================== 記事の使用報告から足した型
+  # 公式ドキュメントや README の出典が無く、根拠は reports（記事）だけ。sources は空にしてある。
+
+  - id: path-scoped-rules
+    name: パスに条件を付けたルールを、該当ファイルに触れたときだけ読ませる
+    layer: prompt
+    stage: [implement, review]
+    problem: 常設の指示ファイルに規約を並べると毎回文脈を食い、会話の後半では埋もれて守られない。レビューでも、規則を全部渡すと注意が散る
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 規約を触るファイルの種類ごとに分け、常設の文面を減らせる
+    cost: apm の applyTo に glob を書いた instructions を足すだけ
+    self: [core-principal/.apm/instructions/core-principal.instructions.md]
+    note: "apm の applyTo で置き場所はあるが、使っているのは全ファイル対象（\"**\"）の 1 本だけ"
+    sources:
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Matches review rules to each file's characteristics, keeping the model's attention sharply focused and eliminating information noise at the source.
+    reports:
+      - article: zenn:65b9a99d22ce2b
+        polarity: positive
+        quote: "そのタイミングで注入されたルールは、セッション開幕に注入されたCLAUDE.mdよりも新しいメッセージなのでよく効きます。"
+        note: 該当ファイルを初めて編集した時点で注入されるルールは、冒頭の CLAUDE.md より新しいので守られやすい、という主張。実測ではない
+
+  - id: grill-before-plan
+    name: 計画の前に、一問ずつ質問攻めにして認識を揃える
+    layer: loop
+    stage: [spec]
+    problem: 曖昧な依頼のまま計画や実装に入り、途中で前提の食い違いが見つかる
+    state: adopted
+    self: [core-principal/apm.yml]
+    note: mattpocock/skills の grill-me と grilling をコミット固定で取り込んでいる
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md
+        evidence: Interview the user relentlessly until you reach a shared understanding.
+    reports:
+      - article: zenn:8783c6b3ead2cb
+        polarity: positive
+        quote: "こんな短い記述で何が変わるの？という感じですが、コーディングエージェントの挙動がガラッと変わります。"
+        note: /grill-me に大まかな要望を添えると選択肢付きの質問が続き、終わる頃には要件と実装方針が固まっていた
+
+  - id: context-pressure-halt
+    name: 文脈が逼迫したら、近道せずに区切りを宣言させる
+    layer: loop
+    stage: [implement]
+    problem: 文脈の残りが少なくなると、読まずに書く・検証を省くなどの近道で品質が落ちる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 長い作業の終盤で検証を飛ばした成果物が出るのを減らす
+    cost: 常駐ルールに数行の規範を足すだけ
+    sources: []
+    reports:
+      - article: qiita:1ad4e4ccaf47816c63e0
+        polarity: positive
+        quote: "この規範を入れてから、「コンテキストが残り少ないため、ここで区切ります」と宣言してくれるようになりました。"
+        note: 「焦ったら止まれ」節（読まずに書かない・検証を省かない）を CLAUDE.md に書いたら、残りが少ないときに近道せず区切るようになった
+
+  - id: verify-reference-exists
+    name: 参照する前に、そのシンボルの実在を確かめさせる
+    layer: loop
+    stage: [implement]
+    problem: 存在しないメソッドや関係をもっともらしく呼ぶ幻覚のバグが紛れ込む
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 実在しないシンボルを呼ぶ種類のバグを、実装の段階で潰せる
+    cost: 実装手順に「使う前に grep か codegraph で探す」を 1 段足すだけ
+    note: core-tools は索引の引き方を定めるが、参照前の確認を必須にはしていない
+    sources: []
+    reports:
+      - article: devto:3335508
+        polarity: positive
+        quote: "This one change alone eliminated an entire class of bugs in my project."
+        note: 実装前に、使うモデル・メソッド・定数を 1 つずつ grep で探す段階を入れたら、存在しない関係を呼ぶバグが出なくなった
+
+  - id: oscillation-directive
+    name: 修正ループの振り子を検出し、良い方を指示として固定する
+    layer: loop
+    stage: [implement]
+    problem: レビューと修正を回すと、同じ箇所が A → B → A と行き来して収束しない
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 自動のレビュー・修正ループが同じ箇所で往復し続けるのを止める
+    cost: 反復ごとの差分を比べるステップを新しく書く
+    sources: []
+    reports:
+      - article: zenn:1c6c3b9333117c
+        polarity: positive
+        quote: "fixステップはdirectiveに従う義務があるので、振り子が止まる。"
+        note: 反復ごとのコミット差分から振り子を検出し、良い方を directive として固定したら往復が止まった
+
+  - id: lint-as-guardrail
+    name: 規約はプロンプトでなく linter とフックで強制する
+    layer: harness
+    stage: [verify]
+    problem: コードスタイルや import の方向を指示ファイルに書いても、一定の確率で破られる
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 規約違反をモデルの注意力に頼らず機械的に止め、指示ファイルも短くなる
+    cost: リポジトリごとの linter 設定と、Stop か PostToolUse のフックを書く
+    note: core-retro は「機械で止められるなら linter やフックにする」と定めるが、linter を走らせるフックは無い
+    sources: []
+    reports:
+      - article: hn:46098838
+        polarity: positive
+        quote: "consider setting up a Claude Code Stop hook that runs your formatter & linter and presents errors to Claude for it to fix"
+        note: スタイルを CLAUDE.md に書く代わりに、Stop フックで formatter と linter を走らせて直させる。提案であって計測ではない
+      - article: zenn:2512-full-ai-cofing
+        polarity: mixed
+        quote: "ただし eslint を厳しく締め付けすぎると、矛盾が生じやすく、タスクが失敗したり、コンテキスト消耗が増える傾向"
+        note: 悪いコードを lint 必須で止めている一方、締め付けすぎるとタスクが失敗し、文脈の消費が増え、抜け道を探し始めた
+
+  - id: mcp-budget-cli-first
+    name: 常時つなぐ MCP を絞り、長い外部呼び出しは CLI で呼ぶ
+    layer: harness
+    problem: MCP サーバーのスキーマが毎リクエスト文脈を食い、長い呼び出しは返るまで中が見えない
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 毎リクエストの固定費が減り、外部エージェントの進み具合を見て途中で止められる
+    cost: MCP を足す前に CLI で済むかを確かめる、という判断基準を core-tools に書き足す
+    self: [core-principal/.apm/skills/core-tools/SKILL.md, host-apm.yml]
+    note: MCP はホスト単位に限り、Serena は実測で入れないと決めてある。CLI を先に選ぶ基準は書いていない
+    sources: []
+    reports:
+      - article: hn:48883275
+        polarity: positive
+        quote: "roughly 1,000 to 1,400 tokens per small server, per request."
+        note: 小さな MCP サーバー 1 つで毎リクエスト約 1,000〜1,400 トークン。MCP 4 つ＋プラグイン＋指示ファイルで初回リクエストが約 7.5 万トークンになった
+      - article: zenn:63d325934ba0de
+        polarity: positive
+        quote: "MCPツールは結果が返るまでブラックボックスになるため、長時間実行されるタスクには向いていません。"
+        note: Codex を MCP で呼ぶと数十分なにも返らなかったので、スキルから codex exec を実行する形に替え、出力を見て途中で止められるようにした
+
+  - id: rewind-side-questions
+    name: 脇道の質問は巻き戻すか、別のセッションに分ける
+    layer: harness
+    problem: 本筋と関係ない質問のやり取りが文脈に残り、続きの作業のノイズになる
+    state: missing
+    impact: 1
+    effort: 1
+    gain: 調べ物のやり取りで本筋の文脈を汚さない
+    cost: /rewind と /fork の使いどころを core-tools に 1 段落書くだけ
+    sources: []
+    reports:
+      - article: zenn:b7fad1a0c52481
+        polarity: positive
+        quote: "パワハラ質問タイムのやり取りをなかったことになるので、ノイズなしにすっきりした状態で気持ちよく作業してくれます。"
+        note: 生成コードを質問攻めにした後、次の依頼の前に /rewind で質問部分を消したら、ノイズの無い文脈で作業が進んだ
+
+  # =================================================================== 開発の段階とコードレビューから足した型
+  # 開発の段階（stage）で引いたとき空いていた所を、Open Code Review・security-audit・Matt Pocock
+  # skills・Cursor / Addy / Superpowers / gstack のレビュー系スキルから埋めた。
+  - id: spec-document
+    name: 会話から仕様書を起こし、範囲外とテストの継ぎ目まで書く
+    layer: prompt
+    stage: [spec]
+    problem: 詰めた要件が会話の中にしか無く、実装とレビューの段で「何を頼まれたか」を引けない
+    state: partial
+    impact: 2
+    effort: 1
+    gain: 実装の突き合わせとレビューの仕様軸に、同じ 1 枚を使える
+    cost: core-dispatch の spec の項目に「範囲外」と「どこでテストするか」を足し、ファイルにも残す
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md（2. 振り分け「spec を書く」）]
+    note: 依頼文が仕様を兼ね、触ってよい範囲・完了条件・検証の打ち方は必ず書く。ファイルとしては残らず、テストの継ぎ目も決めない
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/to-spec/SKILL.md
+        evidence: Sketch out the seams at which you're going to test the feature.
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/spec-driven-development/SKILL.md
+        evidence: The spec is the shared source of truth between you and the human engineer — it defines what we're building, why, and how we'll know it's done.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/README.md
+        evidence: "**Planning** — Writing a spec, turning it into multi-phase tickets, and implementing it phase by phase."
+
+  - id: vertical-slices
+    name: 作業を縦に薄く切り、1 単位を 1 つの差分にする
+    layer: graph
+    stage: [plan, implement, review]
+    problem: 1 回の依頼で大きな差分ができ、人のレビューが追いつかない。層ごとに横に切ると、単位ごとに動作を確かめられない
+    state: missing
+    impact: 3
+    effort: 1
+    gain: 人が 1 回で読める大きさの差分になり、単位ごとに検証が通った状態で積める
+    cost: core-dispatch の spec に「1 依頼 1 論理変更、目安の行数を超えるなら割って出す」を足す
+    note: 依頼は worktree ごとに分けるが、1 依頼の大きさの目安と割り方は書いていない
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/to-tickets/SKILL.md
+        evidence: Each slice is sized to fit in a single fresh context window
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/incremental-implementation/SKILL.md
+        evidence: Build in thin vertical slices — implement one piece, test it, verify it, then expand.
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/code-review-and-quality/SKILL.md
+        evidence: ~100 lines changed   → Good. Reviewable in one sitting.
+      - source: ai-hero
+        url: https://github.com/ai-hero-dev/ai-coding-crash-course/blob/main/.sandcastle/prompt.md
+        evidence: ONLY WORK ON A SINGLE TASK.
+
+  - id: spec-conformance-review
+    name: 差分を仕様と突き合わせ、抜け・頼まれていない変更・誤りを分けて出す
+    layer: loop
+    stage: [review]
+    problem: 規約や品質だけを見るレビューは、頼まれたものが揃っているか、頼まれていない変更が紛れていないかを見落とす
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 頼まれていない変更（範囲の膨張）と要件の抜けを、人が読む前に拾える
+    cost: 統合のときに依頼文と差分を突き合わせる手順を core-dispatch に 1 段足す
+    note: coordinator は報告ファイルを読むが、依頼文と差分を突き合わせる手順は無い
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md
+        evidence: "(a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep)"
+      - source: gstack
+        url: https://github.com/garrytan/gstack/blob/main/review/SKILL.md
+        evidence: "did they build what was requested — nothing more, nothing less?"
+
+  - id: deterministic-review-scaffold
+    name: レビューの対象選び・分担・網羅の記録はコードで決め、判断だけ LLM にさせる
+    layer: graph
+    stage: [review]
+    problem: 大きな差分では、LLM のレビューが一部のファイルだけ見て済ませ、指摘の行番号もずれる。1 回で網羅できたかも分からない
+    state: missing
+    impact: 2
+    effort: 2
+    gain: 見落としたファイルと、網羅できていない範囲が記録に残る
+    cost: Open Code Review を CLI で呼ぶか（委任モードなら API キー不要）、網羅の台帳と検証スクリプトを書く
+    sources:
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: For review steps that *must not go wrong*, engineering logic — not the language model — guarantees correctness
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Each bundle runs as a sub-agent with isolated context — a divide-and-conquer strategy that stays stable on very large changesets
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: In our test runs, a single run found roughly half of the vulnerabilities that repeated runs found in total.
+
+  - id: verify-findings-before-report
+    name: レビューの所見は、見つけたのとは別のエージェントが反証してから出す
+    layer: loop
+    stage: [review]
+    problem: レビュアーの指摘にも実在しない行や誤った前提が混ざり、そのまま直すと手戻りになる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 実在しない指摘を人や実装者に渡す前に落とせる
+    cost: レビューの手順に「所見ごとに別のサブエージェントが引用箇所を読み直して反証を試みる」を 1 段足す
+    note: 書いた人とレビューする人を分ける（fresh-context-review）の次の段。レビュアーの所見も同じ理由で疑う
+    sources:
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: The agent that checks a finding is never the agent that found it.
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Independent comment-positioning and comment-reflection modules systematically improve both the location accuracy and content accuracy of AI feedback.
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/receiving-code-review/SKILL.md
+        evidence: Verify before implementing. Ask before assuming.
+    reports:
+      - article: devto:4576085
+        polarity: positive
+        quote: "I checked before touching anything: the line, and the code it described, simply didn't exist in the repo."
+        note: 独立レビュアーの行番号付きの指摘を、直す前に確かめたら該当コードが実在しなかった。確かめる段が誤修正を止めた
+
+  - id: machine-readable-findings
+    name: 所見をスキーマ付きの JSON で出し、検証スクリプトに通す
+    layer: harness
+    stage: [review]
+    problem: 散文の所見は重複を除けず、確定・未確定・却下の区別も読み手に任される
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 所見の重複除去と、確定か未確定かの区別を機械に任せられる
+    cost: 所見のスキーマと検証スクリプトを書き、レビューの出力をそれに合わせる
+    sources:
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/skills/security-audit/SKILL.md
+        evidence: Emitting prose-only hunter results that cannot be deduplicated or verified.
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: write `confirmed`, `needs_validation`, and `rejected` records to `findings.json` and validate them against `report-schema.json`
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: "ocr review --format json --output result.json"
+
+  - id: severity-first-findings
+    name: 指摘に重大度を付け、確度の高いものに絞って先頭に置く
+    layer: prompt
+    stage: [review]
+    problem: 長い指摘の一覧に本当の問題が埋もれ、読む側が止めるべきものと任意のものを仕分ける羽目になる
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 人が読むのは止めるべき指摘だけで済み、誤検知の仕分けが減る
+    cost: レビューを頼む手順に、重大度の段階と「確度の低い指摘は出さない」を 1 段落足す
+    sources:
+      - source: addy-agent-skills
+        url: https://github.com/addyosmani/agent-skills/blob/main/skills/code-review-and-quality/SKILL.md
+        evidence: Don't bury a real issue under cosmetic nits — a few high-conviction comments beat a long list.
+      - source: superpowers
+        url: https://github.com/obra/superpowers/blob/main/skills/requesting-code-review/SKILL.md
+        evidence: Fix Critical issues immediately
+      - source: open-code-review
+        url: https://github.com/alibaba/open-code-review/blob/main/README.md
+        evidence: Note that its Recall is lower than general-purpose agents — a deliberate trade-off favoring precision over noise.
+      - source: cloudflare-security-audit
+        url: https://github.com/cloudflare/security-audit-skill/blob/main/README.md
+        evidence: Severity requires impact.
+
+  - id: blast-radius-proof
+    name: 差分の外で壊れうる所を探し、安全の根拠を 1 つ実行で示す
+    layer: loop
+    stage: [review]
+    problem: 差分だけを見るレビューは、呼び出し側など差分の外の破損を見ない。もっともらしい影響分析の文章は、正しくなくても正しく読める
+    state: missing
+    impact: 2
+    effort: 1
+    gain: レビュアーは「この事実があるから安全」という 1 点と、その実行結果だけを確かめればよくなる
+    cost: blast-radius 相当のスキルを 1 つ依存に足す
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/blast-radius/SKILL.md
+        evidence: Find the one or two facts the whole thing depends on and prove them by running code.
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: "**Blast Radius:** <one-word description>"
+
+  - id: pr-evidence-and-risk
+    name: PR 本文に検証の前後と、戻せるかを書く
+    layer: prompt
+    stage: [ship]
+    problem: 人のレビュアーが差分を頭から読まないと、何が変わり、どう確かめ、戻せるのかが分からない
+    state: partial
+    impact: 3
+    effort: 1
+    gain: 人は PR 本文の要約の図・検証結果・戻せるかを見て、読む深さを決められる
+    cost: PR 本文の型（要約の図・検証の前後・戻せるか・影響範囲）を core-dispatch か core-communication に足す
+    self: [core-principal/.apm/skills/core-dispatch/SKILL.md（2. 振り分け）, core-principal/apm.yml（show-me）]
+    note: 決めたことと積み残しはコミットメッセージと PR 本文に書く、とある。検証の前後と取り消せるかを書く型は無い
+    sources:
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: Execution-based evidence is A-tier. Test results, console output.
+      - source: mattpocock-skills
+        url: https://github.com/mattpocock/skills/blob/main/skills/in-progress/pr/SKILL.md
+        evidence: Describe whether it's a one-way or two-way door.
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md
+        evidence: Call out risky behavior changes, migration order, rollout plan, and test coverage.
+
+  - id: core-vs-mechanical-diff
+    name: 中身の変更と機械的な変更を分けて見せ、読む入口を示す
+    layer: prompt
+    stage: [review, ship]
+    problem: 生成物や一括置換の行が中身の変更に混ざり、人がどこから読めばよいか分からない
+    state: missing
+    impact: 2
+    effort: 1
+    gain: 人は中身の変更だけを読み、機械的な変更は件数と種類で済ませられる
+    cost: PR 本文の型に「中身のファイル / 機械的なファイル」の欄を足す。コミットも同じ境目で分ける
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/pr-review-canvas/SKILL.md
+        evidence: categorizes files into core vs mechanical changes, adds reviewer annotations, and renders diffs with moved-code detection
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md
+        evidence: Separate core files from generated or mechanical files.
+
+
+# AI slop 対策。ハーネスの 4 層とは別の軸で、AI が書いた文章・コード・UI の質の低さを
+# 防ぐ・消す型。4 層の件数や「次に取り込む候補」には数えない。形式は patterns と同じで、
+# target に対象（文章 / コード / UI など）を書く。
+slop_findings: >-
+  文章の AI 臭を消す型は採用済（humanizer-ja と japanese-tech-writing）。記事の報告では、文体の規則で消えるのは表面だけで、
+  書く意図が無いことによる違和感は残るという声が多い。コードの slop を差分から消す型（deslop）と、UI の典型の見た目を避ける型は無い。
+slop_patterns:
+  - id: prose-unslop
+    name: 文章の AI 臭を、書いた後に機械的な規則で消す
+    target: 文章
+    problem: 生成した文章に定型の言い回し・過剰な太字・ダッシュなどが残り、読み手に AI が書いたと見抜かれる
+    state: adopted
+    self: [core-principal/apm.yml（humanizer-ja、japanese-tech-writing）]
+    note: 日本語は humanizer-ja と japanese-tech-writing を依存に取っている。英語向けの規則は入れていない
+    sources:
+      - source: humanizer
+        url: https://github.com/blader/humanizer/blob/main/README.md
+        evidence: "Humanizer rewrites AI-sounding text so it reads like a person wrote it, without changing what it says."
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md
+        evidence: "Cut AI tells from any writing. Must always apply."
+      - source: humanizer-ja
+        url: https://github.com/gonta223/humanizer-ja/blob/main/README.md
+        evidence: "このスキルは、そういったAIパターンを20項目に分類し、Claude Codeが文章を生成する時点で自動的に回避するようにするものです。"
+    reports:
+      - article: zenn:ai-likeness-not-about-writing-style
+        polarity: mixed
+        quote: "ある程度は改善しました。表面的なAIっぽさは確かに減ります。"
+        note: 定型表現の禁止や箇条書きの削減をプロンプトに入れると表面の AI 臭は減ったが、根本の違和感は消えなかった
+      - article: zenn:ai-likeness-not-about-writing-style
+        polarity: negative
+        quote: "それでもAIっぽさが残りました。"
+        note: 人間らしさの軸を持つ評価プロンプトと文体チェックリストで点検させても、書く動機が抜けていて AI 臭が残った
+      - article: reddit:1wdmdhp
+        polarity: positive
+        quote: "The two most useful are unslop and deslop, make both code and docs look human written."
+        note: pstack を Claude Code に移した投稿への返信。いちばん役立ったのは unslop と deslop だという（score 1 のコメント 1 件）
+
+  - id: code-deslop
+    name: ブランチの差分から、コードの slop を消す
+    target: コード
+    stage: [review]
+    problem: 不要なコメント、信頼できる経路での防御的チェック、型を黙らせるキャストなどが差分に紛れ込む
+    state: partial
+    impact: 2
+    effort: 1
+    gain: レビューに回る前に、コードの slop を差分の範囲で消せる
+    cost: deslop 相当のスキルを 1 つ依存に足す
+    self: [core-principal/apm.yml（ponytail-review）]
+    note: 過剰設計を削る ponytail-review はある。コメントや防御的チェックを消す手順は無い
+    sources:
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/deslop/SKILL.md
+        evidence: "Check the diff against main and remove AI-generated slop introduced in the branch."
+      - source: cursor-pstack
+        url: https://github.com/cursor/plugins/blob/main/pstack/docs/guide/05-build-and-clean.md
+        evidence: "`/deslop` cleans slop out of the code, `/unslop` cleans it out of prose, and `/no-comments` hands the comments to a reviewer who didn't write them."
+      - source: ponytail
+        url: https://github.com/DietrichGebert/ponytail/blob/main/skills/ponytail-review/SKILL.md
+        evidence: "Code review focused exclusively on over-engineering."
+    reports:
+      - article: reddit:1wdmdhp
+        polarity: positive
+        quote: "The two most useful are unslop and deslop, make both code and docs look human written."
+        note: unslop と並んで deslop が最も役立ったという返信（score 1）
+
+  - id: design-anti-slop
+    name: UI の AI 臭を、デザイン規範のスキルで避ける
+    target: UI
+    stage: [implement]
+    problem: 指定なしで UI を作らせると、紫のグラデーションやガラス風の、典型的な AI 生成の見た目になる
+    state: missing
+    impact: 1
+    effort: 1
+    gain: UI を作らせたときの典型の見た目を避けられる
+    cost: frontend-design などのデザイン用スキルを依存に足すだけ
+    sources:
+      - source: anthropic-skills
+        url: https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md
+        evidence: "fade-and-slide-up entrances on each section and hover transitions on every card are the generic default and read as AI-generated."
+    reports:
+      - article: zenn:apple_design_skills
+        polarity: negative
+        quote: "全体として紫系統だったり、妙にグラデーションが多かったりと、よくあるAI生成UIになっています。"
+        note: スキル無しで設定画面を作らせると典型の AI 生成 UI になった（対策前の比較基準）
+      - article: zenn:apple_design_skills
+        polarity: mixed
+        quote: "その他、全体としてApple風かどうかを正確に判別するのは難しいかもしれません。"
+        note: Apple のガイドラインをスキルにして読ませると統一感は出たが、狙いどおりかは筆者にも判別しきれない
+      - article: zenn:04387b258ba54e
+        polarity: mixed
+        quote: "1度実行しただけでは 「AIスロップ」は取り除けても「AI臭」 は抜けきらない"
+        note: /frontend-design で派手な CSS は直ったが、言葉にしにくい AI 臭は残った
+      - article: zenn:04387b258ba54e
+        polarity: positive
+        quote: "なんだか最初の手実装CSSに先祖返りしたような気がしないでもないですが、ついにAIに温かみのあるUIを実装させることに成功しました！"
+        note: 人が AI っぽくないと判定するまで 5〜6 回直させると AI 臭が消えた。ただし最初の手書き CSS に近い見た目に戻った
+
+  - id: read-before-share
+    name: AI の出力は人が読んで削ってから共有し、使ったことを明かす
+    target: 文章・コード
+    stage: [ship]
+    problem: 読まずに貼った AI の出力が、確認の手間を受け手（レビュアー、コミュニティ）に押し付ける
+    state: missing
+    impact: 1
+    effort: 1
+    gain: PR や報告を受け取る側の確認の手間を減らす
+    cost: core-dispatch の報告の形に「読んで削った」と「AI を使った箇所」を足すだけ
+    sources: []
+    reports:
+      - article: hn:47389570
+        polarity: mixed
+        quote: "Read. Read the output before you share it. If you haven't read it, you don't know whether it's correct, relevant, or current."
+        note: 共有する前に人が読み、確かめ、削る、という指針。効果の計測は無い
+      - article: hn:48053203
+        polarity: negative
+        quote: "If you dump a complex PR into a project without due care, you’re obligating the reviewers to go through the code and for them to explain to you why it can’t be merged."
+        note: 確かめていない AI の PR はレビューの手間をメンテナに押し付け、AI の貢献を閉じるプロジェクトが出ている
+      - article: hn:48053203
+        polarity: mixed
+        quote: "another way of showing respect to the community is to be very open and clear about if, how, and where you’re using AI in your contribution"
+        note: 貢献のどこに AI を使ったかを明かすことを提案している。試した結果ではない
+
+  - id: verify-incoming-slop
+    name: 外から来た AI 生成の報告は、再現と実在確認で弾く
+    target: コード・報告
+    stage: [review]
+    problem: もっともらしい脆弱性報告や PR が大量に届き、どれが実在する問題か見分けられない
+    state: missing
+    impact: 1
+    effort: 2
+    gain: 存在しない関数や再現しない不具合を引く報告を、読む前に機械で弾ける
+    cost: 報告の PoC を隔離環境で走らせ、引用されたシンボルと行番号を実在確認するスクリプトを書く
+    sources: []
+    reports:
+      - article: hn:49154332
+        polarity: positive
+        quote: "Feed each advisory's PoC SQL statements verbatim into the compiled SQLite binaries under AddressSanitizer (ASan) instrumentation to detect memory bugs."
+        note: AI 生成が疑われる SQLite の脆弱性報告を隔離環境で再現させ、55 件中 54 件が捏造だと示した
+      - article: hn:49154332
+        polarity: positive
+        quote: "Non-existent Code References: Citing functions that do not exist in the claimed target version or line numbers past EOF."
+        note: 引用された関数と行番号を対象の版のソースと突き合わせると、存在しない関数やファイル末尾を超える行番号が見つかった
+      - article: hn:49154332
+        polarity: positive
+        quote: "All advisories in this repo seem AI generated when testing them with Gptzero"
+        note: AI 文章の検出器にかけると全件が AI 生成と判定され、slop である裏付けの 1 つになった
+      - article: hn:49007247
+        polarity: positive
+        quote: "Pangram feels different. I’ve tested it and it’s dismayingly effective"
+        note: AI 文章の検出器に懐疑的だった筆者が Pangram を試し、よく当たると判断した
+
+# 名前の挙がったハーネスの評判。本数と反応数は articles.json の reputation（題名に名前を含む
+# 記事を機械的に数えたもの）から描く。ここには読んで拾った使用報告の引用だけを書く。
+reputation_finding: >-
+  poteto-mode（pstack）は、題名に名前を含む記事が Zenn の解説 1 本と、Hacker News の作者本人の告知とガイドへのリンク（各 1〜2pt）だけで、第三者の使用報告は
+  見つからなかった（last30days-skill で Reddit を引くと、pstack を勧める返信が 1 件あった）。X での評判は、これらの媒体の記事の数には表れていない。Devin と DeepSeek Harness は
+  Hacker News の反応数が大きく、Hermes Agent は Qiita・Zenn の本数が多いが、反応数は小さい。
+reputation:
+  poteto-mode:
+    quotes: []
+  Hermes Agent:
+    quotes:
+      - where: Zenn（21 いいね）
+        url: https://zenn.dev/big_tanukiudon/articles/85337ee0faa966
+        quote: 一方で、pnpm 指定が無視されるなど、制約がすり抜けてしまう事がありました。
+      - where: Hacker News のコメント（52pt の投稿）
+        url: https://news.ycombinator.com/item?id=48419000
+        quote: "Hermes: Sluggish, very slow to start, a lot is going on in the background, didn't like it. Seems over-engineered"
+      - where: Hacker News のコメント（52pt の投稿）
+        url: https://news.ycombinator.com/item?id=48419000
+        quote: It's magical. Each morning I get a small update whether the backup ran, if pods are stuck or behaving weirdly etc...
+  DeepSeek Harness:
+    quotes:
+      - where: Hacker News のコメント（747pt の投稿）
+        url: https://news.ycombinator.com/item?id=49285244
+        quote: it works GREAT for small python projects, so far.
+      - where: Hacker News のコメント（747pt の投稿）
+        url: https://news.ycombinator.com/item?id=49285244
+        quote: Trying it now, seems a little sloppy...
+      - where: Zenn（8 いいね）
+        url: https://zenn.dev/hjpotter1/articles/4f44fcacede3b6
+        quote: 起動から最初のタスクまで、10分ほどでした。
+  Devin:
+    quotes:
+      - where: Zenn（493 いいね）
+        url: https://zenn.dev/ubie_dev/articles/devin-for-test
+        quote: 成果物の内容的にはまだ厳しいと言わざるを得ない場面がありました。
+      - where: Answer.AI（Hacker News 285pt）
+        url: https://www.answer.ai/posts/2025-01-08-devin.html
+        quote: But that’s the problem - it rarely worked.
+
+# 読んだ記事。collect_articles.py の上位（articles.json）を読んだ時点の反応数で控える。
+# verdict: reflected（reports に反映）/ irrelevant（ハーネスの型の使用報告でない）/ unreadable（本文が取れない）
+articles:
+  - id: zenn:5fee11d03a11a1
+    kind: article
+    site: zenn
+    title: "Claude Codeで「AI部下10人」を作ったら、勝手にバグ直して「違反は切腹」ルールを追加してきて、オレは適当にしゃべるだけになった"
+    url: https://zenn.dev/shio_shoppaize/articles/5fee11d03a11a1
+    reactions: 1795
+    published: 2026-01-25
+    verdict: reflected
+  - id: zenn:e3f648e335a947
+    kind: article
+    site: zenn
+    title: "コードを書くのをやめた。Claude Codeに月商300万のSaaSの全コードを書かせ、完全ソロ運用しているという話。"
+    url: https://zenn.dev/nnze/articles/e3f648e335a947
+    reactions: 645
+    published: 2026-03-15
+    verdict: reflected
+  - id: zenn:8783c6b3ead2cb
+    kind: article
+    site: zenn
+    title: "grill-me スキルがめちゃ良いので布教したい"
+    url: https://zenn.dev/ryonakae/articles/8783c6b3ead2cb
+    reactions: 635
+    published: 2026-04-09
+    verdict: reflected
+  - id: zenn:2512-full-ai-cofing
+    kind: article
+    site: zenn
+    title: "実践フルAIコーディング"
+    url: https://zenn.dev/erukiti/articles/2512-full-ai-cofing
+    reactions: 631
+    published: 2025-12-08
+    verdict: reflected
+  - id: zenn:6aa18c80496ec6
+    kind: article
+    site: zenn
+    title: "AIに「レビューして」はもう古い？「敵対的検証」のすすめ"
+    url: https://zenn.dev/loglass/articles/6aa18c80496ec6
+    reactions: 594
+    published: 2026-07-17
+    verdict: reflected
+  - id: zenn:b7fad1a0c52481
+    kind: article
+    site: zenn
+    title: "Claude CodeのPlanモードで実装した後、そのまま質問しまくってるやついる？いねえよな！"
+    url: https://zenn.dev/take4/articles/b7fad1a0c52481
+    reactions: 584
+    published: 2026-01-27
+    verdict: reflected
+  - id: zenn:83fe82191db01b
+    kind: article
+    site: zenn
+    title: "確定申告を自動化する Agent Skill \"shinkoku\" を OSS にした"
+    url: https://zenn.dev/kazukinagata/articles/83fe82191db01b
+    reactions: 578
+    published: 2026-02-22
+    verdict: irrelevant
+    why: 自作スキル（確定申告）の公開の紹介。検証は税額計算の正しさで、ハーネスの型の使用結果ではない
+  - id: zenn:63d325934ba0de
+    kind: article
+    site: zenn
+    title: "Claude CodeとCodexの連携をMCPからSkillに変えたら体験が劇的に改善した"
+    url: https://zenn.dev/owayo/articles/63d325934ba0de
+    reactions: 547
+    published: 2026-01-14
+    verdict: reflected
+  - id: zenn:claude-code-tips-findy-2026
+    kind: article
+    site: zenn
+    title: "Claude Codeを加速させる私の推しスキル・ツール・設定（Findyイベント登壇資料）"
+    url: https://zenn.dev/ubie_dev/articles/claude-code-tips-findy-2026
+    reactions: 545
+    published: 2026-03-11
+    verdict: reflected
+  - id: zenn:1c6c3b9333117c
+    kind: article
+    site: zenn
+    title: "ハーネスエンジニアリングで人間のコードレビューをやめる"
+    url: https://zenn.dev/theaktky/articles/1c6c3b9333117c
+    reactions: 466
+    published: 2026-03-24
+    verdict: reflected
+  - id: zenn:empirical-prompt-tuning
+    kind: article
+    site: zenn
+    title: "プロンプトの再現性をAI に自動チューニングさせる方法 ~ 暗黙知を排除する"
+    url: https://zenn.dev/mizchi/articles/empirical-prompt-tuning
+    reactions: 465
+    published: 2026-04-19
+    verdict: reflected
+  - id: zenn:65b9a99d22ce2b
+    kind: article
+    site: zenn
+    title: "CLAUDE.mdに本当は何を書くべきなのか"
+    url: https://zenn.dev/cureapp/articles/65b9a99d22ce2b
+    reactions: 449
+    published: 2026-03-03
+    verdict: reflected
+  - id: qiita:114f53def8cb0db60f47
+    kind: article
+    site: qiita
+    title: "Claude Codeですべての日常業務を爆速化しよう！"
+    url: https://qiita.com/minorun365/items/114f53def8cb0db60f47
+    reactions: 2362
+    published: 2026-03-02
+    verdict: reflected
+  - id: qiita:356e5f1dba112a075be1
+    kind: article
+    site: qiita
+    title: "正直に言う。お前のClaude Codeの使い方は間違っている"
+    url: https://qiita.com/tehito/items/356e5f1dba112a075be1
+    reactions: 1067
+    published: 2026-06-25
+    verdict: reflected
+  - id: qiita:77e9e022860b57e4bd4d
+    kind: article
+    site: qiita
+    title: "【15分で追いつく！】今のClaude Codeができることをざっくり解説"
+    url: https://qiita.com/kyuko/items/77e9e022860b57e4bd4d
+    reactions: 966
+    published: 2026-02-17
+    verdict: irrelevant
+    why: 公式ドキュメントをもとにした機能紹介で、筆者の使用結果が無い
+  - id: qiita:66e7c07c459e3bb7082d
+    kind: article
+    site: qiita
+    title: "【2026年最新】Claude Code作者が実践する「超並列駆動」開発術がエンジニアの常識を破壊していた"
+    url: https://qiita.com/ot12/items/66e7c07c459e3bb7082d
+    reactions: 874
+    published: 2026-01-19
+    verdict: irrelevant
+    why: Claude Code 作者の X 投稿の紹介で、記事の筆者自身の使用報告ではない（二次資料）
+  - id: qiita:da163b7f7b53fc445f63
+    kind: article
+    site: qiita
+    title: "【狂気の実証実験1】AIエージェントに電気ショック権限を付与したら生活が更生した"
+    url: https://qiita.com/motoya0118/items/da163b7f7b53fc445f63
+    reactions: 853
+    published: 2026-01-01
+    verdict: irrelevant
+    why: 生活習慣の矯正にエージェントを使った実験で、コーディング用ハーネスの型の話ではない
+  - id: qiita:c392f0804987593dc179
+    kind: article
+    site: qiita
+    title: "ChatGPTが長いチャットで重くなったときに使っている「引き継ぎプロンプト」"
+    url: https://qiita.com/SatoRyota_zvc/items/c392f0804987593dc179
+    reactions: 676
+    published: 2026-03-27
+    verdict: irrelevant
+    why: ChatGPT の Web チャットの引き継ぎプロンプトで、コーディングエージェントのハーネスの話ではない
+  - id: qiita:2feffd2cc6c672717973
+    kind: article
+    site: qiita
+    title: "AIが実装し、AIがテストし、AIが「問題ありません」と言う時代の品質保証"
+    url: https://qiita.com/y0us91/items/2feffd2cc6c672717973
+    reactions: 663
+    published: 2026-08-11
+    verdict: irrelevant
+    why: 品質保証の一般論（論文の引用）で、筆者が何かを使った結果の報告が無い
+  - id: qiita:d6c83ea50b82e1c2602c
+    kind: article
+    site: qiita
+    title: "100行のCLAUDE.mdより35行が効く理由 — 公式仕様で解く設定の最適化"
+    url: https://qiita.com/nogataka/items/d6c83ea50b82e1c2602c
+    reactions: 569
+    published: 2026-03-31
+    verdict: reflected
+  - id: qiita:ca1810e419fee5fd963b
+    kind: article
+    site: qiita
+    title: "【2026年版】Claude Codeを最強にするプラグイン・MCP・ツール総まとめ"
+    url: https://qiita.com/shatolin/items/ca1810e419fee5fd963b
+    reactions: 495
+    published: 2026-02-06
+    verdict: irrelevant
+    why: プラグイン・MCP・ツールの紹介まとめで、使用結果の報告が無い
+  - id: qiita:1ad4e4ccaf47816c63e0
+    kind: article
+    site: qiita
+    title: "CLAUDE.mdを設計するとClaude Codeの生産性が別物になる — 実際の設定と運用ワークフローを公開"
+    url: https://qiita.com/nogataka/items/1ad4e4ccaf47816c63e0
+    reactions: 490
+    published: 2026-03-18
+    verdict: reflected
+  - id: hn:47106686
+    kind: article
+    site: hn
+    title: "How I use Claude Code: Separation of planning and execution"
+    url: https://boristane.com/blog/how-i-use-claude-code/
+    reactions: 976
+    published: 2026-02-22
+    verdict: reflected
+  - id: hn:45607117
+    kind: article
+    site: hn
+    title: "Claude Skills"
+    url: https://www.anthropic.com/news/skills
+    reactions: 816
+    published: 2025-10-16
+    verdict: irrelevant
+    why: Agent Skills の製品発表で、使用結果の報告が無い
+  - id: hn:46723384
+    kind: article
+    site: hn
+    title: "I was banned from Claude for scaffolding a Claude.md file?"
+    url: https://hugodaniel.com/posts/claude-code-banned-me/
+    reactions: 749
+    published: 2026-01-22
+    verdict: reflected
+  - id: hn:46098838
+    kind: article
+    site: hn
+    title: "Writing a good Claude.md"
+    url: https://www.humanlayer.dev/blog/writing-a-good-claude-md
+    reactions: 748
+    published: 2025-11-30
+    verdict: reflected
+  - id: hn:49760187
+    kind: article
+    site: hn
+    title: "Claude Code now reads AGENTS.md if there is no Claude.md"
+    url: https://code.claude.com/docs/en/changelog
+    reactions: 740
+    published: 2026-09-18
+    verdict: unreadable
+    why: changelog の 1 行（AGENTS.md を読むようになった）で、ニュース。本文は JS 描画で取り出せなかった
+  - id: hn:48883275
+    kind: article
+    site: hn
+    title: "Claude Code sends 33k tokens before reading the prompt; OpenCode sends 7k"
+    url: https://systima.ai/blog/claude-code-vs-opencode-token-overhead
+    reactions: 706
+    published: 2026-07-12
+    verdict: reflected
+  - id: hn:47854477
+    kind: article
+    site: hn
+    title: "Claude Code to be removed from Anthropic's Pro plan?"
+    url: https://bsky.app/profile/edzitron.com/post/3mjzxwfx3qs2a
+    reactions: 683
+    published: 2026-04-21
+    verdict: unreadable
+    why: Bluesky の投稿で本文が取れなかった。題から見て料金プランの話
+  - id: hn:48002136
+    kind: article
+    site: hn
+    title: "DeepClaude – Claude Code agent loop with DeepSeek V4 Pro"
+    url: https://github.com/aattaran/deepclaude
+    reactions: 678
+    published: 2026-05-03
+    verdict: irrelevant
+    why: 接続先のモデルを差し替えるツールの README で、ハーネスの型を使った結果ではない
+  - id: hn:46250332
+    kind: article
+    site: hn
+    title: "OpenAI are quietly adopting skills, now available in ChatGPT and Codex CLI"
+    url: https://simonwillison.net/2025/Dec/12/openai-skills/
+    reactions: 587
+    published: 2025-12-12
+    verdict: reflected
+  - id: hn:47193064
+    kind: article
+    site: hn
+    title: "MCP server that reduces Claude Code context consumption by 98%"
+    url: https://mksg.lu/blog/context-mode
+    reactions: 570
+    published: 2026-02-28
+    verdict: reflected
+  - id: devto:4559844
+    kind: article
+    site: devto
+    title: "20 Agentic AI Terms Every Developer Should Know (Explained Simply)"
+    url: https://dev.to/sylwia-lask/20-agentic-ai-terms-every-developer-should-know-explained-simply-jii
+    reactions: 226
+    published: 2026-09-03
+    verdict: irrelevant
+    why: 用語解説で、使用結果の報告が無い
+  - id: devto:4702045
+    kind: article
+    site: devto
+    title: "What If Your AI Agent Never Had to Leave the Browser? (Demo 🚀)"
+    url: https://dev.to/sylwia-lask/what-if-your-ai-agent-never-had-to-leave-the-browser-demo--5g
+    reactions: 164
+    published: 2026-09-21
+    verdict: reflected
+  - id: devto:3806074
+    kind: article
+    site: devto
+    title: "Is This How We'll Build Websites Soon? (webMCP Live Demo 🚀)"
+    url: https://dev.to/sylwia-lask/is-this-how-well-build-websites-soon-webmcp-live-demo--2e33
+    reactions: 156
+    published: 2026-06-03
+    verdict: irrelevant
+    why: webMCP のデモで、ハーネスの型の使用報告ではない
+  - id: devto:4576085
+    kind: article
+    site: devto
+    title: "From AI Solutions to Shared Knowledge: Building an MCP for the Community"
+    url: https://dev.to/pascal_cescato_692b7a8a20/from-ai-solutions-to-shared-knowledge-building-an-mcp-for-the-community-6bk
+    reactions: 145
+    published: 2026-09-07
+    verdict: reflected
+  - id: devto:3403502
+    kind: article
+    site: devto
+    title: "your agent can think. it can't remember."
+    url: https://dev.to/ghostbuild/your-agent-can-think-it-cant-remember-5e1o
+    reactions: 144
+    published: 2026-03-25
+    verdict: irrelevant
+    why: 製品の宣伝で、使用報告ではない
+  - id: devto:3335508
+    kind: article
+    site: devto
+    title: "I Made Claude Code Think Before It Codes. Here's the Prompt."
+    url: https://dev.to/_vjk/i-made-claude-code-think-before-it-codes-heres-the-prompt-bf
+    reactions: 133
+    published: 2026-03-10
+    verdict: reflected
+  - id: zenn:fba4cc93baf0a9
+    kind: article
+    theme: slop
+    site: zenn
+    title: "ちょっとしたアイデアをAIで長文記事にして公開するのをやめろ"
+    url: https://zenn.dev/todesking/articles/fba4cc93baf0a9
+    reactions: 490
+    published: 2026-05-12
+    verdict: irrelevant
+    why: 長文化と未検品の公開を戒める論説。本文自体が ChatGPT の一発生成だという実演で、対策を試した結果や被害の報告は無い
+  - id: zenn:apple_design_skills
+    kind: article
+    theme: slop
+    site: zenn
+    title: "Claude Skillsで簡単にApple風デザインを自動生成！AIっぽいデザインから脱却する方法"
+    url: https://zenn.dev/tmasuyama1114/articles/apple_design_skills
+    reactions: 85
+    published: 2025-11-19
+    verdict: reflected
+  - id: zenn:ai-likeness-not-about-writing-style
+    kind: article
+    theme: slop
+    site: zenn
+    title: "「AIっぽい」の正体は文体じゃない — 全業務をAIエージェントで回して気づいたこと"
+    url: https://zenn.dev/omori432/articles/ai-likeness-not-about-writing-style
+    reactions: 69
+    published: 2026-03-17
+    verdict: reflected
+  - id: zenn:anthropic_claude_skills_design
+    kind: article
+    theme: slop
+    site: zenn
+    title: "【Claude Code】Skills機能で『AIっぽい』UIから脱却する方法！Anthropic公式もおすすめ"
+    url: https://zenn.dev/tmasuyama1114/articles/anthropic_claude_skills_design
+    reactions: 65
+    published: 2025-11-16
+    verdict: irrelevant
+    why: 公式ブログの手法の紹介で、筆者がスキルを使った結果は書いていない
+  - id: zenn:04387b258ba54e
+    kind: article
+    theme: slop
+    site: zenn
+    title: "せっかく作ったアプリが「AIっぽい」だけで避けられないようにするには？ ── /frontend-designだけじゃ足りなかった話"
+    url: https://zenn.dev/tokium_dev/articles/04387b258ba54e
+    reactions: 62
+    published: 2026-06-04
+    verdict: reflected
+  - id: hn:48053203
+    kind: article
+    theme: slop
+    site: hn
+    title: "AI slop is killing online communities"
+    url: https://rmoff.net/2026/05/06/ai-slop-is-killing-online-communities/
+    reactions: 834
+    published: 2026-05-07
+    verdict: reflected
+  - id: hn:49154332
+    kind: article
+    theme: slop
+    site: hn
+    title: "SQLite Critical CVEs or LLM Slop?"
+    url: https://research.jfrog.com/post/sqlite-critical-cves-or-llm-slops/
+    reactions: 727
+    published: 2026-08-03
+    verdict: reflected
+  - id: hn:47389570
+    kind: article
+    theme: slop
+    site: hn
+    title: "Stop Sloppypasta"
+    url: https://stopsloppypasta.ai/
+    reactions: 667
+    published: 2026-03-15
+    verdict: reflected
+  - id: hn:45919067
+    kind: article
+    theme: slop
+    site: hn
+    title: "SlopStop: Community-driven AI slop detection in Kagi Search"
+    url: https://blog.kagi.com/slopstop
+    reactions: 589
+    published: 2025-11-13
+    verdict: irrelevant
+    why: 検索エンジンの slop 報告機能の製品発表で、使用結果の報告が無い
+  - id: hn:49213754
+    kind: article
+    theme: slop
+    site: hn
+    title: "Oracle bans AI-generated code from OpenJDK"
+    url: https://app.dealroom.co/news/feed/oracle-bans-ai-generated-code-from-openjdk-despite-ellison-s-claim-oracle-isn-t-writing-its-own-code
+    reactions: 536
+    published: 2026-08-07
+    verdict: unreadable
+    why: 配信元がボット判定で本文を返さなかった。題から見て OpenJDK の貢献ポリシーのニュース
+  - id: hn:49007247
+    kind: article
+    theme: slop
+    site: hn
+    title: "Quality non-fiction books are the antithesis of AI slop"
+    url: https://resobscura.substack.com/p/quality-non-fiction-books-are-the
+    reactions: 492
+    published: 2026-07-22
+    verdict: reflected
+  - id: reddit:1wdmdhp
+    kind: article
+    theme: slop
+    site: reddit
+    title: "Cursor's pstack skills now work in Claude Code"
+    url: https://www.reddit.com/r/ClaudeCode/comments/1wdmdhp/cursors_pstack_skills_now_work_in_claude_code/
+    reactions: 1
+    published: 2026-09-11
+    verdict: reflected
+    via: last30days-skill（試用。collect_articles.py の対象外）
+  - id: qiita:b633dda178c505461080
+    kind: article
+    theme: slop
+    site: qiita
+    title: "AIっぽくない画像を作る画風プロンプト38種類＋テンプレート"
+    url: https://qiita.com/maeda-niku18/items/b633dda178c505461080
+    reactions: 860
+    published: 2026-09-07
+    verdict: irrelevant
+    why: 画像生成のプロンプト集で、コーディングエージェントが書く文章・コード・UI の話ではない
