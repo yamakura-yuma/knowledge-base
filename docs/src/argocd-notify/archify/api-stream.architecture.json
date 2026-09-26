@@ -2,7 +2,7 @@
  "schema_version": 1,
  "diagram_type": "architecture",
  "meta": {
-  "title": "Notifications：設定は基盤側の ConfigMap に書く",
+  "title": "API stream：受け皿があふれると捨て、切断中の分は戻らない",
   "quality_profile": "showcase",
   "legend": {
    "mode": "hidden"
@@ -12,7 +12,7 @@
   {
    "id": "app",
    "type": "external",
-   "label": "① Application",
+   "label": "Application",
    "sublabel": "状態が変わる",
    "pos": [
     40,
@@ -24,10 +24,10 @@
    ]
   },
   {
-   "id": "ctl",
+   "id": "srv",
    "type": "backend",
-   "label": "② 通知コントローラ",
-   "sublabel": "trigger を評価",
+   "label": "① argocd-server",
+   "sublabel": "変化を中継",
    "pos": [
     300,
     110
@@ -35,43 +35,28 @@
    "size": [
     172,
     64
-   ],
-   "tag": "⚠ 4 回失敗で諦める"
-  },
-  {
-   "id": "cm",
-   "type": "security",
-   "label": "③ notifications-cm",
-   "sublabel": "trigger・template",
-   "pos": [
-    300,
-    264
-   ],
-   "size": [
-    172,
-    64
-   ],
-   "tag": "⚠ 変更は基盤側"
-  },
-  {
-   "id": "sec",
-   "type": "database",
-   "label": "notifications-secret",
-   "sublabel": "Slack のトークン",
-   "pos": [
-    40,
-    264
-   ],
-   "size": [
-    172,
-    64
    ]
   },
   {
-   "id": "slack",
-   "type": "frontend",
-   "label": "④ Slack",
-   "sublabel": "宛先",
+   "id": "bc",
+   "type": "security",
+   "label": "② broadcaster",
+   "sublabel": "購読者の受け皿",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ あふれたら捨てる"
+  },
+  {
+   "id": "cli",
+   "type": "security",
+   "label": "③ 自前クライアント",
+   "sublabel": "常駐プログラム",
    "pos": [
     820,
     110
@@ -79,13 +64,28 @@
    "size": [
     172,
     64
+   ],
+   "tag": "⚠ retry・HA も自作"
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "④ 宛先",
+   "sublabel": "Slack など",
+   "pos": [
+    1080,
+    110
+   ],
+   "size": [
+    172,
+    64
    ]
   },
   {
-   "id": "dev",
-   "type": "external",
-   "label": "アプリの開発者",
-   "sublabel": "通知を足したい",
+   "id": "tok",
+   "type": "database",
+   "label": "apiKey トークン",
+   "sublabel": "Argo CD のアカウント",
    "pos": [
     820,
     264
@@ -102,53 +102,53 @@
    "label": "基盤側（基盤チームが管理）",
    "wraps": [
     "app",
-    "ctl",
-    "cm",
-    "sec"
+    "srv",
+    "bc"
    ]
   },
   {
    "kind": "security-group",
    "label": "利用者側（アプリチームが管理）",
    "wraps": [
-    "slack",
-    "dev"
+    "cli",
+    "rcv",
+    "tok"
    ]
   }
  ],
  "connections": [
   {
    "id": "c0",
-   "from": "ctl",
+   "from": "srv",
    "to": "app",
    "label": "watch"
   },
   {
    "id": "c1",
-   "from": "cm",
-   "to": "ctl",
-   "label": "読む"
+   "from": "srv",
+   "to": "bc",
+   "label": "中継"
   },
   {
    "id": "c2",
-   "from": "sec",
-   "to": "ctl",
-   "label": "鍵",
-   "variant": "dashed"
+   "from": "bc",
+   "to": "cli",
+   "label": "stream",
+   "variant": "emphasis"
   },
   {
    "id": "c3",
-   "from": "ctl",
-   "to": "slack",
-   "label": "webhook",
+   "from": "cli",
+   "to": "rcv",
+   "label": "HTTP",
    "variant": "emphasis"
   },
   {
    "id": "c4",
-   "from": "dev",
-   "to": "cm",
-   "label": "⚠ 編集を頼む",
-   "variant": "security"
+   "from": "tok",
+   "to": "cli",
+   "label": "認証",
+   "variant": "dashed"
   }
  ]
 }

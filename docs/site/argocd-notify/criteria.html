@@ -98,35 +98,8 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
-     図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
+  /* ページ冒頭のたとえ話（eli5） */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
-  figure.dd { margin:10px 0 26px; }
-  figure.dd svg { display:block; width:100%; height:auto; font-family:var(--sans); }
-  .dd .dd-paper { fill:var(--bg); }
-  .dd .dd-mask { fill:var(--bg); }
-  .dd .dd-node { fill:var(--surface); stroke:var(--ink); stroke-width:1; }
-  .dd .dd-store { fill:color-mix(in srgb, var(--ink) 5%, var(--bg)); stroke:var(--ink-2); stroke-width:1; }
-  .dd .dd-ext { fill:color-mix(in srgb, var(--ink) 3%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-focal { fill:color-mix(in srgb, var(--l1) 9%, var(--bg)); stroke:var(--l1); stroke-width:1.5; }
-  .dd .dd-line { stroke:var(--ink-2); stroke-width:1.2; fill:none; }
-  .dd .dd-line.dd-acc { stroke:var(--l1); stroke-width:1.6; }
-  .dd .dd-base { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-drop { stroke:var(--line); stroke-width:1; }
-  .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
-  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
-  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
-  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
-  .dd text { fill:var(--ink); }
-  .dd .dd-name { font-size:14px; font-weight:600; }
-  .dd .dd-sub, .dd .dd-lbl, .dd .dd-lbl text { font-size:12.5px; fill:var(--ink-2); }
-  .dd .dd-eyebrow { font-size:12.5px; fill:var(--ink-2); letter-spacing:.04em; }
-  .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
-  .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
-
   /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
      サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
   figure.arch { margin:10px 0 26px; }
@@ -190,29 +163,145 @@
 <nav class="nav"><a href="index.html" class="">概要</a><a href="recommended.html" class="">推奨構成の詳細</a><a href="criteria.html" class="on">評価軸</a><a href="report.html" class="">実測の報告書</a><a href="notifications.html" class="">① Notifications</a><a href="hooks.html" class="">② PostSync / PostDelete</a><a href="knative.html" class="">③ Knative</a><a href="argo-events.html" class="">④ Argo Events</a><a href="finalizer.html" class="">⑤ 自前 finalizer</a><a href="api-stream.html" class="">⑥ API stream</a></nav>
 <p class="eli5">方式を比べるとき、「壊れにくさ」を一つの点数にすると大事な違いが消えます。そこで二つに分けました。一つは見張り役の強さで、見張りの Pod が再起動していた間に消えた Namespace を、あとから拾えるか。もう一つは配達の強さで、宛先が留守のときに手紙を保管して配り直せるか。ほかにも「通知を変えるたびに基盤チームの設定を触るか」など、全部で 11 本の物差しを使います。</p>
 
-<figure class="dd">
-<svg viewBox="0 40 960 230" role="img" aria-labelledby="dd-crit-title dd-crit-desc">
-<title id="dd-crit-title">耐障害性は 2 層に分けて測る</title>
-<desc id="dd-crit-desc">検知層（止まっていた間の変化を拾えるか）と配送層（送れなかったものを再送・保管できるか）を別の物差しで測る。推奨構成は両方を満たす。</desc>
-<defs><marker id="dd-crit-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="40" width="960" height="230"/>
-<line class="dd-base" x1="120" y1="240" x2="900" y2="240"/>
-<line class="dd-base" x1="120" y1="240" x2="120" y2="50"/>
-<text class="dd-sub" x="510" y="270" text-anchor="middle">配送層：再送・DLQ・保管</text>
-<text class="dd-sub" x="120" y="44" text-anchor="start">検知層：止まった間を拾えるか</text>
-<rect class="dd-ext" x="170" y="176" width="180" height="48" rx="6"/>
-<text class="dd-name" x="260" y="205" text-anchor="middle">on-deleted</text>
-<rect class="dd-node" x="610" y="176" width="180" height="48" rx="6"/>
-<text class="dd-name" x="700" y="205" text-anchor="middle">Knative 単体</text>
-<rect class="dd-node" x="170" y="66" width="180" height="48" rx="6"/>
-<text class="dd-name" x="260" y="95" text-anchor="middle">finalizer（直接送る）</text>
-<rect class="dd-focal" x="610" y="66" width="180" height="48" rx="6"/>
-<text class="dd-name" x="700" y="95" text-anchor="middle">推奨構成</text>
-<text class="dd-lbl" x="900" y="256" text-anchor="end">強い →</text>
-<text class="dd-lbl" x="112" y="64" text-anchor="end">強い ↑</text>
-</svg>
-</figure>
+<figure class="arch"><svg viewBox="0 0 1062 416" role="img" lang="en" aria-labelledby="ax-criteria-architecture-archify-diagram-title ax-criteria-architecture-archify-diagram-description">
+        <title id="ax-criteria-architecture-archify-diagram-title">評価軸：処理のどこを測るか</title>
+        <desc id="ax-criteria-architecture-archify-diagram-description">An architecture diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-criteria-architecture-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-criteria-architecture-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-criteria-architecture-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-criteria-architecture-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-criteria-architecture-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-criteria-architecture-grid)" />
+        <rect x="10" y="80" width="752" height="268" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="790" y="80" width="232" height="268" rx="8" class="c-security-group" stroke-width="1"/>
+        <path d="M 300 142 L 212 142" class="a-default" stroke-width="1.5" marker-end="url(#ax-criteria-architecture-arrowhead)"/>
+        <path d="M 472 142 L 560 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-criteria-architecture-arrowhead-emphasis)"/>
+        <path d="M 732 142 L 768 142 Q 776 142 776 150 L 776 288 Q 776 296 784 296 L 820 296" class="a-default" stroke-width="1.5" marker-end="url(#ax-criteria-architecture-arrowhead)"/>
+        <path d="M 906 264 L 906 174" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-criteria-architecture-arrowhead-emphasis)"/>
+        <path d="M 386 264 L 386 174" class="a-dashed" stroke-width="1.5" marker-end="url(#ax-criteria-architecture-arrowhead-dashed)"/>
+        <g id="ax-criteria-architecture-node-ns" tabindex="0" role="button" aria-label="Focus Namespace・Application, 変化が起きる, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>Namespace・Application · 変化が起きる · 基盤側（基盤チームが管理）</title>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(46 116) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="126" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Namespace・Application</text>
+        <text x="126" y="156" class="t-muted" font-size="9" text-anchor="middle">変化が起きる</text>
+        </g>
+        <g id="ax-criteria-architecture-node-det" tabindex="0" role="button" aria-label="Focus ① 検知, watch・札・突き合わせ, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>① 検知 · watch・札・突き合わせ · 基盤側（基盤チームが管理） · 検知層の耐障害性</title>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="110" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(306 116) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="386" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① 検知</text>
+        <text x="386" y="156" class="t-muted" font-size="9" text-anchor="middle">watch・札・突き合わせ</text>
+        <text x="386" y="166" class="t-security" font-size="7" text-anchor="middle">検知層の耐障害性</text>
+        </g>
+        <g id="ax-criteria-architecture-node-cfg" tabindex="0" role="button" aria-label="Focus ② 設定の置き場所, どこを触るか, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>② 設定の置き場所 · どこを触るか · 基盤側（基盤チームが管理） · ⚠ 基盤側なら減点</title>
+          <rect x="300" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="264" width="172" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(306 270) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="386" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">② 設定の置き場所</text>
+        <text x="386" y="310" class="t-muted" font-size="9" text-anchor="middle">どこを触るか</text>
+        <text x="386" y="320" class="t-database" font-size="7" text-anchor="middle">⚠ 基盤側なら減点</text>
+        </g>
+        <g id="ax-criteria-architecture-node-dlv" tabindex="0" role="button" aria-label="Focus ③ 配送, Broker・retry, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>③ 配送 · Broker・retry · 基盤側（基盤チームが管理） · 配送層の回復性</title>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="560" y="110" width="172" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(566 116) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="646" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ 配送</text>
+        <text x="646" y="156" class="t-muted" font-size="9" text-anchor="middle">Broker・retry</text>
+        <text x="646" y="166" class="t-messagebus" font-size="7" text-anchor="middle">配送層の回復性</text>
+        </g>
+        <g id="ax-criteria-architecture-node-rcv" tabindex="0" role="button" aria-label="Focus ④ 受け手, 重複を id で消す, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>④ 受け手 · 重複を id で消す · 利用者側（アプリチームが管理） · 配送保証</title>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="110" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(826 116) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="906" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">④ 受け手</text>
+        <text x="906" y="156" class="t-muted" font-size="9" text-anchor="middle">重複を id で消す</text>
+        <text x="906" y="166" class="t-frontend" font-size="7" text-anchor="middle">配送保証</text>
+        </g>
+        <g id="ax-criteria-architecture-node-tr" tabindex="0" role="button" aria-label="Focus Trigger, 宛先ごと, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>Trigger · 宛先ごと · 利用者側（アプリチームが管理）</title>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(826 270) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="906" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Trigger</text>
+        <text x="906" y="310" class="t-muted" font-size="9" text-anchor="middle">宛先ごと</text>
+        </g>
+        <g>
+          <rect x="241" y="122" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="256" y="132" class="t-muted" font-size="8" text-anchor="middle">見る</text>
+        </g>
+        <g>
+          <rect x="491.8" y="122" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="516" y="132" class="t-backend" font-size="8" text-anchor="middle">イベント</text>
+        </g>
+        <g>
+          <rect x="761" y="199" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="776" y="209" class="t-muted" font-size="8" text-anchor="middle">転送</text>
+        </g>
+        <g>
+          <rect x="891" y="244" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="906" y="254" class="t-backend" font-size="8" text-anchor="middle">配る</text>
+        </g>
+        <g>
+          <rect x="371" y="244" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="386" y="254" class="t-messagebus" font-size="8" text-anchor="middle">設定</text>
+        </g>
+        <g>
+          <rect x="14" y="90" width="150.4" height="16" rx="3" class="c-mask"/>
+          <text x="18" y="103" class="t-cloud" font-size="9" font-weight="600">基盤側（基盤チームが管理）</text>
+        </g>
+        <g>
+          <rect x="794" y="90" width="172" height="16" rx="3" class="c-mask"/>
+          <text x="798" y="103" class="t-security" font-size="9" font-weight="600">利用者側（アプリチームが管理）</text>
+        </g>
+      </svg></figure>
 
+<p><strong>図の読み方</strong></p>
+<ul>
+<li>① 検知: 変化をどう見るか。検知層の耐障害性の軸で測る</li>
+<li>② 設定の置き場所: 通知を変えるたびに基盤側を触るなら大きく減点（変更時の作業の採点）</li>
+<li>③ 配送: Broker・retry・DLQ。配送層の回復性の軸</li>
+<li>④ 受け手: 重複を id で消せるか。配送保証の軸。利用者側に置く</li>
+</ul>
+<p>（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）</p>
 <h2>評価軸</h2>
 <p>「マイクロサービス適正」を 1 列で済ませず、実在を確かめた 4 つの出典の品質特性に分解した。</p>
 <table>

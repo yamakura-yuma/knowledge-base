@@ -6,6 +6,16 @@
 
 <!-- archify: recommended.architecture -->
 
+**図の読み方**
+
+- ① Namespace を消すのは基盤の既存 Job。推奨構成はこれを観測するだけ
+- ② ApiServerSource（基盤側）。⚠ 停止中の削除を落とす（取りこぼす条件の表）
+- ③ 観測 Service が PingSource で毎分照合し、②で落ちた分を拾う
+- ④ Broker（基盤側）。⚠ InMemoryChannel だと失う。永続化した土台を使う
+- ⑤⑥ 利用者側は Trigger・受け手・Secret を自分の Namespace に置く。基盤に頼むのは転送 1 本だけ
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
+
 
 
 

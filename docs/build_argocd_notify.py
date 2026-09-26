@@ -139,35 +139,8 @@ CSS = """
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
-     図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
+  /* ページ冒頭のたとえ話（eli5） */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
-  figure.dd { margin:10px 0 26px; }
-  figure.dd svg { display:block; width:100%; height:auto; font-family:var(--sans); }
-  .dd .dd-paper { fill:var(--bg); }
-  .dd .dd-mask { fill:var(--bg); }
-  .dd .dd-node { fill:var(--surface); stroke:var(--ink); stroke-width:1; }
-  .dd .dd-store { fill:color-mix(in srgb, var(--ink) 5%, var(--bg)); stroke:var(--ink-2); stroke-width:1; }
-  .dd .dd-ext { fill:color-mix(in srgb, var(--ink) 3%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-focal { fill:color-mix(in srgb, var(--l1) 9%, var(--bg)); stroke:var(--l1); stroke-width:1.5; }
-  .dd .dd-line { stroke:var(--ink-2); stroke-width:1.2; fill:none; }
-  .dd .dd-line.dd-acc { stroke:var(--l1); stroke-width:1.6; }
-  .dd .dd-base { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-drop { stroke:var(--line); stroke-width:1; }
-  .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
-  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
-  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
-  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
-  .dd text { fill:var(--ink); }
-  .dd .dd-name { font-size:14px; font-weight:600; }
-  .dd .dd-sub, .dd .dd-lbl, .dd .dd-lbl text { font-size:12.5px; fill:var(--ink-2); }
-  .dd .dd-eyebrow { font-size:12.5px; fill:var(--ink-2); letter-spacing:.04em; }
-  .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
-  .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
-
   /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
      サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
   figure.arch { margin:10px 0 26px; }

@@ -4,28 +4,16 @@
 
 <p class="eli5">方式を比べるとき、「壊れにくさ」を一つの点数にすると大事な違いが消えます。そこで二つに分けました。一つは見張り役の強さで、見張りの Pod が再起動していた間に消えた Namespace を、あとから拾えるか。もう一つは配達の強さで、宛先が留守のときに手紙を保管して配り直せるか。ほかにも「通知を変えるたびに基盤チームの設定を触るか」など、全部で 11 本の物差しを使います。</p>
 
-<figure class="dd">
-<svg viewBox="0 40 960 230" role="img" aria-labelledby="dd-crit-title dd-crit-desc">
-<title id="dd-crit-title">耐障害性は 2 層に分けて測る</title>
-<desc id="dd-crit-desc">検知層（止まっていた間の変化を拾えるか）と配送層（送れなかったものを再送・保管できるか）を別の物差しで測る。推奨構成は両方を満たす。</desc>
-<defs><marker id="dd-crit-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-crit-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="40" width="960" height="230"/>
-<line class="dd-base" x1="120" y1="240" x2="900" y2="240"/>
-<line class="dd-base" x1="120" y1="240" x2="120" y2="50"/>
-<text class="dd-sub" x="510" y="270" text-anchor="middle">配送層：再送・DLQ・保管</text>
-<text class="dd-sub" x="120" y="44" text-anchor="start">検知層：止まった間を拾えるか</text>
-<rect class="dd-ext" x="170" y="176" width="180" height="48" rx="6"/>
-<text class="dd-name" x="260" y="205" text-anchor="middle">on-deleted</text>
-<rect class="dd-node" x="610" y="176" width="180" height="48" rx="6"/>
-<text class="dd-name" x="700" y="205" text-anchor="middle">Knative 単体</text>
-<rect class="dd-node" x="170" y="66" width="180" height="48" rx="6"/>
-<text class="dd-name" x="260" y="95" text-anchor="middle">finalizer（直接送る）</text>
-<rect class="dd-focal" x="610" y="66" width="180" height="48" rx="6"/>
-<text class="dd-name" x="700" y="95" text-anchor="middle">推奨構成</text>
-<text class="dd-lbl" x="900" y="256" text-anchor="end">強い →</text>
-<text class="dd-lbl" x="112" y="64" text-anchor="end">強い ↑</text>
-</svg>
-</figure>
+<!-- archify: criteria.architecture -->
+
+**図の読み方**
+
+- ① 検知: 変化をどう見るか。検知層の耐障害性の軸で測る
+- ② 設定の置き場所: 通知を変えるたびに基盤側を触るなら大きく減点（変更時の作業の採点）
+- ③ 配送: Broker・retry・DLQ。配送層の回復性の軸
+- ④ 受け手: 重複を id で消せるか。配送保証の軸。利用者側に置く
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 

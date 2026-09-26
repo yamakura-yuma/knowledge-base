@@ -6,42 +6,17 @@
 
 <p class="eli5">部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。Namespace を消すと、中の Pod や Deployment が順に片づけられ、最後に Namespace そのものが消えます。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで、建物の外に見張り役を置きます。見張り役は Kubernetes に「この Namespace はまだあるか」を問い合わせ続け、完全に消えたのを見てから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
 
-<figure class="dd">
-<svg viewBox="0 36 960 220" role="img" aria-labelledby="dd-index-title dd-index-desc">
-<title id="dd-index-title">推奨構成：外から見張って、消えたことを 1 通で届ける</title>
-<desc id="dd-index-desc">基盤チームの Job が Namespace を消すと、外に置いた見張り役が消えたのを確かめて Broker に 1 通送り、利用者の Trigger を通って宛先へ届く。</desc>
-<defs><marker id="dd-index-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="36" width="960" height="220"/>
-<line class="dd-bound" x1="636" y1="44" x2="636" y2="240"/>
-<path class="dd-line" d="M184,152 L228,152" marker-end="url(#dd-index-ar)"/>
-<path class="dd-line dd-acc" d="M384,152 L436,152" marker-end="url(#dd-index-ara)"/>
-<path class="dd-line" d="M580,152 L676,152" marker-end="url(#dd-index-ar)"/>
-<path class="dd-line" d="M796,152 L836,152" marker-end="url(#dd-index-ar)"/>
-<text class="dd-eyebrow" x="620" y="58" text-anchor="end">基盤チームが持つ（触らない）</text>
-<text class="dd-eyebrow" x="652" y="58" text-anchor="start">あなたが持つ</text>
-<rect class="dd-store" x="40" y="124" width="144" height="56" rx="6"/>
-<text class="dd-name" x="112" y="148" text-anchor="middle">Namespace</text>
-<text class="dd-sub" x="112" y="166" text-anchor="middle">Job が消す</text>
-<rect class="dd-focal" x="232" y="112" width="152" height="80" rx="6"/>
-<text class="dd-name" x="308" y="139" text-anchor="middle">見張り役</text>
-<text class="dd-sub" x="308" y="157" text-anchor="middle">消えたのを確かめる</text>
-<text class="dd-sub" x="308" y="175" text-anchor="middle">1 分ごとに照合</text>
-<rect class="dd-store" x="440" y="124" width="140" height="56" rx="6"/>
-<text class="dd-name" x="510" y="148" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="510" y="166" text-anchor="middle">入口は 1 つ</text>
-<rect class="dd-node" x="680" y="124" width="116" height="56" rx="6"/>
-<text class="dd-name" x="738" y="148" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="738" y="166" text-anchor="middle">再送・DLQ</text>
-<rect class="dd-ext" x="840" y="124" width="96" height="56" rx="6"/>
-<text class="dd-name" x="888" y="148" text-anchor="middle">宛先</text>
-<text class="dd-sub" x="888" y="166" text-anchor="middle">Slack など</text>
-<rect class="dd-mask" x="385" y="124" width="50" height="16" rx="2"/>
-<text class="dd-lbl dd-acc-t" x="410" y="136" text-anchor="middle">1 通</text>
-<rect class="dd-mask" x="609" y="124" width="38" height="16" rx="2"/>
-<text class="dd-lbl" x="628" y="136" text-anchor="middle">転送</text>
-<text class="dd-aside" x="232" y="228" text-anchor="start">Argo CD の設定にも Job にも手を入れない</text>
-</svg>
-</figure>
+<!-- archify: index.architecture -->
+
+**図の読み方**
+
+- ① 基盤チームの既存の Job が Namespace を消す。通知のためにこの Job には手を入れない
+- ② ApiServerSource が Namespace の消滅を watch して、Broker に送る。⚠ 止まっている間の削除は取りこぼす（取りこぼす条件の表「受信役の停止中の削除」）
+- ③ PingSource が毎分起こす観測 Service が uid 一覧と照合し、②の取りこぼしを同じ id で送り直す
+- ④ Broker は全チーム共通の入口。⚠ 保管しない InMemoryChannel だと再起動で失う（取りこぼす条件の表）
+- ⑤⑥ 利用者側は自分の Namespace の Trigger・受け手・Secret だけを持つ。宛先・条件・本文の変更はここで済む（変更時の作業の表で「通知側」）
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 ---
 

@@ -1,0 +1,159 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "PostDelete hook：Job はアプリのマニフェストに入る",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ctl",
+   "type": "backend",
+   "label": "① application-controller",
+   "sublabel": "hook の Job を作る",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "proj",
+   "type": "database",
+   "label": "AppProject",
+   "sublabel": "Job の作成を許す",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "res",
+   "type": "external",
+   "label": "② Pod・ConfigMap",
+   "sublabel": "先に消える",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "job",
+   "type": "backend",
+   "label": "③ PostDelete Job",
+   "sublabel": "アプリの manifest",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 失敗で削除が詰まる"
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "Secret",
+   "sublabel": "宛先の鍵（アプリごと）",
+   "pos": [
+    560,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 全アプリに置く"
+  },
+  {
+   "id": "slack",
+   "type": "frontend",
+   "label": "④ Slack",
+   "sublabel": "宛先",
+   "pos": [
+    1080,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "ctl",
+    "proj"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "res",
+    "job",
+    "sec",
+    "slack"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "ctl",
+   "to": "res",
+   "label": "削除"
+  },
+  {
+   "id": "c1",
+   "from": "ctl",
+   "to": "job",
+   "label": "作る",
+   "fromSide": "top",
+   "toSide": "top",
+   "via": [
+    [
+     126,
+     70
+    ],
+    [
+     646,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "c2",
+   "from": "sec",
+   "to": "job",
+   "label": "鍵",
+   "variant": "dashed"
+  },
+  {
+   "id": "c3",
+   "from": "job",
+   "to": "slack",
+   "label": "通知",
+   "variant": "emphasis"
+  }
+ ]
+}

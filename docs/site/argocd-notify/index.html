@@ -98,35 +98,8 @@
   .fig .t-bad { fill:var(--hot); }
   .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
 
-  /* ページ冒頭の「このページを一言で」: たとえ話 1 段落（eli5）と図 1 枚（diagram-design）。
-     図の色は diagram-design の意味の役割（paper・ink・muted・soft・rule・accent）をサイトの変数に割り当てたもの */
+  /* ページ冒頭のたとえ話（eli5） */
   .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
-  figure.dd { margin:10px 0 26px; }
-  figure.dd svg { display:block; width:100%; height:auto; font-family:var(--sans); }
-  .dd .dd-paper { fill:var(--bg); }
-  .dd .dd-mask { fill:var(--bg); }
-  .dd .dd-node { fill:var(--surface); stroke:var(--ink); stroke-width:1; }
-  .dd .dd-store { fill:color-mix(in srgb, var(--ink) 5%, var(--bg)); stroke:var(--ink-2); stroke-width:1; }
-  .dd .dd-ext { fill:color-mix(in srgb, var(--ink) 3%, var(--bg)); stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-focal { fill:color-mix(in srgb, var(--l1) 9%, var(--bg)); stroke:var(--l1); stroke-width:1.5; }
-  .dd .dd-line { stroke:var(--ink-2); stroke-width:1.2; fill:none; }
-  .dd .dd-line.dd-acc { stroke:var(--l1); stroke-width:1.6; }
-  .dd .dd-base { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-tick line { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-drop { stroke:var(--line); stroke-width:1; }
-  .dd .dd-bound { stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4; }
-  .dd .dd-ah { fill:var(--ink-2); } .dd .dd-ah-acc { fill:var(--l1); } .dd .dd-ah-red { fill:var(--hot); }
-  .dd .dd-line.dd-red { stroke:var(--hot); stroke-width:1.4; } .dd .dd-dash { stroke-dasharray:5 4; }
-  .dd .dd-dot-red { fill:var(--hot); } .dd .dd-red-t, .dd text.dd-red-t { fill:var(--hot); }
-  .dd .dd-tick { stroke:var(--ink-3); stroke-width:1; }
-  .dd .dd-dot { fill:var(--ink-2); } .dd .dd-dot-acc { fill:var(--l1); }
-  .dd text { fill:var(--ink); }
-  .dd .dd-name { font-size:14px; font-weight:600; }
-  .dd .dd-sub, .dd .dd-lbl, .dd .dd-lbl text { font-size:12.5px; fill:var(--ink-2); }
-  .dd .dd-eyebrow { font-size:12.5px; fill:var(--ink-2); letter-spacing:.04em; }
-  .dd .dd-aside { font-size:13.5px; fill:var(--ink-2); }
-  .dd .dd-acc-t, .dd text.dd-acc-t { fill:var(--l1); }
-
   /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
      サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
   figure.arch { margin:10px 0 26px; }
@@ -191,43 +164,191 @@
 <h2 id="grareco">このページを一言で</h2>
 <p class="eli5">部屋（Namespace）を作ったり片づけたりするのは、建物の管理会社（基盤チーム）の仕事です。Namespace を消すと、中の Pod や Deployment が順に片づけられ、最後に Namespace そのものが消えます。管理会社の掲示板（Argo CD の通知機能）は「片づけを始めました」の時点で鳴ってしまい、中身を変えるにも管理会社に頼むしかありません。そこで、建物の外に見張り役を置きます。見張り役は Kubernetes に「この Namespace はまだあるか」を問い合わせ続け、完全に消えたのを見てから、あなたの郵便受けに手紙を一通だけ入れます。うたた寝しても一分ごとに名簿と見比べるので、手紙はあとから必ず届きます。</p>
 
-<figure class="dd">
-<svg viewBox="0 36 960 220" role="img" aria-labelledby="dd-index-title dd-index-desc">
-<title id="dd-index-title">推奨構成：外から見張って、消えたことを 1 通で届ける</title>
-<desc id="dd-index-desc">基盤チームの Job が Namespace を消すと、外に置いた見張り役が消えたのを確かめて Broker に 1 通送り、利用者の Trigger を通って宛先へ届く。</desc>
-<defs><marker id="dd-index-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-index-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="36" width="960" height="220"/>
-<line class="dd-bound" x1="636" y1="44" x2="636" y2="240"/>
-<path class="dd-line" d="M184,152 L228,152" marker-end="url(#dd-index-ar)"/>
-<path class="dd-line dd-acc" d="M384,152 L436,152" marker-end="url(#dd-index-ara)"/>
-<path class="dd-line" d="M580,152 L676,152" marker-end="url(#dd-index-ar)"/>
-<path class="dd-line" d="M796,152 L836,152" marker-end="url(#dd-index-ar)"/>
-<text class="dd-eyebrow" x="620" y="58" text-anchor="end">基盤チームが持つ（触らない）</text>
-<text class="dd-eyebrow" x="652" y="58" text-anchor="start">あなたが持つ</text>
-<rect class="dd-store" x="40" y="124" width="144" height="56" rx="6"/>
-<text class="dd-name" x="112" y="148" text-anchor="middle">Namespace</text>
-<text class="dd-sub" x="112" y="166" text-anchor="middle">Job が消す</text>
-<rect class="dd-focal" x="232" y="112" width="152" height="80" rx="6"/>
-<text class="dd-name" x="308" y="139" text-anchor="middle">見張り役</text>
-<text class="dd-sub" x="308" y="157" text-anchor="middle">消えたのを確かめる</text>
-<text class="dd-sub" x="308" y="175" text-anchor="middle">1 分ごとに照合</text>
-<rect class="dd-store" x="440" y="124" width="140" height="56" rx="6"/>
-<text class="dd-name" x="510" y="148" text-anchor="middle">Broker</text>
-<text class="dd-sub" x="510" y="166" text-anchor="middle">入口は 1 つ</text>
-<rect class="dd-node" x="680" y="124" width="116" height="56" rx="6"/>
-<text class="dd-name" x="738" y="148" text-anchor="middle">Trigger</text>
-<text class="dd-sub" x="738" y="166" text-anchor="middle">再送・DLQ</text>
-<rect class="dd-ext" x="840" y="124" width="96" height="56" rx="6"/>
-<text class="dd-name" x="888" y="148" text-anchor="middle">宛先</text>
-<text class="dd-sub" x="888" y="166" text-anchor="middle">Slack など</text>
-<rect class="dd-mask" x="385" y="124" width="50" height="16" rx="2"/>
-<text class="dd-lbl dd-acc-t" x="410" y="136" text-anchor="middle">1 通</text>
-<rect class="dd-mask" x="609" y="124" width="38" height="16" rx="2"/>
-<text class="dd-lbl" x="628" y="136" text-anchor="middle">転送</text>
-<text class="dd-aside" x="232" y="228" text-anchor="start">Argo CD の設定にも Job にも手を入れない</text>
-</svg>
-</figure>
+<figure class="arch"><svg viewBox="0 0 1322 570" role="img" lang="en" aria-labelledby="ax-index-architecture-archify-diagram-title ax-index-architecture-archify-diagram-description">
+        <title id="ax-index-architecture-archify-diagram-title">推奨構成：基盤の設定に触らず、外から観測して届ける</title>
+        <desc id="ax-index-architecture-archify-diagram-description">An architecture diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-index-architecture-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-index-architecture-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-index-architecture-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-index-architecture-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-index-architecture-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-index-architecture-grid)" />
+        <rect x="10" y="80" width="752" height="422" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="790" y="234" width="492" height="268" rx="8" class="c-security-group" stroke-width="1"/>
+        <path d="M 126 174 L 126 264" class="a-default" stroke-width="1.5" marker-end="url(#ax-index-architecture-arrowhead)"/>
+        <path d="M 300 296 L 212 296" class="a-default" stroke-width="1.5" marker-end="url(#ax-index-architecture-arrowhead)"/>
+        <path d="M 472 296 L 560 296" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-index-architecture-arrowhead-emphasis)"/>
+        <path d="M 472 450 L 560 450" class="a-default" stroke-width="1.5" marker-end="url(#ax-index-architecture-arrowhead)"/>
+        <path d="M 646 418 L 646 328" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-index-architecture-arrowhead-emphasis)"/>
+        <path d="M 732 296 L 820 296" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-index-architecture-arrowhead-emphasis)"/>
+        <path d="M 992 296 L 1080 296" class="a-default" stroke-width="1.5" marker-end="url(#ax-index-architecture-arrowhead)"/>
+        <path d="M 1166 418 L 1166 328" class="a-dashed" stroke-width="1.5" marker-end="url(#ax-index-architecture-arrowhead-dashed)"/>
+        <g id="ax-index-architecture-node-job" tabindex="0" role="button" aria-label="Focus ① Namespace 削除 Job, 基盤の既存部品, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>① Namespace 削除 Job · 基盤の既存部品 · 基盤側（基盤チームが管理）</title>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(46 116) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="126" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① Namespace 削除 Job</text>
+        <text x="126" y="156" class="t-muted" font-size="9" text-anchor="middle">基盤の既存部品</text>
+        </g>
+        <g id="ax-index-architecture-node-ns" tabindex="0" role="button" aria-label="Focus Namespace, ラベル付き, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>Namespace · ラベル付き · 基盤側（基盤チームが管理）</title>
+          <rect x="40" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="264" width="172" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-external" transform="translate(46 270) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text x="126" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Namespace</text>
+        <text x="126" y="310" class="t-muted" font-size="9" text-anchor="middle">ラベル付き</text>
+        </g>
+        <g id="ax-index-architecture-node-src" tabindex="0" role="button" aria-label="Focus ② ApiServerSource, Namespace を watch, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>② ApiServerSource · Namespace を watch · 基盤側（基盤チームが管理） · ⚠ 停止中の削除を落とす</title>
+          <rect x="300" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="264" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(306 270) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="386" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">② ApiServerSource</text>
+        <text x="386" y="310" class="t-muted" font-size="9" text-anchor="middle">Namespace を watch</text>
+        <text x="386" y="320" class="t-security" font-size="7" text-anchor="middle">⚠ 停止中の削除を落とす</text>
+        </g>
+        <g id="ax-index-architecture-node-ping" tabindex="0" role="button" aria-label="Focus PingSource, 毎分, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>PingSource · 毎分 · 基盤側（基盤チームが管理）</title>
+          <rect x="300" y="418" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="300" y="418" width="172" height="64" rx="6" class="c-cloud" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-cloud" transform="translate(306 424) scale(0.6875)">
+            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+          </g>
+          <text x="386" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">PingSource</text>
+        <text x="386" y="464" class="t-muted" font-size="9" text-anchor="middle">毎分</text>
+        </g>
+        <g id="ax-index-architecture-node-obs" tabindex="0" role="button" aria-label="Focus ③ 観測 Service, uid 一覧と照合, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>③ 観測 Service · uid 一覧と照合 · 基盤側（基盤チームが管理） · 停止中の分を拾う</title>
+          <rect x="560" y="418" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="560" y="418" width="172" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(566 424) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="646" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">③ 観測 Service</text>
+        <text x="646" y="464" class="t-muted" font-size="9" text-anchor="middle">uid 一覧と照合</text>
+        <text x="646" y="474" class="t-backend" font-size="7" text-anchor="middle">停止中の分を拾う</text>
+        </g>
+        <g id="ax-index-architecture-node-brk" tabindex="0" role="button" aria-label="Focus ④ Broker, 入口は 1 つ, 基盤側（基盤チームが管理）" aria-pressed="false">
+          <title>④ Broker · 入口は 1 つ · 基盤側（基盤チームが管理） · ⚠ InMemory だと失う</title>
+          <rect x="560" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="560" y="264" width="172" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-messagebus" transform="translate(566 270) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
+          </g>
+          <text x="646" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">④ Broker</text>
+        <text x="646" y="310" class="t-muted" font-size="9" text-anchor="middle">入口は 1 つ</text>
+        <text x="646" y="320" class="t-messagebus" font-size="7" text-anchor="middle">⚠ InMemory だと失う</text>
+        </g>
+        <g id="ax-index-architecture-node-tr" tabindex="0" role="button" aria-label="Focus ⑤ Trigger, 条件・retry・DLQ, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>⑤ Trigger · 条件・retry・DLQ · 利用者側（アプリチームが管理）</title>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="820" y="264" width="172" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(826 270) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="906" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">⑤ Trigger</text>
+        <text x="906" y="310" class="t-muted" font-size="9" text-anchor="middle">条件・retry・DLQ</text>
+        </g>
+        <g id="ax-index-architecture-node-rcv" tabindex="0" role="button" aria-label="Focus ⑥ 受け手, Slack へ送る, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>⑥ 受け手 · Slack へ送る · 利用者側（アプリチームが管理）</title>
+          <rect x="1080" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="1080" y="264" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(1086 270) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="1166" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">⑥ 受け手</text>
+        <text x="1166" y="310" class="t-muted" font-size="9" text-anchor="middle">Slack へ送る</text>
+        </g>
+        <g id="ax-index-architecture-node-sec" tabindex="0" role="button" aria-label="Focus Secret, Slack の鍵, 利用者側（アプリチームが管理）" aria-pressed="false">
+          <title>Secret · Slack の鍵 · 利用者側（アプリチームが管理）</title>
+          <rect x="1080" y="418" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="1080" y="418" width="172" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(1086 424) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="1166" y="448" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Secret</text>
+        <text x="1166" y="464" class="t-muted" font-size="9" text-anchor="middle">Slack の鍵</text>
+        </g>
+        <g>
+          <rect x="111" y="178" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="126" y="188" class="t-muted" font-size="8" text-anchor="middle">削除</text>
+        </g>
+        <g>
+          <rect x="239" y="276" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="256" y="286" class="t-muted" font-size="8" text-anchor="middle">watch</text>
+        </g>
+        <g>
+          <rect x="496.6" y="276" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="516" y="286" class="t-backend" font-size="8" text-anchor="middle">delete</text>
+        </g>
+        <g>
+          <rect x="501" y="430" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="516" y="440" class="t-muted" font-size="8" text-anchor="middle">起動</text>
+        </g>
+        <g>
+          <rect x="624.2" y="398" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="646" y="408" class="t-backend" font-size="8" text-anchor="middle">同じ id</text>
+        </g>
+        <g>
+          <rect x="749.4" y="276" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
+          <text x="776" y="286" class="t-backend" font-size="8" text-anchor="middle">転送 1 本</text>
+        </g>
+        <g>
+          <rect x="1021" y="276" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1036" y="286" class="t-muted" font-size="8" text-anchor="middle">配る</text>
+        </g>
+        <g>
+          <rect x="1151" y="398" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="1166" y="408" class="t-messagebus" font-size="8" text-anchor="middle">鍵</text>
+        </g>
+        <g>
+          <rect x="14" y="90" width="150.4" height="16" rx="3" class="c-mask"/>
+          <text x="18" y="103" class="t-cloud" font-size="9" font-weight="600">基盤側（基盤チームが管理）</text>
+        </g>
+        <g>
+          <rect x="794" y="244" width="172" height="16" rx="3" class="c-mask"/>
+          <text x="798" y="257" class="t-security" font-size="9" font-weight="600">利用者側（アプリチームが管理）</text>
+        </g>
+      </svg></figure>
 
+<p><strong>図の読み方</strong></p>
+<ul>
+<li>① 基盤チームの既存の Job が Namespace を消す。通知のためにこの Job には手を入れない</li>
+<li>② ApiServerSource が Namespace の消滅を watch して、Broker に送る。⚠ 止まっている間の削除は取りこぼす（取りこぼす条件の表「受信役の停止中の削除」）</li>
+<li>③ PingSource が毎分起こす観測 Service が uid 一覧と照合し、②の取りこぼしを同じ id で送り直す</li>
+<li>④ Broker は全チーム共通の入口。⚠ 保管しない InMemoryChannel だと再起動で失う（取りこぼす条件の表）</li>
+<li>⑤⑥ 利用者側は自分の Namespace の Trigger・受け手・Secret だけを持つ。宛先・条件・本文の変更はここで済む（変更時の作業の表で「通知側」）</li>
+</ul>
+<p>（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）</p>
 <hr />
 <h2>結論</h2>
 <p><strong>前提:</strong> Knative Eventing を導入する。Namespace は基盤側の Job が消す。基盤側の設定（Argo CD 本体、<code>argocd-notifications-cm</code>、Namespace を消す Job）は、通知を足したり変えたりするときに触らない。</p>

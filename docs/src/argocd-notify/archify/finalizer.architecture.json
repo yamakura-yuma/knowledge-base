@@ -2,7 +2,7 @@
  "schema_version": 1,
  "diagram_type": "architecture",
  "meta": {
-  "title": "Notifications：設定は基盤側の ConfigMap に書く",
+  "title": "finalizer：札で削除を止め、送れたら外す",
   "quality_profile": "showcase",
   "legend": {
    "mode": "hidden"
@@ -13,7 +13,7 @@
    "id": "app",
    "type": "external",
    "label": "① Application",
-   "sublabel": "状態が変わる",
+   "sublabel": "札が 4 枚",
    "pos": [
     40,
     110
@@ -26,38 +26,8 @@
   {
    "id": "ctl",
    "type": "backend",
-   "label": "② 通知コントローラ",
-   "sublabel": "trigger を評価",
-   "pos": [
-    300,
-    110
-   ],
-   "size": [
-    172,
-    64
-   ],
-   "tag": "⚠ 4 回失敗で諦める"
-  },
-  {
-   "id": "cm",
-   "type": "security",
-   "label": "③ notifications-cm",
-   "sublabel": "trigger・template",
-   "pos": [
-    300,
-    264
-   ],
-   "size": [
-    172,
-    64
-   ],
-   "tag": "⚠ 変更は基盤側"
-  },
-  {
-   "id": "sec",
-   "type": "database",
-   "label": "notifications-secret",
-   "sublabel": "Slack のトークン",
+   "label": "② application-controller",
+   "sublabel": "Argo CD の札を外す",
    "pos": [
     40,
     264
@@ -68,10 +38,39 @@
    ]
   },
   {
-   "id": "slack",
-   "type": "frontend",
-   "label": "④ Slack",
-   "sublabel": "宛先",
+   "id": "mc",
+   "type": "security",
+   "label": "③ Metacontroller",
+   "sublabel": "自分の札を管理",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 止まると全削除が待つ"
+  },
+  {
+   "id": "hook",
+   "type": "backend",
+   "label": "④ finalize hook",
+   "sublabel": "残りが自分の札だけ→送る",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "brk",
+   "type": "messagebus",
+   "label": "Broker",
+   "sublabel": "入口",
    "pos": [
     820,
     110
@@ -82,13 +81,13 @@
    ]
   },
   {
-   "id": "dev",
-   "type": "external",
-   "label": "アプリの開発者",
-   "sublabel": "通知を足したい",
+   "id": "rcv",
+   "type": "frontend",
+   "label": "⑤ 受け手",
+   "sublabel": "Slack へ",
    "pos": [
-    820,
-    264
+    1080,
+    110
    ],
    "size": [
     172,
@@ -103,16 +102,16 @@
    "wraps": [
     "app",
     "ctl",
-    "cm",
-    "sec"
+    "mc",
+    "hook",
+    "brk"
    ]
   },
   {
    "kind": "security-group",
    "label": "利用者側（アプリチームが管理）",
    "wraps": [
-    "slack",
-    "dev"
+    "rcv"
    ]
   }
  ],
@@ -121,34 +120,38 @@
    "id": "c0",
    "from": "ctl",
    "to": "app",
-   "label": "watch"
+   "label": "札を外す"
   },
   {
    "id": "c1",
-   "from": "cm",
-   "to": "ctl",
-   "label": "読む"
+   "from": "mc",
+   "to": "app",
+   "label": "⚠ applications に書く",
+   "variant": "security",
+   "labelAt": [
+    256,
+    188
+   ]
   },
   {
    "id": "c2",
-   "from": "sec",
-   "to": "ctl",
-   "label": "鍵",
-   "variant": "dashed"
+   "from": "mc",
+   "to": "hook",
+   "label": "呼ぶ"
   },
   {
    "id": "c3",
-   "from": "ctl",
-   "to": "slack",
-   "label": "webhook",
+   "from": "hook",
+   "to": "brk",
+   "label": "CloudEvent",
    "variant": "emphasis"
   },
   {
    "id": "c4",
-   "from": "dev",
-   "to": "cm",
-   "label": "⚠ 編集を頼む",
-   "variant": "security"
+   "from": "brk",
+   "to": "rcv",
+   "label": "配る",
+   "variant": "emphasis"
   }
  ]
 }

@@ -4,54 +4,16 @@
 
 <p class="eli5">この報告書は、実験ノートです。一台の小さなクラスタ（kind）に Argo CD と各方式を入れ、アプリを作ったり消したりしながら、知らせがいつ・何通届くかを受け手の Pod の時計で記録しました。見張り役の Pod をわざと止めてみる、宛先がエラーを返すようにしてみる、といった意地悪な条件も試しています。全部で 18 本の実験（run）があり、それぞれ目的・手順・結果・解釈の順に書いてあります。</p>
 
-<figure class="dd">
-<svg viewBox="0 70 960 150" role="img" aria-labelledby="dd-rep-env-title dd-rep-env-desc">
-<title id="dd-rep-env-title">検証環境：1 台のクラスタに全部を入れて、受け手の時刻で比べた</title>
-<desc id="dd-rep-env-desc">kind の 1 ノードに Argo CD・Knative・Argo Events などを入れ、全方式の送信を 1 つの受け手が受けて時刻を記録した。</desc>
-<defs><marker id="dd-rep-env-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-env-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-env-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="70" width="960" height="150"/>
-<path class="dd-line" d="M236,120 L300,120" marker-end="url(#dd-rep-env-ar)"/>
-<path class="dd-line" d="M496,120 L560,120" marker-end="url(#dd-rep-env-ar)"/>
-<rect class="dd-node" x="40" y="92" width="196" height="56" rx="6"/>
-<text class="dd-name" x="138" y="116" text-anchor="middle">Argo CD</text>
-<text class="dd-sub" x="138" y="134" text-anchor="middle">テスト用アプリ</text>
-<rect class="dd-store" x="304" y="84" width="192" height="72" rx="6"/>
-<text class="dd-name" x="400" y="116" text-anchor="middle">各方式</text>
-<text class="dd-sub" x="400" y="134" text-anchor="middle">Knative・Argo Events など</text>
-<rect class="dd-focal" x="564" y="92" width="196" height="56" rx="6"/>
-<text class="dd-name" x="662" y="116" text-anchor="middle">受け手の Pod</text>
-<text class="dd-sub" x="662" y="134" text-anchor="middle">受信時刻を記録</text>
-<text class="dd-aside" x="40" y="190" text-anchor="start">kind 1 ノード / Kubernetes 1.33 / Broker は保管しない種類</text>
-</svg>
-</figure>
+<!-- archify: report.architecture -->
 
-<figure class="dd">
-<svg viewBox="0 36 960 100" role="img" aria-labelledby="dd-rep-map-title dd-rep-map-desc">
-<title id="dd-rep-map-title">主な run と、わかったこと</title>
-<desc id="dd-rep-map-desc">run3 で開始と完了の違い、run5 で停止中の取りこぼし、run8 で再送、run13 で重複の除去、run15 で Namespace の観測、run19 でデプロイ完了の観測を確かめた。</desc>
-<defs><marker id="dd-rep-map-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-map-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-rep-map-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="36" width="960" height="100"/>
-<line class="dd-base" x1="60" y1="80" x2="920" y2="80"/>
-<circle class="dd-dot-red" cx="100" cy="80" r="6"/>
-<text class="dd-name" x="100" y="58" text-anchor="middle">run3</text>
-<text class="dd-sub" x="100" y="108" text-anchor="middle">開始と完了は別</text>
-<circle class="dd-dot-red" cx="260" cy="80" r="6"/>
-<text class="dd-name" x="260" y="58" text-anchor="middle">run5</text>
-<text class="dd-sub" x="260" y="108" text-anchor="middle">止まると見逃す</text>
-<circle class="dd-dot" cx="420" cy="80" r="4"/>
-<text class="dd-name" x="420" y="58" text-anchor="middle">run8</text>
-<text class="dd-sub" x="420" y="108" text-anchor="middle">再送と DLQ</text>
-<circle class="dd-dot" cx="580" cy="80" r="4"/>
-<text class="dd-name" x="580" y="58" text-anchor="middle">run13</text>
-<text class="dd-sub" x="580" y="108" text-anchor="middle">同じ id で 1 通</text>
-<circle class="dd-dot" cx="740" cy="80" r="4"/>
-<text class="dd-name" x="740" y="58" text-anchor="middle">run15</text>
-<text class="dd-sub" x="740" y="108" text-anchor="middle">Namespace を観測</text>
-<circle class="dd-dot" cx="900" cy="80" r="4"/>
-<text class="dd-name" x="900" y="58" text-anchor="middle">run19</text>
-<text class="dd-sub" x="900" y="108" text-anchor="middle">デプロイも観測</text>
-</svg>
-</figure>
+**図の読み方**
+
+- ① Argo CD（基盤側）。⚠ on-deleted は削除開始で鳴った（run3）
+- ② Knative の Broker は InMemoryChannel。⚠ 保管しない（制約）
+- ③ ApiServerSource などの観測部品は obs namespace（基盤側）。⚠ 停止中の削除は取りこぼした（run5・run15）
+- ④⑤ テスト用アプリと受け手の Pod は利用者側の namespace。受け手が受信時刻を記録した
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 

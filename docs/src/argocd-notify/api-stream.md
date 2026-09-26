@@ -4,27 +4,16 @@
 
 <p class="eli5">Argo CD の本体（argocd-server）は、アプリの変化を流し続ける蛇口を持っています。自分のプログラムでその水を受ければ、消えた瞬間を 2 ミリ秒で知れます。けれども受け皿があふれると、あふれた分は黙って捨てられます。ホースが外れていた間に流れた分も戻りません。再送も、プログラムを二台にしたときの重複の整理も、すべて自分で書くことになります。</p>
 
-<figure class="dd">
-<svg viewBox="0 48 960 196" role="img" aria-labelledby="dd-api-title dd-api-desc">
-<title id="dd-api-title">API stream：受け取りが遅れると、途中で捨てられる</title>
-<desc id="dd-api-desc">argocd-server は Application の変化を購読者の受け皿に流す。受け皿がいっぱいなら捨て、つながっていない間の変化は後から届かない。</desc>
-<defs><marker id="dd-api-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-api-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-api-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="48" width="960" height="196"/>
-<path class="dd-line" d="M236,120 L300,120" marker-end="url(#dd-api-ar)"/>
-<path class="dd-line" d="M496,120 L560,120" marker-end="url(#dd-api-ar)"/>
-<path class="dd-line dd-red dd-dash" d="M398,148 L398,196" marker-end="url(#dd-api-arr)"/>
-<rect class="dd-node" x="40" y="92" width="196" height="56" rx="6"/>
-<text class="dd-name" x="138" y="116" text-anchor="middle">argocd-server</text>
-<text class="dd-sub" x="138" y="134" text-anchor="middle">変化を流す</text>
-<rect class="dd-store" x="304" y="92" width="192" height="56" rx="6"/>
-<text class="dd-name" x="400" y="116" text-anchor="middle">受け皿</text>
-<text class="dd-sub" x="400" y="134" text-anchor="middle">いっぱいなら捨てる</text>
-<rect class="dd-ext" x="564" y="92" width="196" height="56" rx="6"/>
-<text class="dd-name" x="662" y="116" text-anchor="middle">自前のプログラム</text>
-<text class="dd-sub" x="662" y="134" text-anchor="middle">再送・重複も自前</text>
-<text class="dd-name dd-red-t" x="304" y="212" text-anchor="start">捨てた分・切れていた間の分は戻らない</text>
-</svg>
-</figure>
+<!-- archify: api-stream.architecture -->
+
+**図の読み方**
+
+- ① argocd-server（基盤側）が Application の変化を中継する
+- ② broadcaster が購読者の受け皿に流す。⚠ 受け皿があふれたら捨てる（評価マトリクス「配送保証 ×」）
+- ③ 自前クライアント（利用者側）。⚠ 切断中の分は戻らず、retry・HA も自作（評価マトリクス「検知層 ×」「配送層 ×」「運用負荷 ×」）
+- ④ Argo CD のアカウントと apiKey トークンが要る
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 

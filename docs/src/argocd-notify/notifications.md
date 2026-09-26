@@ -8,20 +8,24 @@
 
 <!-- archify: notifications.architecture -->
 
-<figure class="dd">
-<svg viewBox="0 36 960 100" role="img" aria-labelledby="dd-notif-t-title dd-notif-t-desc">
-<title id="dd-notif-t-title">on-deleted が鳴る時点</title>
-<desc id="dd-notif-t-desc">削除を依頼して 0.05 秒で on-deleted が鳴り、Application が消えるのは 6.80 秒後（run3）。</desc>
-<defs><marker id="dd-notif-t-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-t-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-notif-t-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="36" width="960" height="100"/>
-<line class="dd-base" x1="80" y1="80" x2="900" y2="80"/>
-<circle class="dd-dot-red" cx="85.9" cy="80" r="6"/>
-<circle class="dd-dot" cx="882.4" cy="80" r="4"/>
-<text class="dd-name dd-red-t" x="85.9" y="58" text-anchor="start">on-deleted が鳴る（0.05 秒）</text>
-<text class="dd-sub" x="882.4" y="110" text-anchor="end">Application が消える（6.80 秒）</text>
-<text class="dd-sub" x="80" y="110" text-anchor="start">削除を依頼</text>
-</svg>
-</figure>
+**図の読み方**
+
+- ① Application の状態が変わる（どちらも argocd namespace、基盤側）
+- ② 通知コントローラが trigger を評価して Slack に送る。⚠ 4 回失敗すると諦めて再送しない（評価マトリクス「配送層の回復性 △」）
+- ③ trigger・template・宛先は基盤側の notifications-cm に書く。⚠ 宛先の追加・条件・本文の変更は基盤側（変更時の作業の表で ×）
+- ④ 利用者側にあるのは宛先だけ。通知を足すには基盤に編集を頼む
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
+
+<!-- archify: notifications-time.sequence -->
+
+**図の読み方**
+
+- ① 削除を頼むと、0.05 秒後に通知コントローラが deletionTimestamp を見て on-deleted を送る。⚠ まだ Pod も消えていない（評価マトリクス「削除完了の検知 ×」）
+- ② Pod などは 3.45 秒、Application は 6.80 秒で消えるが、⚠ 消えた時点の通知は出ない
+- 縦の列の見出しの「基盤側」「利用者側」が、そのコンポーネントの持ち主
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 

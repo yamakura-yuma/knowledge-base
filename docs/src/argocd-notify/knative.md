@@ -6,7 +6,16 @@
 
 <p class="eli5">Knative Eventing は、クラスタの中の郵便局のようなものです。受付係（ApiServerSource）が Kubernetes の変化（Namespace ができた・消えた）を見て手紙にし、郵便局（Broker）に預けます。郵便局は手紙を保管し、宛先が留守なら時間をおいて配り直し、それでもだめなら保管箱（DLQ）に入れます。弱点は受付係です。受付係の Pod が再起動している間に起きた変化は、手紙にならず、あとから思い出すこともありません。</p>
 
-<!-- archify: knative.dataflow -->
+<!-- archify: knative.architecture -->
+
+**図の読み方**
+
+- ① ApiServerSource（基盤側）が Namespace を watch して CloudEvent にする。⚠ 停止中の変化は取りこぼす（評価マトリクス「検知層の耐障害性 ×」）
+- ② Broker（基盤側）が保管し、retry する
+- ③ Trigger（利用者側）が type で振り分ける。上限を超えたら DLQ へ
+- ④ 宛先は利用者側。宛先・条件の変更は通知側で済む（変更時の作業の表）
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 

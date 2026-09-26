@@ -1,0 +1,156 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "評価軸：処理のどこを測るか",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "Namespace・Application",
+   "sublabel": "変化が起きる",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "det",
+   "type": "security",
+   "label": "① 検知",
+   "sublabel": "watch・札・突き合わせ",
+   "pos": [
+    300,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "検知層の耐障害性"
+  },
+  {
+   "id": "cfg",
+   "type": "database",
+   "label": "② 設定の置き場所",
+   "sublabel": "どこを触るか",
+   "pos": [
+    300,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "⚠ 基盤側なら減点"
+  },
+  {
+   "id": "dlv",
+   "type": "messagebus",
+   "label": "③ 配送",
+   "sublabel": "Broker・retry",
+   "pos": [
+    560,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "配送層の回復性"
+  },
+  {
+   "id": "rcv",
+   "type": "frontend",
+   "label": "④ 受け手",
+   "sublabel": "重複を id で消す",
+   "pos": [
+    820,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "配送保証"
+  },
+  {
+   "id": "tr",
+   "type": "backend",
+   "label": "Trigger",
+   "sublabel": "宛先ごと",
+   "pos": [
+    820,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "基盤側（基盤チームが管理）",
+   "wraps": [
+    "ns",
+    "det",
+    "cfg",
+    "dlv"
+   ]
+  },
+  {
+   "kind": "security-group",
+   "label": "利用者側（アプリチームが管理）",
+   "wraps": [
+    "rcv",
+    "tr"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "det",
+   "to": "ns",
+   "label": "見る"
+  },
+  {
+   "id": "c1",
+   "from": "det",
+   "to": "dlv",
+   "label": "イベント",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c2",
+   "from": "dlv",
+   "to": "tr",
+   "label": "転送"
+  },
+  {
+   "id": "c3",
+   "from": "tr",
+   "to": "rcv",
+   "label": "配る",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "cfg",
+   "to": "det",
+   "label": "設定",
+   "variant": "dashed"
+  }
+ ]
+}

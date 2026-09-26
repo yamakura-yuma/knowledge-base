@@ -4,48 +4,26 @@
 
 <p class="eli5">引っ越し業者は、荷物を全部運び出すと「終わりました」と電話をくれますが、それは部屋の鍵を返す前です。Argo CD の PostDelete hook も同じ形で、アプリの Pod や ConfigMap を消し終えたあと、アプリ自身の Job（一回だけ動いて終わる Pod）が知らせを送ります。ところがその時点で、アプリの登録（Application）はまだ残っています。しかも Job が失敗すると Argo CD は片づけを終えないので、宛先が落ちていると削除そのものが止まります。</p>
 
-<figure class="dd">
-<svg viewBox="0 32 960 232" role="img" aria-labelledby="dd-hooks-title dd-hooks-desc">
-<title id="dd-hooks-title">PostDelete hook が送る時点と、Application が消える時点</title>
-<desc id="dd-hooks-desc">削除を依頼してから 3.45 秒で管理リソースが消え、4.29 秒に hook の Job が通知を送り、Application が消えるのは 6.80 秒（run3 の実測）。</desc>
-<defs><marker id="dd-hooks-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah" points="0 0, 8 3, 0 6"/></marker><marker id="dd-hooks-ara" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-acc" points="0 0, 8 3, 0 6"/></marker><marker id="dd-hooks-arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="dd-ah-red" points="0 0, 8 3, 0 6"/></marker></defs>
-<rect class="dd-paper" x="0" y="32" width="960" height="232"/>
-<line class="dd-base" x1="60" y1="164" x2="920" y2="164" marker-end="url(#dd-hooks-ar)"/>
-<line class="dd-tick" x1="60" y1="160" x2="60" y2="168"/>
-<line class="dd-tick" x1="180" y1="160" x2="180" y2="168"/>
-<line class="dd-tick" x1="300" y1="160" x2="300" y2="168"/>
-<line class="dd-tick" x1="420" y1="160" x2="420" y2="168"/>
-<line class="dd-tick" x1="540" y1="160" x2="540" y2="168"/>
-<line class="dd-tick" x1="660" y1="160" x2="660" y2="168"/>
-<line class="dd-tick" x1="780" y1="160" x2="780" y2="168"/>
-<line class="dd-tick" x1="900" y1="160" x2="900" y2="168"/>
-<path class="dd-line dd-acc" d="M574.8,100 L574.8,92 Q574.8,92 574.8,92 L876.0,92 Q876.0,92 876.0,92 L876.0,100"/>
-<line class="dd-drop" x1="60" y1="164" x2="60" y2="128"/>
-<line class="dd-drop" x1="474.0" y1="164" x2="474.0" y2="200"/>
-<line class="dd-drop" x1="876.0" y1="164" x2="876.0" y2="200"/>
-<line class="dd-drop" x1="574.8" y1="164" x2="574.8" y2="100"/>
-<rect class="dd-store" x="60" y="48" width="816.0" height="28" rx="4"/>
-<text class="dd-name" x="76" y="67" text-anchor="start">Application はまだある</text>
-<text class="dd-lbl" x="60" y="244" text-anchor="middle">0 秒</text>
-<text class="dd-lbl" x="180" y="244" text-anchor="middle">1</text>
-<text class="dd-lbl" x="300" y="244" text-anchor="middle">2</text>
-<text class="dd-lbl" x="420" y="244" text-anchor="middle">3</text>
-<text class="dd-lbl" x="540" y="244" text-anchor="middle">4</text>
-<text class="dd-lbl" x="660" y="244" text-anchor="middle">5</text>
-<text class="dd-lbl" x="780" y="244" text-anchor="middle">6</text>
-<text class="dd-lbl" x="900" y="244" text-anchor="middle">7</text>
-<rect class="dd-mask" x="670.4" y="78" width="110" height="16" rx="2"/>
-<text class="dd-lbl dd-acc-t" x="725.4" y="90" text-anchor="middle">あと 2.5 秒</text>
-<circle class="dd-dot" cx="60" cy="164" r="4"/>
-<circle class="dd-dot" cx="474.0" cy="164" r="4"/>
-<circle class="dd-dot" cx="876.0" cy="164" r="4"/>
-<circle class="dd-dot-acc" cx="574.8" cy="164" r="6"/>
-<text class="dd-sub" x="68" y="124" text-anchor="start">削除を依頼</text>
-<text class="dd-sub" x="466.0" y="216" text-anchor="end">Pod・ConfigMap が消える（3.45 秒）</text>
-<text class="dd-name dd-acc-t" x="586.8" y="128" text-anchor="start">hook の Job が通知（4.29 秒）</text>
-<text class="dd-sub" x="868.0" y="216" text-anchor="end">Application が消える（6.80 秒）</text>
-</svg>
-</figure>
+<!-- archify: hooks.architecture -->
+
+**図の読み方**
+
+- ① application-controller（基盤側）が、アプリのマニフェストにある hook の Job を作る
+- ② 先に Pod・ConfigMap（利用者側）が消える
+- ③ PostDelete Job は利用者側のマニフェストに入る。⚠ 失敗すると削除が詰まる（評価マトリクス「可用性 ×」）
+- 宛先の鍵（Secret）は利用者側に置く。⚠ 全アプリのマニフェストと Secret を直すことになる（変更時の作業の表で ×）
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
+
+<!-- archify: hooks-time.sequence -->
+
+**図の読み方**
+
+- ① 0〜3.45 秒: controller が管理リソースを消す
+- ② 4.29 秒: hook の Job が通知する。⚠ この時点で Application はまだある（評価マトリクス「削除完了の検知 △ CR 消滅前」）
+- ③ 6.80 秒: Job が成功してから札が外れ、Application が消える。⚠ Job が失敗すると、ここで止まる
+
+（色と線の読み方: 橙の破線の枠が基盤側、赤の破線の枠が利用者側。緑の線は主な流れ、赤の線と「⚠」は問題点、紫の破線は鍵などの参照。）
 
 
 
