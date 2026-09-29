@@ -259,6 +259,7 @@ tools:
       - https://github.com/superagent-ai/grok-cli
 
   - slug: kimi-cli
+    tier: history
     name: Kimi CLI
     layer: L1
     placement: terminal
@@ -268,12 +269,13 @@ tools:
     url: "https://github.com/MoonshotAI/kimi-cli"
     repo: MoonshotAI/kimi-cli
     released: null
-    ended: null
-    succeeded_by: null
-    summary: Moonshot AI の Kimi モデル向けターミナルエージェント。
-    verified: 2026-09-21
+    ended: 2026-09
+    succeeded_by: kimi-code
+    summary: Moonshot AI の Kimi モデル向けの Python 製ターミナルエージェント。2026-09-21 にアーカイブされ、同じチームの Kimi Code CLI（kimi-code）に置き換えられた。README は旧版がいずれ動かなくなるとして移行を促している。
+    verified: 2026-09-30
     sources:
       - https://github.com/MoonshotAI/kimi-cli
+      - https://moonshotai.github.io/kimi-code/en/guides/migration
 
   - slug: mistral-vibe
     name: Mistral Vibe
@@ -1330,16 +1332,17 @@ tools:
     placement: null
     vendor: Oraios AI
     oss: true
-    license: null
+    license: GPL-3.0-or-later
     url: https://github.com/oraios/serena
     repo: oraios/serena
     released: null
     ended: null
     succeeded_by: null
-    summary: LSP を使って意味的にコードを検索・編集する MCP ツールキット。`headroom wrap` を使うと既定で入る（`--code-memory none` で止まる）。`headroom install apply` 経由の常駐構成では入らない。
-    verified: 2026-09-21
+    summary: LSP（または有料の JetBrains プラグイン）でシンボル単位にコードを検索・編集する MCP サーバー。`headroom wrap` を使うと既定で入る（`--code-memory none` で止まる）。`headroom install apply` 経由の常駐構成では入らない。
+    verified: 2026-09-30
     sources:
       - https://github.com/oraios/serena
+      - https://oraios.github.io/serena/01-about/060_license.html
 
   - slug: claude-context
     name: Claude Context
@@ -1401,16 +1404,17 @@ tools:
     placement: null
     vendor: Microsoft
     oss: true
-    license: null
+    license: MIT
     url: https://github.com/microsoft/graphrag
     repo: microsoft/graphrag
     released: null
     ended: null
     succeeded_by: null
-    summary: 文書からエンティティ・関係を抽出してグラフ化し、そのグラフを検索する RAG。graphify と同じ発想の本家筋。
-    verified: 2026-09-21
+    summary: 文書からエンティティ・関係を抽出してグラフ化し、そのグラフを検索する RAG。graphify と同じ発想の本家筋。2026-08 から保守モードで、新機能は入らずバグ修正と依存更新だけが続く。
+    verified: 2026-09-30
     sources:
       - https://github.com/microsoft/graphrag
+      - https://microsoft.github.io/graphrag/
 
   - slug: lightrag
     name: LightRAG
@@ -1419,16 +1423,17 @@ tools:
     placement: null
     vendor: HKUDS
     oss: true
-    license: null
+    license: MIT
     url: https://github.com/HKUDS/LightRAG
     repo: HKUDS/LightRAG
     released: null
     ended: null
     succeeded_by: null
     summary: GraphRAG を軽く速くした系統。構築コストの重さが GraphRAG の弱点だという前提に立つ。
-    verified: 2026-09-21
+    verified: 2026-09-30
     sources:
       - https://github.com/HKUDS/LightRAG
+      - https://arxiv.org/abs/2410.05779
 
   - slug: cognee
     name: cognee
@@ -1437,16 +1442,17 @@ tools:
     placement: null
     vendor: Topoteretes
     oss: true
-    license: null
+    license: Apache-2.0
     url: https://github.com/topoteretes/cognee
     repo: topoteretes/cognee
     released: null
     ended: null
     succeeded_by: null
     summary: エージェント向けの記憶基盤。グラフとベクトルを併用して過去の文脈を引き当てる。
-    verified: 2026-09-21
+    verified: 2026-09-30
     sources:
       - https://github.com/topoteretes/cognee
+      - https://docs.cognee.ai/
 
   - slug: mem0
     name: Mem0
@@ -1455,16 +1461,17 @@ tools:
     placement: null
     vendor: Mem0
     oss: true
-    license: null
+    license: Apache-2.0
     url: https://mem0.ai
     repo: mem0ai/mem0
     released: null
     ended: null
     succeeded_by: null
     summary: エージェントに差し込む記憶層。会話から事実を抽出して持ち越す、時間方向の圧縮にあたる。
-    verified: 2026-09-21
+    verified: 2026-09-30
     sources:
       - https://github.com/mem0ai/mem0
+      - https://docs.mem0.ai/
 
   - slug: letta
     name: Letta (MemGPT)
@@ -1578,3 +1585,21 @@ tools:
     verified: 2026-09-30
     sources:
       - https://github.com/first-fluke/oh-my-agent
+
+  - slug: kimi-code
+    name: Kimi Code CLI
+    layer: L1
+    placement: terminal
+    vendor: Moonshot AI
+    oss: true
+    license: MIT
+    url: https://www.kimi.com/code/docs/
+    repo: MoonshotAI/kimi-code
+    released: 2026-05
+    ended: null
+    succeeded_by: null
+    summary: Kimi CLI（Python 製）の後継として Moonshot AI が出したターミナルエージェント。Kimi モデルで動き、互換のあるほかのプロバイダにも切り替えられる。初回起動時に旧版の設定・MCP サーバー・履歴を移行する。
+    verified: 2026-09-30
+    sources:
+      - https://github.com/MoonshotAI/kimi-code
+      - https://github.com/MoonshotAI/kimi-cli
