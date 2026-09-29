@@ -1483,3 +1483,98 @@ tools:
     verified: 2026-09-21
     sources:
       - https://github.com/letta-ai/letta
+
+  # ============================================================
+  # coordinator で導入を検討して採らなかった（または保留にした）項目（2026-09-30）
+  # summary には「何者か」と「この環境で採らなかった理由の核心」を書く。
+  # ============================================================
+
+  - slug: hermes-agent
+    name: Hermes Agent
+    layer: L1
+    placement: terminal
+    vendor: Nous Research
+    oss: true
+    license: MIT
+    url: https://hermes-agent.nousresearch.com
+    repo: NousResearch/hermes-agent
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 経験からスキルを作って育てる自己改善型のエージェント。Claude で動かすには API キーが要り、Claude のサブスクリプションの OAuth を他社製ハーネスに通すことは Anthropic の規約が認めていない。
+    verified: 2026-09-30
+    sources:
+      - https://github.com/NousResearch/hermes-agent
+      - https://code.claude.com/docs/en/legal-and-compliance
+
+  - slug: langfuse
+    name: Langfuse
+    layer: L2
+    placement: null
+    vendor: Langfuse
+    oss: true
+    license: null
+    url: https://langfuse.com
+    repo: langfuse/langfuse
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: OSS の LLM 観測・評価基盤。Claude Code とは経路に挟まらず、Stop hook が会話ログを読んでトレースを送る形で連携する。
+    verified: 2026-09-30
+    sources:
+      - https://github.com/langfuse/langfuse
+      - https://langfuse.com/integrations/other/claude-code
+
+  - slug: graphiti
+    name: Graphiti
+    layer: L3
+    subkind: 知識をグラフとして持つ
+    placement: null
+    vendor: Zep
+    oss: true
+    license: Apache-2.0
+    url: https://help.getzep.com/graphiti
+    repo: getzep/graphiti
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 事実の有効期間を持つナレッジグラフでエージェントの記憶を作る。Neo4j / FalkorDB などのグラフ DB と取り込み用 LLM・埋め込みの API キーが要り、README 自身が静的な文書の要約は GraphRAG の用途として自分と区別している。
+    verified: 2026-09-30
+    sources:
+      - https://github.com/getzep/graphiti
+
+  - slug: raven
+    name: Raven
+    layer: L3
+    subkind: 実行・ランナー
+    placement: null
+    vendor: EverMind
+    oss: true
+    license: Apache-2.0
+    url: https://raven.evermind.ai
+    repo: EverMind-AI/Raven
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: 他社のエージェントを ACP や CLI 経由で束ねる「Harness of Harnesses」。README が pre-alpha と明記しており、束ねる役はこの環境では orca の coordinator と重なる。
+    verified: 2026-09-30
+    sources:
+      - https://github.com/EverMind-AI/Raven
+
+  - slug: oh-my-agent
+    name: oh-my-agent
+    layer: L3
+    subkind: 配布・パッケージ管理
+    placement: null
+    vendor: null
+    oss: true
+    license: MIT
+    url: https://firstfluke.com/oh-my-agent/
+    repo: first-fluke/oh-my-agent
+    released: null
+    ended: null
+    succeeded_by: null
+    summary: "`.agents/` を正本に各エージェントの設定へ展開し、Stop hook のゲートと独立した判定役で作業結果を検証するハーネス。ダッシュボードは付属機能。正本からの展開はこの環境では apm と dotfiles が担っている。"
+    verified: 2026-09-30
+    sources:
+      - https://github.com/first-fluke/oh-my-agent
