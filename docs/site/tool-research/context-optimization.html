@@ -225,14 +225,14 @@
 <tbody>
 <tr>
 <td><strong>Headroom</strong>（使用中）</td>
-<td style="text-align: right;">73,275</td>
-<td>2026-09-19</td>
+<td style="text-align: right;">74,103</td>
+<td>2026-09-29</td>
 <td>勢いあり</td>
 <td>プロキシとして割り込み、JSON・ログを構造ごと圧縮。元に戻せる</td>
 </tr>
 <tr>
 <td>LLMLingua</td>
-<td style="text-align: right;">6,687</td>
+<td style="text-align: right;">6,716</td>
 <td>2026-09-10</td>
 <td>現役</td>
 <td>小さな言語モデルでプロンプト自体を圧縮。研究発</td>
@@ -266,29 +266,29 @@ Headroom とは層が違うが目的は重なるので、<strong>①の薬を 2 
 <tbody>
 <tr>
 <td><strong>CodeGraph</strong>（使用中）</td>
-<td style="text-align: right;">71,617</td>
-<td>2026-09-16</td>
-<td>勢いあり</td>
+<td style="text-align: right;">72,382</td>
+<td>2026-09-29</td>
+<td>現役</td>
 <td>事前にグラフ化。呼び出し経路ごと返す。ローカル完結</td>
 </tr>
 <tr>
 <td>Serena</td>
-<td style="text-align: right;">29,653</td>
-<td>2026-09-19</td>
+<td style="text-align: right;">29,907</td>
+<td>2026-09-29</td>
 <td>現役</td>
 <td>LSP を使う。索引を自前で持たず、言語サーバに聞く</td>
 </tr>
 <tr>
 <td>Claude Context</td>
-<td style="text-align: right;">12,554</td>
+<td style="text-align: right;">12,575</td>
 <td>2026-07-14</td>
 <td>現役</td>
 <td>ベクトル DB に埋め込みを置く</td>
 </tr>
 <tr>
 <td>ast-grep</td>
-<td style="text-align: right;">15,976</td>
-<td>2026-09-20</td>
+<td style="text-align: right;">16,080</td>
+<td>2026-09-28</td>
 <td>現役</td>
 <td>索引を持たない。構文木で検索するだけ</td>
 </tr>
@@ -325,35 +325,35 @@ Claude Code についてはユーザースコープ（<code>~/.claude.json</code
 </tr>
 <tr>
 <td>GraphRAG</td>
-<td style="text-align: right;">36,044</td>
-<td>2026-09-21</td>
+<td style="text-align: right;">36,165</td>
+<td>2026-09-28</td>
 <td>現役</td>
 <td>文書からエンティティと関係を抽出してグラフ検索</td>
 </tr>
 <tr>
 <td>LightRAG</td>
-<td style="text-align: right;">39,780</td>
-<td>2026-09-21</td>
+<td style="text-align: right;">39,926</td>
+<td>2026-09-28</td>
 <td>現役</td>
 <td>GraphRAG の構築コストを下げた系統</td>
 </tr>
 <tr>
 <td>cognee</td>
-<td style="text-align: right;">30,864</td>
-<td>2026-09-20</td>
+<td style="text-align: right;">31,224</td>
+<td>2026-09-29</td>
 <td>勢いあり</td>
 <td>グラフとベクトルを併用したエージェント記憶</td>
 </tr>
 <tr>
 <td>Mem0</td>
-<td style="text-align: right;">65,719</td>
-<td>2026-09-19</td>
+<td style="text-align: right;">66,323</td>
+<td>2026-09-25</td>
 <td>勢いあり</td>
 <td>会話から事実を抽出して持ち越す</td>
 </tr>
 <tr>
 <td>Letta (MemGPT)</td>
-<td style="text-align: right;">24,811</td>
+<td style="text-align: right;">24,972</td>
 <td>2026-09-10</td>
 <td>現役</td>
 <td>文脈window の外へ記憶を退避する発想の源流</td>
@@ -386,7 +386,7 @@ CodeGraph 一本に決め、①の genshijin-compress も外した。
 入れないという判断は十分あり得る。ここでは「空いている」という事実だけを示す。</p>
 <footer>
   分類は「リクエストが通る経路上の位置」を主軸、実行場所を副軸に取った。
-  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-21、
+  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-30、
   <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
   裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
   正本は <code>docs/src/landscape/registry.yaml</code>・<code>docs/src/landscape/tools/*.md</code>・<code>docs/src/&lt;話題&gt;/*.md</code>。
