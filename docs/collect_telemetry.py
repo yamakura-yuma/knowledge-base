@@ -59,6 +59,8 @@ SKILL_DIRS = [
 ]
 BEGIN, END = "<!-- numbers:begin -->", "<!-- numbers:end -->"
 FAILED, BASH, MCP, CONNECTED = ' | success="false"', ' | tool_name="Bash"', ' | tool_name="mcp_tool"', ' | status="connected"'
+# Monitor の通知や system-reminder も user_prompt として記録される。人の依頼ではないので数えない
+HUMAN = r' | prompt!~"(?s)\\s*<(task-notification|system-reminder).*"'
 MIN_REQUESTS = 10  # home-k8s playbook 場面 8: 依頼が 10 件未満のうちは判断しない
 
 
@@ -110,7 +112,7 @@ def window(g: Grafana, t: int, rng: str) -> dict:
     """[t-rng, t] の Claude Code の数字。"""
     L = lambda q: g.loki(q, t)  # noqa: E731
     ev = lambda name, extra="": f'{CC} | event_name="{name}"{extra}'  # noqa: E731
-    requests = total(L(f"sum(count_over_time({ev('user_prompt')} [{rng}]))")) or 0
+    requests = total(L(f"sum(count_over_time({ev('user_prompt', HUMAN)} [{rng}]))")) or 0
     cost_model = by(L(f"sum by (model) (sum_over_time({ev('api_request')} | unwrap cost_usd [{rng}]))"), "model")
     tok = {}
     for f in ("input_tokens", "cache_read_tokens", "cache_creation_tokens"):
@@ -265,7 +267,7 @@ def trend(g: Grafana, t: int) -> list[dict]:
     start, step = t - 6 * 86400, 86400
     ev = lambda name, extra="": f'{CC} | event_name="{name}"{extra}'  # noqa: E731
     qs = {
-        "requests": f"sum(count_over_time({ev('user_prompt')} [1d]))",
+        "requests": f"sum(count_over_time({ev('user_prompt', HUMAN)} [1d]))",
         "cost_usd": f"sum(sum_over_time({ev('api_request')} | unwrap cost_usd [1d]))",
         "cache_read": f"sum(sum_over_time({ev('api_request')} | unwrap cache_read_tokens [1d]))",
         "input": f"sum(sum_over_time({ev('api_request')} | unwrap input_tokens [1d]))",

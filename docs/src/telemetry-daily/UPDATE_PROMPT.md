@@ -49,8 +49,10 @@ git fetch origin
 gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | startswith("telemetry-daily-"))'
 ```
 
-- **開いている PR がある**: `git checkout -B <headRefName> origin/<headRefName>`
-- **無い**: `git checkout -b telemetry-daily-<今日の YYYY-MM-DD>`（いまの HEAD から切る。HEAD は automation のベースブランチで、ふだんは main）
+- **開いている PR がある**: `git checkout --detach origin/<headRefName>`。そのブランチは前の日の
+  automation の worktree に checkout されたまま残っているので、ローカルのブランチは作らない。`<headRefName>` を控える
+- **無い**: `git checkout --detach`（いまの HEAD のまま。HEAD は automation のベースブランチで、ふだんは main）。
+  `<headRefName>` は `telemetry-daily-<今日の YYYY-MM-DD>` にする
 
 数字はブランチを移ってから取る（同じ日の日報が PR にあると、先に取ったファイルと checkout がぶつかるため）。
 
@@ -127,7 +129,7 @@ Grafana の場所と資格情報、各数字の出し方はスクリプトの冒
 - 起こす先: 直す候補が指すリポジトリ（`yamakura-yuma/dotfiles`・`yamakura-yuma/home-k8s`・`yamakura-yuma/coordinator`）
 - 題: `[telemetry] <候補キー>: <一言>`
 - 本文: 日報への リンク、根拠の数字とクエリ、直す候補（1 か所）。「提案であって、変えるかどうかは人が決める」と書き添える
-- 先に重複を探す: `gh issue list -R <repo> --state open --search "[telemetry] <候補キー> in:title"`
+- 先に重複を探す: `gh issue list -R <repo> --state all --search '"[telemetry] <候補キー>" in:title' --json number,state,title,url`
   - 開いている Issue があれば、新しく起こさない。最後のコメントから 7 日以上経っていて数字が動いていれば、
     コメントで今日の数字を追記する。それ以外は何もしない
   - 閉じた Issue しか無ければ、新しく起こし、閉じた Issue に言及する
@@ -139,10 +141,10 @@ Grafana の場所と資格情報、各数字の出し方はスクリプトの冒
 ```bash
 git add docs/src/telemetry-daily docs/src/data/telemetry
 git commit -m "Add the telemetry daily report for <名前>"
-git push -u origin HEAD
+git push origin HEAD:<headRefName>
 ```
 
-- 新しいブランチなら `gh pr create --base main --title "Telemetry daily reports from <最初の日付>" --body <後述>` で PR を出す
+- 新しいブランチなら `gh pr create --base main --head <headRefName> --title "Telemetry daily reports from <最初の日付>" --body <後述>` で PR を出す
 - 開いている PR に追記したなら、PR の本文の一覧に今日の行を足す（`gh pr edit <番号> --body ...`）
 
 PR の本文は、日報ごとに 1 行ずつ（日付・依頼数・コスト・提案の数・起こした Issue）並べる。
@@ -165,6 +167,9 @@ PR の本文は、日報ごとに 1 行ずつ（日付・依頼数・コスト�
 
 ## 知っておくこと
 
+- 依頼数は `user_prompt` イベントの件数から、`<task-notification>` と `<system-reminder>` で始まるもの
+  （Monitor の通知など、人の依頼ではないもの）を除いたもの。初回の実測では 1 日 100 件のうち 17 件がこれだった
+- automation は実行のたびに worktree を 1 つ作り、消さない。溜まったら人が消す
 - テレメトリは 2026-09-30 10:00 JST ごろから入っている。それより前は空で、前回の値が「—」になる
 - 観測スタックの保持期間は 14 日（Prometheus・Loki・Tempo とも）。それより前とは比べられない
 - Prometheus の `claude_code_*_total` は、セッション ID をラベルから外しているため系列のリセットが多く、
