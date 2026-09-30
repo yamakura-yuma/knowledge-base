@@ -50,7 +50,7 @@ gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefNam
 ```
 
 - **開いている PR がある**: `git checkout -B <headRefName> origin/<headRefName>`
-- **無い**: `git checkout -b telemetry-daily-<今日の YYYY-MM-DD> origin/main`
+- **無い**: `git checkout -b telemetry-daily-<今日の YYYY-MM-DD>`（いまの HEAD から切る。HEAD は automation のベースブランチで、ふだんは main）
 
 数字はブランチを移ってから取る（同じ日の日報が PR にあると、先に取ったファイルと checkout がぶつかるため）。
 
