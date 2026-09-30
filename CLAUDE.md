@@ -3,7 +3,7 @@
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
 HTML はそこから生成する。いま入っているのは AI ツールのランドスケープ、ハーネスに
 入れる外部ツールの調査、Argo CD の完了通知の発行方法の比較、
-ハーネスのパターン・カタログの4つ。
+ハーネスのパターン・カタログ、テレメトリの日報の5つ。
 
 ハーネス（エージェント設定）そのものの説明はここに書かない。正本は dotfiles リポジトリの
 [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)（手元では
@@ -43,6 +43,10 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   （既存ページに差分を出さないため）。
   `harness-form.md` はハーネスの形式についての見立て（意見）で、`harness-form.html` に出し、
   要約をカタログの冒頭に置く
+- `docs/src/telemetry-daily/` — 話題⑤ テレメトリの日報。`<YYYY-MM-DD>.md` の数字の節
+  （`<!-- numbers:begin -->`〜`<!-- numbers:end -->`）は `docs/collect_telemetry.py` が書き、
+  提案の節はエージェントが `UPDATE_PROMPT.md` に従って書く。Orca の automation が毎日回す。
+  HTML は生成せず、`build.py` にも載せない。集計値は `docs/src/data/telemetry/<名前>.json`
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
@@ -50,7 +54,7 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   直すのは必ず `docs/src/` 側
 - `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
   `docs/collect_candidates.py` / `docs/collect_articles.py` / `docs/patterns_page.py` /
-  `docs/patterns_reports.py` — 生成系。このリポジトリのコードはこれだけ。
+  `docs/patterns_reports.py` / `docs/collect_telemetry.py` — 生成系。このリポジトリのコードはこれだけ。
   `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
   候補はランドスケープの母集団（`registry.yaml`）には入れない。
   `collect_articles.py` は Zenn・Qiita・Hacker News・dev.to の人気記事を
@@ -66,6 +70,7 @@ uv run docs/collect_candidates.py  # パターンの出典候補を集める。g
 uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める。認証は不要
 uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
 uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
+uv run docs/collect_telemetry.py    # テレメトリの日報の数字を書く（独立。要 home-k8s の Grafana）
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```
 

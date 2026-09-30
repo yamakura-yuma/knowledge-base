@@ -15,7 +15,8 @@ docs/
     tool-research/      # 話題② ハーネスに入れる外部ツールの調査
     argocd-notify/      # 話題③ Argo CD の完了通知
     patterns/           # 話題④ ハーネスのパターン・カタログ
-    data/               # 取得物・状態（metrics.json / status.json / candidates.json / articles.json）
+    telemetry-daily/    # 話題⑤ テレメトリの日報
+    data/               # 取得物・状態（metrics.json / status.json / candidates.json / articles.json / telemetry/）
   site/                 # 生成物。直接編集しない
     landscape/  tool-research/  argocd-notify/  patterns/
 ```
@@ -26,6 +27,7 @@ uv run docs/collect_candidates.py  # パターンの出典候補を集める（�
 uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める（話題④）
 uv run docs/build.py           # HTML を生成する（landscape / tool-research / patterns）
 uv run docs/build_argocd_notify.py  # 話題③ の HTML を生成する
+uv run docs/collect_telemetry.py    # テレメトリを集計して日報の数字の節を書く（話題⑤。要 home-k8s の Grafana）
 ```
 
 ## いま入っているもの
@@ -83,3 +85,14 @@ Argo CD の `Application` や Namespace の作成・更新・削除から、「�
   LLM を使わずに star/日で上位を集める（[`docs/src/data/candidates.json`](./docs/src/data/candidates.json)）。
   ランドスケープの母集団には入れない
 - 更新: [`UPDATE_PROMPT.md`](./docs/src/landscape/UPDATE_PROMPT.md) の 7、または `/update-landscape`
+
+### 話題⑤ テレメトリの日報
+
+Claude Code と Orca のテレメトリ（home-k8s の Grafana: Prometheus / Loki）を毎日集計し、
+ハーネス（rule・skill・指示の書き方・モデル選択）のどこを直すと効きそうかを提案する日報。
+**提案だけ**で、ハーネスを変えるかどうかは人が決める。Orca の automation が毎日 9:00（JST）に作り、PR で出す。
+
+- 読む: [`docs/src/telemetry-daily/`](./docs/src/telemetry-daily/)（`<YYYY-MM-DD>.md`。HTML は生成しない）
+- 作り方: [`docs/src/telemetry-daily/UPDATE_PROMPT.md`](./docs/src/telemetry-daily/UPDATE_PROMPT.md)
+  （期間と置き場所は冒頭の表で変えられ、週報にも切り替えられる）
+- 数字: `docs/collect_telemetry.py` が書く。集計値は [`docs/src/data/telemetry/`](./docs/src/data/telemetry/)
