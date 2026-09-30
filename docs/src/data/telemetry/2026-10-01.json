@@ -1,0 +1,424 @@
+{
+  "current": {
+    "cache_read_ratio": 0.4865615724372694,
+    "cache_read_ratio_by_worker": {
+      "(Orca の外)": {
+        "input_tokens_total": 78895671.0,
+        "ratio": 0.4645322174901079
+      },
+      "advcost-advisor": {
+        "input_tokens_total": 33826.0,
+        "ratio": 0.692130313959676
+      },
+      "advcost-plain": {
+        "input_tokens_total": 31018.0,
+        "ratio": 0.49716293764910696
+      },
+      "coordinator": {
+        "input_tokens_total": 2530397.0,
+        "ratio": 0.8915304594496437
+      },
+      "coordinator-coordinator-to-pstack": {
+        "input_tokens_total": 279075.0,
+        "ratio": 0.8584968198512944
+      },
+      "dotfiles-advisor-and-review": {
+        "input_tokens_total": 16244629.0,
+        "ratio": 0.9401147911719006
+      },
+      "dotfiles-drawio-and-home-claude-md": {
+        "input_tokens_total": 697399.0,
+        "ratio": 0.8798521362950047
+      },
+      "dotfiles-exp19-opus": {
+        "input_tokens_total": 1604988.0,
+        "ratio": 0.891899503298467
+      },
+      "dotfiles-exp19-sonnet": {
+        "input_tokens_total": 389712.0,
+        "ratio": 0.8860260910621177
+      },
+      "dotfiles-exp19-sonnet-advisor": {
+        "input_tokens_total": 496841.0,
+        "ratio": 0.8528462828148241
+      },
+      "dotfiles-guard-default-branch-target-repo": {
+        "input_tokens_total": 2588089.0,
+        "ratio": 0.949883099074259
+      },
+      "dotfiles-telemetry-prompts": {
+        "input_tokens_total": 490683.0,
+        "ratio": 0.8625100115553219
+      },
+      "home-k8s-just-auto-devcontainer": {
+        "input_tokens_total": 1100898.0,
+        "ratio": 0.887926946910613
+      },
+      "home-k8s-observe-share-browser": {
+        "input_tokens_total": 5257905.0,
+        "ratio": 0.9756680655127851
+      },
+      "home-k8s-orca-otel-exporter": {
+        "input_tokens_total": 33137186.0,
+        "ratio": 0.22671101281804676
+      },
+      "home-k8s-otel-metrics-logs-dashboards": {
+        "input_tokens_total": 11300856.0,
+        "ratio": 0.05282652924698802
+      },
+      "home-k8s-telemetry-per-setting-test": {
+        "input_tokens_total": 319482.0,
+        "ratio": 0.6505092618676482
+      },
+      "knowledge-base-telemetry-weekly-report": {
+        "input_tokens_total": 3747787.0,
+        "ratio": 0.742730309913557
+      },
+      "test-improve": {
+        "input_tokens_total": 238026.0,
+        "ratio": 0.6659650626402158
+      },
+      "test-worker": {
+        "input_tokens_total": 134570.0,
+        "ratio": 0.7381660102548859
+      },
+      "test-worker-2": {
+        "input_tokens_total": 16331.0,
+        "ratio": 0.3678892903067785
+      }
+    },
+    "cost_by_model": {
+      "claude-haiku-4-5-20251001": 0.15238799999999997,
+      "claude-opus-5-5": 692.7510927999999,
+      "claude-sonnet-5-5": 7.0731962
+    },
+    "cost_by_worker_model": {
+      "(Orca の外)|claude-haiku-4-5-20251001": 0.014688499999999998,
+      "(Orca の外)|claude-opus-5-5": 354.7257658000001,
+      "(Orca の外)|claude-sonnet-5-5": 3.5208928999999998,
+      "advcost-advisor|claude-sonnet-5-5": 0.13571439999999999,
+      "advcost-plain|claude-sonnet-5-5": 0.0692302,
+      "coordinator-coordinator-to-pstack|claude-sonnet-5-5": 0.229374,
+      "coordinator|claude-opus-5-5": 3.8016252,
+      "dotfiles-advisor-and-review|claude-opus-5-5": 15.033770200000005,
+      "dotfiles-drawio-and-home-claude-md|claude-sonnet-5-5": 0.5147336,
+      "dotfiles-exp19-opus|claude-opus-5-5": 2.0682796,
+      "dotfiles-exp19-sonnet-advisor|claude-sonnet-5-5": 0.4381838,
+      "dotfiles-exp19-sonnet|claude-sonnet-5-5": 0.28475150000000005,
+      "dotfiles-guard-default-branch-target-repo|claude-opus-5-5": 4.896935399999999,
+      "dotfiles-telemetry-prompts|claude-sonnet-5-5": 0.4143258000000001,
+      "home-k8s-just-auto-devcontainer|claude-sonnet-5-5": 0.8808319,
+      "home-k8s-observe-share-browser|claude-opus-5-5": 3.1000619999999994,
+      "home-k8s-orca-otel-exporter|claude-opus-5-5": 210.61776100000003,
+      "home-k8s-otel-metrics-logs-dashboards|claude-opus-5-5": 87.53765700000002,
+      "home-k8s-telemetry-per-setting-test|claude-haiku-4-5-20251001": 0.037461999999999995,
+      "home-k8s-telemetry-per-setting-test|claude-sonnet-5-5": 0.4183297000000001,
+      "knowledge-base-telemetry-weekly-report|claude-opus-5-5": 10.539696000000001,
+      "test-improve|claude-haiku-4-5-20251001": 0.1002375,
+      "test-improve|claude-sonnet-5-5": 0.1668284,
+      "test-worker-2|claude-opus-5-5": 0.08459760000000001,
+      "test-worker|claude-opus-5-5": 0.34494300000000006
+    },
+    "cost_per_request": 8.333055678571426,
+    "cost_total_loki": 699.9766769999999,
+    "failed_commands": {
+      "(その他) (ShellError)": 7,
+      "cat (ShellError)": 2,
+      "docker exec (ShellError)": 4,
+      "docker run (ShellError)": 2,
+      "exec (ShellError)": 1,
+      "gh issue (ShellError)": 1,
+      "git diff (ShellError)": 1,
+      "kubectl (ShellError)": 1,
+      "ls (ShellError)": 3,
+      "mkdir (ShellError)": 1,
+      "nix profile (ShellError)": 1,
+      "orca automations (ShellError)": 1,
+      "orca orchestration (ShellError)": 1,
+      "orca worktree (ShellError)": 1,
+      "pkill (ShellError)": 1,
+      "printf (ShellError)": 1,
+      "python3 (ShellError)": 3,
+      "rm (ShellError)": 2,
+      "systemd-run (ShellError)": 1,
+      "timeout (ShellError)": 1,
+      "which (ShellError)": 1
+    },
+    "mcp_calls": {
+      "codegraph": 1.0,
+      "headroom": 24.0
+    },
+    "mcp_connected": {
+      "": 39.0,
+      "claude.ai Claude Docs": 38.0,
+      "codegraph": 40.0,
+      "headroom": 38.0
+    },
+    "requests": 84.0,
+    "skills_activated": {
+      "dataviz": 1.0,
+      "japanese-tech-writing": 1.0,
+      "ponytail-help": 1.0
+    },
+    "tool_failure_rate": 0.029225908372827805,
+    "tool_failures": 37.0,
+    "tool_failures_by_tool": {
+      "Bash": 37.0
+    },
+    "tool_results": 1266.0
+  },
+  "data_since": "2026-09-30 09:59",
+  "fable": {
+    "current": {
+      "claude-fable-5-1": 9.337195774439301
+    },
+    "previous": {}
+  },
+  "installed_skills": [
+    "architect",
+    "arena",
+    "automate-me",
+    "blast-radius",
+    "bro",
+    "built-in-browser",
+    "chrome-browser",
+    "cognitive-rhythm-writing",
+    "computer-use",
+    "control-cli",
+    "control-ui",
+    "core-communication",
+    "core-dispatch",
+    "core-harness",
+    "core-retro",
+    "core-tools",
+    "create-verification-skill",
+    "deep-research",
+    "deslop",
+    "docs",
+    "docx",
+    "drawio-skill",
+    "figure-it-out",
+    "find-skills",
+    "google-workspace",
+    "graphify",
+    "grill-me",
+    "grilling",
+    "handoff",
+    "how",
+    "humanizer-ja",
+    "import-memory",
+    "interrogate",
+    "japanese-tech-writing",
+    "linear-tickets",
+    "maintain-verification-skill",
+    "make-bot-ui",
+    "morning",
+    "no-comments",
+    "orca-cli",
+    "orca-emulator",
+    "orca-emulator-android",
+    "orca-linear",
+    "orca-per-workspace-env",
+    "orchestration",
+    "p-mode",
+    "pdf",
+    "ponytail",
+    "ponytail-audit",
+    "ponytail-debt",
+    "ponytail-gain",
+    "ponytail-help",
+    "ponytail-review",
+    "poteto-mode",
+    "pptx",
+    "principle-attack-the-premise",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-outcome-oriented-execution",
+    "principle-prove-it-works",
+    "principle-redesign-from-first-principles",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-test-behavior-not-implementation",
+    "principle-type-system-discipline",
+    "pstack-on-claude-code",
+    "recall",
+    "reflect",
+    "setup-pstack",
+    "show-me",
+    "show-me-your-work",
+    "skill-creator",
+    "swarm",
+    "tdd",
+    "teach",
+    "technical-writing",
+    "to-questionnaire",
+    "typescript-best-practices",
+    "unslop",
+    "update-landscape",
+    "wait-what",
+    "why",
+    "writing-for-agents",
+    "xlsx"
+  ],
+  "name": "2026-10-01",
+  "orca": {
+    "current": {
+      "by_model": {
+        "": {
+          "dispatches": 8,
+          "escalations": 0,
+          "followups": 0,
+          "followups_per_dispatch": 0.0,
+          "questions": 0,
+          "time_to_done_median_min": 15.566666666666666,
+          "user_takeover": 4,
+          "worker_done_rejected": 0
+        },
+        "claude-opus-5-5": {
+          "dispatches": 16,
+          "escalations": 0,
+          "followups": 8.0,
+          "followups_per_dispatch": 0.5,
+          "questions": 1.0,
+          "time_to_done_median_min": 24.583333333333332,
+          "user_takeover": 11,
+          "worker_done_rejected": 4.0
+        },
+        "claude-sonnet-5-5": {
+          "dispatches": 9,
+          "escalations": 0,
+          "followups": 0,
+          "followups_per_dispatch": 0.0,
+          "questions": 0,
+          "time_to_done_median_min": 1.5833333333333333,
+          "user_takeover": 6,
+          "worker_done_rejected": 0
+        }
+      },
+      "dispatches": 33,
+      "escalations": 0,
+      "followups": 8.0,
+      "followups_per_dispatch": 0.24242424242424243,
+      "questions": 1.0,
+      "time_to_done_median_min": 15.166666666666666,
+      "user_takeover": 21,
+      "worker_done_rejected": 4.0
+    },
+    "previous": {
+      "by_model": {},
+      "dispatches": 0,
+      "escalations": 0,
+      "followups": 0,
+      "followups_per_dispatch": null,
+      "questions": 0,
+      "time_to_done_median_min": null,
+      "user_takeover": 0,
+      "worker_done_rejected": 0
+    }
+  },
+  "period": "1d",
+  "previous": {
+    "cache_read_ratio": null,
+    "cache_read_ratio_by_worker": {},
+    "cost_by_model": {},
+    "cost_by_worker_model": {},
+    "cost_per_request": null,
+    "cost_total_loki": 0,
+    "failed_commands": {},
+    "mcp_calls": {},
+    "mcp_connected": {},
+    "requests": 0,
+    "skills_activated": {},
+    "tool_failure_rate": null,
+    "tool_failures": 0,
+    "tool_failures_by_tool": {},
+    "tool_results": 0
+  },
+  "prom_quality": {
+    "increase_by_model": {
+      "claude-fable-5-1": 9.337195774439301,
+      "claude-haiku-4-5-20251001": 0.1756831875,
+      "claude-opus-5-5": 22179.38447414082,
+      "claude-sonnet-5-5": 14.645628158385513
+    },
+    "resets_by_model": {
+      "claude-fable-5-1": 2.0,
+      "claude-haiku-4-5-20251001": 1.0,
+      "claude-opus-5-5": 780.0,
+      "claude-sonnet-5-5": 76.0
+    }
+  },
+  "skills_activated_7d": {
+    "dataviz": 1.0,
+    "japanese-tech-writing": 1.0,
+    "ponytail-help": 1.0
+  },
+  "trend": [
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-25 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-26 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-27 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-28 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-29 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-30 03:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": 0.4865615724372694,
+      "cost_usd": 699.976677,
+      "end": "10-01 03:00",
+      "requests": 84.0,
+      "tool_failure_rate": 0.029225908372827805
+    }
+  ],
+  "window": {
+    "current": "2026-09-30 03:00 〜 2026-10-01 03:00",
+    "previous": "2026-09-29 03:00 〜 2026-09-30 03:00"
+  }
+}
