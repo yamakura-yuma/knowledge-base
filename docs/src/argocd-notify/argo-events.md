@@ -44,7 +44,7 @@ edges:
   - {from: sn, to: dlq, kind: http, via: [[770, 290], [770, 192]], label: "上限超過", dx: -40}
 ```
 
-- **検知層（EventSource）は状態を持たない。** informer に `DeleteFunc` を登録しているので DELETE は届く（[pkg/eventsources/sources/resource/start.go](https://github.com/argoproj/argo-events/blob/v1.9.11/pkg/eventsources/sources/resource/start.go)）。ただし、止まっている間に消えたものは復旧後に出てこない（[run4](report.html#run4)・[run5](report.html#run5)）。
+- **検知層（EventSource）は状態を持たない。** informer に `DeleteFunc` を登録しているので DELETE は届く（[pkg/eventsources/sources/resource/start.go](https://github.com/argoproj/argo-events/blob/v1.9.11/pkg/eventsources/sources/resource/start.go)）。ただし、止まっている間に消えたものは復旧後に出てこない（[run4](report.md#run4)・[run5](report.md#run5)）。
 - **EventBus から先は永続化される。** 本番では EventBus に PV を付けることが推奨されている（[dr_ha_recommendations.md](https://github.com/argoproj/argo-events/blob/v1.9.11/docs/dr_ha_recommendations.md)）。
 
 ## 権限分離
@@ -73,9 +73,9 @@ edges:
 | Platform | CRD と controller-manager を入れる。インストールに含まれる `argo-events-aggregate-to-edit` などの ClusterRole が、既定の `edit` / `admin` に Argo Events の CR を足す | v1.9.11 の `install.yaml` |
 | Platform | resource EventSource の ServiceAccount に、`argocd` namespace の applications の `list` / `watch` を与える | [service-accounts.md](https://github.com/argoproj/argo-events/blob/v1.9.11/docs/service-accounts.md) |
 | Platform（任意） | controller を `--namespaced --managed-namespace` で namespace ごとに動かす | [managed-namespace.md](https://github.com/argoproj/argo-events/blob/v1.9.11/docs/managed-namespace.md) |
-| App | 自分の namespace に EventBus・EventSource・Sensor を作り、Sensor が参照する Secret に資格情報を持つ | [run9](report.html#run9) で `can-i` が yes |
+| App | 自分の namespace に EventBus・EventSource・Sensor を作り、Sensor が参照する Secret に資格情報を持つ | [run9](report.md#run9) で `can-i` が yes |
 
-**越境（[run9](report.html#run9)）:** `team-a` の `edit` だけで、EventBus・EventSource・Sensor は作れた。しかし EventSource の ServiceAccount には `argocd` の applications を `list` する権限が無く（`can-i` は no）、自分で与えることもできない。
+**越境（[run9](report.md#run9)）:** `team-a` の `edit` だけで、EventBus・EventSource・Sensor は作れた。しかし EventSource の ServiceAccount には `argocd` の applications を `list` する権限が無く（`can-i` は no）、自分で与えることもできない。
 
 EventSource の Pod そのものは、kind のノードで inotify の上限に当たって CrashLoop になった。そのため、「Forbidden で止まる」ところまでは見ていない。権限が無いことは `can-i` で確かめた。
 
@@ -99,15 +99,15 @@ EventSource の Pod そのものは、kind のノードで inotify の上限に�
 
 ## 評価
 
-**削除完了の検知: ○。** オブジェクトの消滅から 7 ms で DELETE が届いた（[run3](report.html#run3)）。
+**削除完了の検知: ○。** オブジェクトの消滅から 7 ms で DELETE が届いた（[run3](report.md#run3)）。
 
-**デプロイ完了: 重複する。** UPDATE を `status.health.status=Healthy` などのデータフィルタで絞ると、完了時に 4 回届いた。さらに削除開始の直後にも 2〜3 回届いた（[run3](report.html#run3) で 2 回、[run6](report.html#run6) で 3 回）。削除直後の更新では、status がまだ Synced / Healthy のままだから。Lua スクリプトのフィルタで `deletionTimestamp` があるものを除くと、この誤報は止まった（完了時の 4 回は残る）。
+**デプロイ完了: 重複する。** UPDATE を `status.health.status=Healthy` などのデータフィルタで絞ると、完了時に 4 回届いた。さらに削除開始の直後にも 2〜3 回届いた（[run3](report.md#run3) で 2 回、[run6](report.md#run6) で 3 回）。削除直後の更新では、status がまだ Synced / Healthy のままだから。Lua スクリプトのフィルタで `deletionTimestamp` があるものを除くと、この誤報は止まった（完了時の 4 回は残る）。
 
-**検知層の耐障害性: ×。** EventSource を止めている間に消えた Application の DELETE は、届かなかった（[run4](report.html#run4)・[run5](report.html#run5)）。
+**検知層の耐障害性: ×。** EventSource を止めている間に消えた Application の DELETE は、届かなかった（[run4](report.md#run4)・[run5](report.md#run5)）。
 
 **配送層の回復性: ○。** trigger に `retryStrategy`（steps・duration・factor・jitter）を書ける。`atLeastOnce: true` にすれば、上限を超えたとき `dlqTrigger` に回す（[more-about-sensors-and-triggers.md](https://github.com/argoproj/argo-events/blob/v1.9.11/docs/sensors/more-about-sensors-and-triggers.md)）。
 
-[run8](report.html#run8) では、**HTTP trigger は既定で 500 を成功扱いにし、1 回で終わった。** `policy.status.allow: [200, 201, 202]` を足すと、retry を 3 回（間隔 0.6 → 1.2 秒）行ってから `dlqTrigger` に送った。circuit breaker は無いが、`rateLimit` はある。
+[run8](report.md#run8) では、**HTTP trigger は既定で 500 を成功扱いにし、1 回で終わった。** `policy.status.allow: [200, 201, 202]` を足すと、retry を 3 回（間隔 0.6 → 1.2 秒）行ってから `dlqTrigger` に送った。circuit breaker は無いが、`rateLimit` はある。
 
 **配送保証: △。** `atLeastOnce` の既定は false で、コメントには "Trigger execution will use at-most-once semantics" とある（`pkg/apis/events/v1alpha1/sensor_types.go`）。true にすれば at-least-once になる。重複を除く仕組みは Sensor 側に無いので、受け手で Application の `uid` を使って冪等にする。
 
@@ -123,4 +123,4 @@ EventSource の Pod そのものは、kind のノードで inotify の上限に�
 
 **運用負荷: △。** EventBus（JetStream 3 レプリカ・PV）と controller が増える。
 
-**レイテンシ: ◎。** オブジェクトの消滅から 7 ms（[run3](report.html#run3)）。
+**レイテンシ: ◎。** オブジェクトの消滅から 7 ms（[run3](report.md#run3)）。

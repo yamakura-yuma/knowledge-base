@@ -1,6 +1,6 @@
 # AI コーディングツール・ランドスケープ
 
-表示用の一枚物は [`site/landscape/index.html`](../../site/landscape/index.html)（生成物。ブラウザで直接開ける）。
+表示用の一枚物は [`site/landscape/index.html`](https://github.com/yamakura-yuma/knowledge-base/blob/main/docs/site/landscape/index.html)（生成物。ブラウザで直接開ける）。
 このファイルは、そこに載せきれない「どう作ってあるか」を書いたもの。
 
 ## 分類軸

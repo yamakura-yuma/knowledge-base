@@ -89,7 +89,7 @@ edges:
 | App | 自分の namespace の Application に subscribe annotation を付ける | 同上 |
 | App | self-service が有効なら、自分の namespace に `argocd-notifications-cm` と `-secret` を置き、独自の送信先と資格情報を持つ | notifications/index.md |
 
-**越境:** Application を `argocd` namespace に置く従来の構成では、App 側が購読を足すのに `argocd` namespace の applications への `patch` が要る。[run9](report.html#run9) では、`team-a` に `edit` を持つ ServiceAccount でも、この権限は無かった。apps-in-any-namespace と self-service を使えば、App 側は自分の namespace だけで購読と送信先を完結でき、他チームの Application には触れない。controller の Role は applications への `update` と `patch` を持つので、Platform はこれを信頼する前提になる。
+**越境:** Application を `argocd` namespace に置く従来の構成では、App 側が購読を足すのに `argocd` namespace の applications への `patch` が要る。[run9](report.md#run9) では、`team-a` に `edit` を持つ ServiceAccount でも、この権限は無かった。apps-in-any-namespace と self-service を使えば、App 側は自分の namespace だけで購読と送信先を完結でき、他チームの Application には触れない。controller の Role は applications への `update` と `patch` を持つので、Platform はこれを信頼する前提になる。
 
 ## 導入・運用の労力
 
@@ -113,13 +113,13 @@ edges:
 
 **削除完了の検知: ×。** カタログの `on-deleted` は `when: app.metadata.deletionTimestamp != nil` で、説明文は "Application is deleted." となっている（[on-deleted.yaml](https://github.com/argoproj/argo-cd/blob/v3.5.3/notifications_catalog/triggers/on-deleted.yaml)）。実測では、削除要求の 0.06 秒後、`resources-finalizer.argocd.argoproj.io` を含む finalizer がまだ 3 つ残っている時点で届いた。
 
-条件を `deletionTimestamp != nil and app.status.health.status == 'Missing'` にしたカスタム trigger は、管理リソースが消えた直後に発火した（[run6](report.html#run6)）。Notifications で取れるのはここが最も遅い時点で、オブジェクトの消滅は取れない。
+条件を `deletionTimestamp != nil and app.status.health.status == 'Missing'` にしたカスタム trigger は、管理リソースが消えた直後に発火した（[run6](report.md#run6)）。Notifications で取れるのはここが最も遅い時点で、オブジェクトの消滅は取れない。
 
-**デプロイ完了: 取れる。** カタログの `on-deployed` は、operation が Succeeded かつ health が Healthy で、`oncePer: app.status.operationState?.syncResult?.revision`。1 リビジョンにつき 1 回だけ届いた（[run3](report.html#run3)）。
+**デプロイ完了: 取れる。** カタログの `on-deployed` は、operation が Succeeded かつ health が Healthy で、`oncePer: app.status.operationState?.syncResult?.revision`。1 リビジョンにつき 1 回だけ届いた（[run3](report.md#run3)）。
 
-**検知層の耐障害性: ○（デプロイ）／×（削除）。** 送信済みの記録を annotation に持ち、informer は 60 秒ごとに再同期する（`notification_controller/controller/controller.go` の `resyncPeriod`）。そのため、止まっていた間に完了したデプロイも、復旧後に送られる。削除は、止まっている間に消えると復旧後も何も送られなかった（[run4](report.html#run4)・[run5](report.html#run5)）。
+**検知層の耐障害性: ○（デプロイ）／×（削除）。** 送信済みの記録を annotation に持ち、informer は 60 秒ごとに再同期する（`notification_controller/controller/controller.go` の `resyncPeriod`）。そのため、止まっていた間に完了したデプロイも、復旧後に送られる。削除は、止まっている間に消えると復旧後も何も送られなかった（[run4](report.md#run4)・[run5](report.md#run5)）。
 
-**配送層の回復性: △。** webhook は go-retryablehttp で送り、既定は `retryMax: 3`、待ち時間 1〜5 秒（[webhook.go](https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/services/webhook.go)）。[run8](report.html#run8) では 4 回試行（間隔 1 → 2 → 4 秒）して諦め、**そのあと二度と送り直されなかった。**
+**配送層の回復性: △。** webhook は go-retryablehttp で送り、既定は `retryMax: 3`、待ち時間 1〜5 秒（[webhook.go](https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/services/webhook.go)）。[run8](report.md#run8) では 4 回試行（間隔 1 → 2 → 4 秒）して諦め、**そのあと二度と送り直されなかった。**
 
 ソースは、失敗したら送信済みの記録を戻す作りになっている。ところが `SetAlreadyNotified` は、`oncePer` が付いた trigger では記録を消さずに `false` を返す（[state.go](https://github.com/argoproj/notifications-engine/blob/0cff13b8a7178194dccd5c4edefa5a66b2cc08bc/pkg/controller/state.go)）。そのため `on-deployed` が失敗すると、送信済みとして残る。実測でも、失敗した送信先の分まで annotation に記録されていた。DLQ も circuit breaker も無い。
 
@@ -127,7 +127,7 @@ edges:
 
 **可用性: △。** Deployment は 1 レプリカで、strategy は `Recreate`（[manifests](https://github.com/argoproj/argo-cd/blob/v3.5.3/manifests/base/notification/argocd-notifications-controller-deployment.yaml)）。リーダー選出の仕組みは見当たらなかった。
 
-**疎結合: △。** 送信先を足すには `argocd-notifications-cm` を編集する。CloudEvent を組んで Broker に 1 本出す形にすれば、この欠点は Broker 側で解消できる（[run7](report.html#run7)）。
+**疎結合: △。** 送信先を足すには `argocd-notifications-cm` を編集する。CloudEvent を組んで Broker に 1 本出す形にすれば、この欠点は Broker 側で解消できる（[run7](report.md#run7)）。
 
 **スケーラビリティ: △。** 購読の数だけ、送信先ごとに個別に送る。
 
