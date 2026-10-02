@@ -16,3 +16,4 @@ lint:
 # 内部リンクの切れ（外部リンクは見ない）
 links:
     python3 docs/check_links.py
+# ゲート確認用のコメント（段階 C のパス）
