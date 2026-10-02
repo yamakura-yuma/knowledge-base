@@ -54,7 +54,8 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   直すのは必ず `docs/src/` 側
 - `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
   `docs/collect_candidates.py` / `docs/collect_articles.py` / `docs/patterns_page.py` /
-  `docs/patterns_reports.py` / `docs/collect_telemetry.py` — 生成系。このリポジトリのコードはこれだけ。
+  `docs/patterns_reports.py` / `docs/collect_telemetry.py` — 生成系。`docs/check_links.py` は
+  生成ではなく `just ci` の内部リンク検査（標準ライブラリだけ）。このリポジトリのコードはこれだけ。
   `collect_candidates.py` はパターンの出典候補を `data/candidates.json` に落とす。
   候補はランドスケープの母集団（`registry.yaml`）には入れない。
   `collect_articles.py` は Zenn・Qiita・Hacker News・dev.to の人気記事を
@@ -73,10 +74,17 @@ uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（�
 uv run docs/collect_telemetry.py    # テレメトリの日報の数字を書く（独立。要 home-k8s の Grafana）
 uvx --with mkdocs-techdocs-core mkdocs build --strict -d /tmp/kb-techdocs  # TechDocs 用のビルドが警告なしで通るか確かめる
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
+just ci                        # PR のゲート。markdown の lint と内部リンク切れ（Actions も同じものを走らせる）
 ```
 
 この順番を守る。`build.py` は `docs/src/data/metrics.json` を読むだけで自分では取りに
 行かないので、先に流しても前回の数字が出るだけになる。
+
+`just ci` は PR の必須チェックで、`.github/workflows/ci.yml` が dotfiles の再利用 workflow
+経由で走らせる。段階の分け方は dotfiles の
+[`docs/gates.md`](https://github.com/yamakura-yuma/dotfiles/blob/main/docs/gates.md)。
+ゲート自身（`.github/`、`justfile`、`.markdownlint-cli2.yaml`、`docs/check_links.py`）は
+`.github/CODEOWNERS` で人の承認が要る。外部リンクは見ない（揺れて PR を止めるため）。
 
 どのスクリプトも冪等で、実データに差が無ければファイルに触らない。続けて2回流して
 git の差分が出ないことが、正しく終わった証拠になる。
@@ -124,6 +132,7 @@ Markdown で書く（`argocd-notify/index.md` の評価マトリクスのよう�
 チェックアウト直後には無い。`graphify update .` で作れる。
 
 規約:
+
 - コードベースについての質問は、graphify-out/graph.json があればまず
   `graphify query "<質問>"` を実行する。関係を辿るなら `graphify path "<A>" "<B>"`、
   特定の概念に絞るなら `graphify explain "<概念>"`。いずれも範囲を絞った部分グラフを
