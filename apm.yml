@@ -6,18 +6,18 @@ author: yamakura-yuma
 targets:
 - claude
 
-# The shared harness (rules, guard hooks, core-* skills) from the dotfiles repo,
-# pinned by commit because upstream publishes no tags; bump with `apm update`.
+# The shared harness (rules, guard hooks, core-* skills) from the dotfiles repo.
+# Our own package follows main; external packages are pinned by commit.
 # `apm install` lands it in ./.claude/, never in ~/.claude/.
 dependencies:
   apm:
   - git: https://github.com/yamakura-yuma/dotfiles.git
     path: core-principal
-    ref: fa39bcaf4d782a254166e8fda1b793d3af196cd7
+    ref: main
     alias: core-principal
     targets:
     - claude
-  # Page-lead helpers (see CLAUDE.md), pinned by commit like core-principal.
+  # Page-lead helpers (see CLAUDE.md), pinned by commit.
   - git: https://github.com/dreambigou/eli5.git
     path: skills/eli5
     ref: a766623b062331fdde53467001379b4ddf3acc2f

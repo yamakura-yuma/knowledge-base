@@ -108,9 +108,10 @@ Markdown で書く（`argocd-notify/index.md` の評価マトリクスのよう�
 - `eli5`・`archify`・`impeccable` — 外部の公開スキル。コミット固定で取り込む。
   ページ冒頭のたとえ話（eli5）、図（archify）、出す前の批評（impeccable の critique）に使う
 - `core-principal` — 共有ハーネス（ルール、git のガードフック、`core-*` スキル）。
-  [dotfiles](https://github.com/yamakura-yuma/dotfiles) リポジトリからコミットで
-  固定して取得する。変更は向こうで行い、ここでは `apm update` で `ref` を上げる。
-  ローカルでフォークしないこと。
+  [dotfiles](https://github.com/yamakura-yuma/dotfiles) リポジトリの `main` を追う
+  （`apm.yml` は `ref: main`）。変更は向こうで行う。ローカルでフォークしないこと。
+  新しい worktree には `orca.yaml` の setup が展開する（`apm install` のあと
+  `apm update core-principal --yes` で最新に上げ、`apm.lock.yaml` は戻す）。
 
 他のリポジトリでも同じに読めるものは `.apm/` ではなく `core-principal` に属する。
 `update-landscape` はこのリポジトリの `docs/` の形そのものに依存しているので、ここに置く。
