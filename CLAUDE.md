@@ -88,7 +88,9 @@ git の差分が出ないことが、正しく終わった証拠になる。
 `docs/src/` の外（生成物の HTML など）を指すときは GitHub 上の絶対 URL にする。
 生の HTML ブロックの中の `<a href>` は MkDocs が書き換えないので、`.md` を指すリンクは
 Markdown で書く（`argocd-notify/index.md` の評価マトリクスのように行へ `markdown="1"`、
-セルへ `markdown="span"` を付ける）。直したら `mkdocs build --strict` を流す。
+セルへ `markdown="span"` を付ける）。直したら `mkdocs build --strict` を流す。strict は
+生 HTML の中の `.md` を検出しないので、出力先で `grep -rnoE 'href="[^"h#/][^"]*\.md' <出力先>`
+が 0 件なことも確かめる。
 
 `build.py` は警告を出して終わることがある。「改名 / 移転を検出」なら `registry.yaml`
 の `repo` を直して取り直す。「詳細ティアだが本文が無い」は自動昇格した項目に本文が
