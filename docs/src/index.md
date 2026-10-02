@@ -10,3 +10,5 @@
 | patterns | ハーネスのパターン・カタログ（見立て） | [patterns/harness-form.md](patterns/harness-form.md) |
 | telemetry-daily | テレメトリの日報 | [telemetry-daily/2026-10-01.md](telemetry-daily/2026-10-01.md) |
 | ideas | まだ試していない構想 | [ideas/index.md](ideas/index.md) |
+
+[ゲート確認用のリンク切れ](no-such-page.md)
