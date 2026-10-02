@@ -16,3 +16,4 @@ lint:
 # 内部リンクの切れ（外部リンクは見ない）
 links:
     python3 docs/check_links.py
+# gate-probe: C のパスに触る確認用コメント。マージしない。
