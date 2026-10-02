@@ -391,19 +391,124 @@
 <h3>評価マトリクス</h3>
 <div class="tblwrap">
 <table class="mx">
-<thead><tr><th>方式</th><th>削除完了の検知</th><th>検知層の耐障害性</th><th>配送層の回復性</th><th>配送保証</th><th>可用性</th><th>疎結合・独立デプロイ</th><th>スケーラビリティ</th><th>可観測性</th><th>セキュリティ・権限分離</th><th>運用負荷</th><th>レイテンシ</th></tr></thead>
+<thead>
+<tr>
+<th>方式</th>
+<th>削除完了の検知</th>
+<th>検知層の耐障害性</th>
+<th>配送層の回復性</th>
+<th>配送保証</th>
+<th>可用性</th>
+<th>疎結合・独立デプロイ</th>
+<th>スケーラビリティ</th>
+<th>可観測性</th>
+<th>セキュリティ・権限分離</th>
+<th>運用負荷</th>
+<th>レイテンシ</th>
+</tr>
+</thead>
 <tbody>
-<tr><td><a href="notifications.html">① Notifications</a></td><td><span class="g0">×</span><small>削除開始</small></td><td><span class="g2">○</span><small>デプロイは拾う / 削除は×</small></td><td><span class="g1">△</span><small>4 回試行で終わり</small></td><td><span class="g2">○</span><small>oncePer で重複除去</small></td><td><span class="g1">△</span><small>1 レプリカ</small></td><td><span class="g1">△</span><small>cm の編集</small></td><td><span class="g1">△</span><small>送信先ごと</small></td><td><span class="g1">△</span><small>Prometheus</small></td><td><span class="g2">○</span><small>self-service</small></td><td><span class="g3">◎</span><small>同梱</small></td><td><span class="g0">×</span><small>削除完了なし</small></td></tr>
-<tr><td><a href="hooks.html">② PostSync / PostDelete</a></td><td><span class="g1">△</span><small>CR 消滅前</small></td><td><span class="g3">◎</span><small>controller が再実行</small></td><td><span class="g1">△</span><small>backoffLimit</small></td><td><span class="g1">△</span><small>sync ごとに実行</small></td><td><span class="g0">×</span><small>失敗で削除が詰まる</small></td><td><span class="g0">×</span><small>全アプリのマニフェスト</small></td><td><span class="g0">×</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>資格情報がアプリごと</small></td><td><span class="g1">△</span><small>アプリごとに Job</small></td><td><span class="g1">△</span><small>0.8 秒＋CR 消滅は後</small></td></tr>
-<tr><td><a href="knative.html">③ Knative</a></td><td><span class="g2">○</span><small>DELETE</small></td><td><span class="g0">×</span><small>停止中は取りこぼす</small></td><td><span class="g3">◎</span><small>retry・backoff・DLQ</small></td><td><span class="g2">○</span><small>永続 Broker で at-least-once</small></td><td><span class="g2">○</span><small>制御面・Kafka 系は HA、adapter は 1</small></td><td><span class="g3">◎</span><small>Trigger を足すだけ</small></td><td><span class="g3">◎</span><small>データプレーン水平</small></td><td><span class="g3">◎</span><small>OTLP・CloudEvents</small></td><td><span class="g2">○</span><small>ns 内で完結、偽装に EventPolicy</small></td><td><span class="g1">△</span><small>部品が多い</small></td><td><span class="g3">◎</span><small>5 ms</small></td></tr>
-<tr><td><a href="argo-events.html">④ Argo Events</a></td><td><span class="g2">○</span><small>DELETE</small></td><td><span class="g0">×</span><small>停止中は取りこぼす</small></td><td><span class="g2">○</span><small>retry・dlqTrigger</small></td><td><span class="g1">△</span><small>既定 at-most-once</small></td><td><span class="g2">○</span><small>Active-Passive</small></td><td><span class="g2">○</span><small>Sensor の編集</small></td><td><span class="g2">○</span><small>Sensor 単位</small></td><td><span class="g1">△</span><small>Prometheus</small></td><td><span class="g2">○</span><small>ns 内で完結</small></td><td><span class="g1">△</span><small>EventBus が要る</small></td><td><span class="g3">◎</span><small>7 ms</small></td></tr>
-<tr><td><a href="finalizer.html">⑤ finalizer（Metacontroller）</a></td><td><span class="g3">◎</span><small>消滅を保証</small></td><td><span class="g3">◎</span><small>復旧後に拾う</small></td><td><span class="g2">○</span><small>送れるまで呼び直す</small></td><td><span class="g3">◎</span><small>at-least-once＋uid</small></td><td><span class="g0">×</span><small>止まると削除も止まる</small></td><td><span class="g2">○</span><small>Broker に出せば ◎</small></td><td><span class="g1">△</span><small>単一リーダー</small></td><td><span class="g2">○</span><small>hook で OTel</small></td><td><span class="g1">△</span><small>ClusterRole を絞る</small></td><td><span class="g2">○</span><small>hook 1 つ</small></td><td><span class="g2">○</span><small>約 10 ms</small></td></tr>
-<tr><td><strong>推奨: watch＋突き合わせ</strong><br>例: ApiServerSource＋PingSource</td><td><span class="g3">◎</span><small>Namespace の消滅</small></td><td><span class="g2">○</span><small>突き合わせが拾う</small></td><td><span class="g3">◎</span><small>Broker の retry・DLQ</small></td><td><span class="g3">◎</span><small>決定的 id</small></td><td><span class="g2">○</span><small>削除を止めない</small></td><td><span class="g3">◎</span><small>Trigger を足すだけ</small></td><td><span class="g3">◎</span><small>データプレーン水平</small></td><td><span class="g3">◎</span><small>CloudEvents</small></td><td><span class="g3">◎</span><small>get/list/watch のみ</small></td><td><span class="g2">○</span><small>部品 3 つ</small></td><td><span class="g3">◎</span><small>即時（安全網は 1 分）</small></td></tr>
-<tr><td><a href="api-stream.html">⑥ API stream</a></td><td><span class="g2">○</span><small>DELETED</small></td><td><span class="g0">×</span><small>取りこぼす</small></td><td><span class="g0">×</span><small>無い</small></td><td><span class="g0">×</span><small>詰まると捨てる</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g1">△</span><small>自前</small></td><td><span class="g2">○</span><small>Argo CD の RBAC で絞られる</small></td><td><span class="g0">×</span><small>自作</small></td><td><span class="g3">◎</span><small>2 ms</small></td></tr>
+<tr>
+<td><a href="notifications.html">① Notifications</a></td>
+<td><span class="g0">×</span><small>削除開始</small></td>
+<td><span class="g2">○</span><small>デプロイは拾う / 削除は×</small></td>
+<td><span class="g1">△</span><small>4 回試行で終わり</small></td>
+<td><span class="g2">○</span><small>oncePer で重複除去</small></td>
+<td><span class="g1">△</span><small>1 レプリカ</small></td>
+<td><span class="g1">△</span><small>cm の編集</small></td>
+<td><span class="g1">△</span><small>送信先ごと</small></td>
+<td><span class="g1">△</span><small>Prometheus</small></td>
+<td><span class="g2">○</span><small>self-service</small></td>
+<td><span class="g3">◎</span><small>同梱</small></td>
+<td><span class="g0">×</span><small>削除完了なし</small></td>
+</tr>
+<tr>
+<td><a href="hooks.html">② PostSync / PostDelete</a></td>
+<td><span class="g1">△</span><small>CR 消滅前</small></td>
+<td><span class="g3">◎</span><small>controller が再実行</small></td>
+<td><span class="g1">△</span><small>backoffLimit</small></td>
+<td><span class="g1">△</span><small>sync ごとに実行</small></td>
+<td><span class="g0">×</span><small>失敗で削除が詰まる</small></td>
+<td><span class="g0">×</span><small>全アプリのマニフェスト</small></td>
+<td><span class="g0">×</span><small>自前</small></td>
+<td><span class="g1">△</span><small>自前</small></td>
+<td><span class="g1">△</span><small>資格情報がアプリごと</small></td>
+<td><span class="g1">△</span><small>アプリごとに Job</small></td>
+<td><span class="g1">△</span><small>0.8 秒＋CR 消滅は後</small></td>
+</tr>
+<tr>
+<td><a href="knative.html">③ Knative</a></td>
+<td><span class="g2">○</span><small>DELETE</small></td>
+<td><span class="g0">×</span><small>停止中は取りこぼす</small></td>
+<td><span class="g3">◎</span><small>retry・backoff・DLQ</small></td>
+<td><span class="g2">○</span><small>永続 Broker で at-least-once</small></td>
+<td><span class="g2">○</span><small>制御面・Kafka 系は HA、adapter は 1</small></td>
+<td><span class="g3">◎</span><small>Trigger を足すだけ</small></td>
+<td><span class="g3">◎</span><small>データプレーン水平</small></td>
+<td><span class="g3">◎</span><small>OTLP・CloudEvents</small></td>
+<td><span class="g2">○</span><small>ns 内で完結、偽装に EventPolicy</small></td>
+<td><span class="g1">△</span><small>部品が多い</small></td>
+<td><span class="g3">◎</span><small>5 ms</small></td>
+</tr>
+<tr>
+<td><a href="argo-events.html">④ Argo Events</a></td>
+<td><span class="g2">○</span><small>DELETE</small></td>
+<td><span class="g0">×</span><small>停止中は取りこぼす</small></td>
+<td><span class="g2">○</span><small>retry・dlqTrigger</small></td>
+<td><span class="g1">△</span><small>既定 at-most-once</small></td>
+<td><span class="g2">○</span><small>Active-Passive</small></td>
+<td><span class="g2">○</span><small>Sensor の編集</small></td>
+<td><span class="g2">○</span><small>Sensor 単位</small></td>
+<td><span class="g1">△</span><small>Prometheus</small></td>
+<td><span class="g2">○</span><small>ns 内で完結</small></td>
+<td><span class="g1">△</span><small>EventBus が要る</small></td>
+<td><span class="g3">◎</span><small>7 ms</small></td>
+</tr>
+<tr>
+<td><a href="finalizer.html">⑤ finalizer（Metacontroller）</a></td>
+<td><span class="g3">◎</span><small>消滅を保証</small></td>
+<td><span class="g3">◎</span><small>復旧後に拾う</small></td>
+<td><span class="g2">○</span><small>送れるまで呼び直す</small></td>
+<td><span class="g3">◎</span><small>at-least-once＋uid</small></td>
+<td><span class="g0">×</span><small>止まると削除も止まる</small></td>
+<td><span class="g2">○</span><small>Broker に出せば ◎</small></td>
+<td><span class="g1">△</span><small>単一リーダー</small></td>
+<td><span class="g2">○</span><small>hook で OTel</small></td>
+<td><span class="g1">△</span><small>ClusterRole を絞る</small></td>
+<td><span class="g2">○</span><small>hook 1 つ</small></td>
+<td><span class="g2">○</span><small>約 10 ms</small></td>
+</tr>
+<tr>
+<td><strong>推奨: watch＋突き合わせ</strong><br>例: ApiServerSource＋PingSource</td>
+<td><span class="g3">◎</span><small>Namespace の消滅</small></td>
+<td><span class="g2">○</span><small>突き合わせが拾う</small></td>
+<td><span class="g3">◎</span><small>Broker の retry・DLQ</small></td>
+<td><span class="g3">◎</span><small>決定的 id</small></td>
+<td><span class="g2">○</span><small>削除を止めない</small></td>
+<td><span class="g3">◎</span><small>Trigger を足すだけ</small></td>
+<td><span class="g3">◎</span><small>データプレーン水平</small></td>
+<td><span class="g3">◎</span><small>CloudEvents</small></td>
+<td><span class="g3">◎</span><small>get/list/watch のみ</small></td>
+<td><span class="g2">○</span><small>部品 3 つ</small></td>
+<td><span class="g3">◎</span><small>即時（安全網は 1 分）</small></td>
+</tr>
+<tr>
+<td><a href="api-stream.html">⑥ API stream</a></td>
+<td><span class="g2">○</span><small>DELETED</small></td>
+<td><span class="g0">×</span><small>取りこぼす</small></td>
+<td><span class="g0">×</span><small>無い</small></td>
+<td><span class="g0">×</span><small>詰まると捨てる</small></td>
+<td><span class="g1">△</span><small>自前</small></td>
+<td><span class="g1">△</span><small>自前</small></td>
+<td><span class="g1">△</span><small>自前</small></td>
+<td><span class="g1">△</span><small>自前</small></td>
+<td><span class="g2">○</span><small>Argo CD の RBAC で絞られる</small></td>
+<td><span class="g0">×</span><small>自作</small></td>
+<td><span class="g3">◎</span><small>2 ms</small></td>
+</tr>
 </tbody>
 </table>
 </div>
-
 <p>採点の根拠は各方式のページに、基準は<a href="criteria.html">評価軸と採点基準</a>に書いた。表を縦に読むと、watch 系（③④⑥）は検知層が全部 × で、違いが出るのは配送層から後になる。finalizer 方式（⑤）はその逆で、検知層は ◎ だが、可用性と運用負荷を自分で背負う。推奨構成では ⑤ で削除完了を確実に取り、配送が必要になったら ③ の配送層（Broker）だけを借りる。</p>
 <hr />
 <h3>取りこぼす条件</h3>

@@ -424,7 +424,7 @@ id は、どの経路でも `<uid>:deleted` だった。team-a の Broker にも
 
 ### 4.19 基盤の負荷の計測（footprint） {#footprint}
 
-kind に各部品を順に入れ、そのつど CRD・ワークロード・ClusterRole の数を数えて、前の状態との差を取った（`runs/footprint/*`）。結果は[推奨構成の詳細](recommended.html#footprint)の表のとおり。
+kind に各部品を順に入れ、そのつど CRD・ワークロード・ClusterRole の数を数えて、前の状態との差を取った（`runs/footprint/*`）。結果は[推奨構成の詳細](recommended.md#footprint)の表のとおり。
 
 ## 5. まとめ: 問いと run の対応
 

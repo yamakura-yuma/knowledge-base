@@ -601,6 +601,13 @@ def fill_placeholders(text: str, rows: list[dict], warnings: list[str]) -> str:
     return re.sub(r"\{\{(star|status|push|name):([a-z0-9-]+)\}\}", sub, text)
 
 
+def md_links_to_html(fragment: str) -> str:
+    """本文のリンクは TechDocs（MkDocs）が .md から解決できるよう、隣のページを .md で指している。
+    この HTML では生成物の .html を指すので、相対リンクの .md だけを .html に戻す。"""
+    return re.sub(r'(href=")((?![a-z][a-z0-9+.-]*:|/|#)[^"#]*)\.md((?:#[^"]*)?")',
+                  r"\1\2.html\3", fragment)
+
+
 def static_page(fname, label, topic, metrics, warnings) -> str:
     """docs/src/<話題>/<name>.md を同じ外枠で描く。図は md の中に生 HTML で書く。"""
     src = SRC / topic / fname.replace(".html", ".md")
@@ -618,7 +625,7 @@ def static_page(fname, label, topic, metrics, warnings) -> str:
         else:
             body_md = rest
     conv = md_lib.Markdown(extensions=["tables", "fenced_code", "attr_list", "md_in_html"])
-    return shell(fname, title, esc(sub), conv.convert(body_md),
+    return shell(fname, title, esc(sub), md_links_to_html(conv.convert(body_md)),
                  metrics.get("fetched_at", "—"))
 
 
@@ -672,7 +679,7 @@ def idea_pages(warnings: list[str]) -> dict[str, str]:
   <p class="sub">{esc(sub)}</p>
 </header>
 <nav class="nav">{items}</nav>
-{conv.convert(body_md)}
+{md_links_to_html(conv.convert(body_md))}
 <footer>
   ここは構想置き場で、未検証の主張を含む。各主張の <b>確認済み</b> / <b>未確認</b> は本文の印のとおり。
   確認済みは末尾の出典で裏を取ったもの、未確認はまだ試していないもの。<br>

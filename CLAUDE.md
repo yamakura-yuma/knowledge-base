@@ -71,6 +71,7 @@ uv run docs/collect_articles.py    # パターンの使用報告の候補（技�
 uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
 uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
 uv run docs/collect_telemetry.py    # テレメトリの日報の数字を書く（独立。要 home-k8s の Grafana）
+uvx --with mkdocs-techdocs-core mkdocs build --strict -d /tmp/kb-techdocs  # TechDocs 用のビルドが警告なしで通るか確かめる
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
 ```
 
@@ -79,6 +80,15 @@ apm install                    # apm.yml から ./.claude/ にエージェント
 
 どのスクリプトも冪等で、実データに差が無ければファイルに触らない。続けて2回流して
 git の差分が出ないことが、正しく終わった証拠になる。
+
+`docs/src/` の markdown は、Backstage の TechDocs（MkDocs）と `docs/site/` の HTML の
+両方の正本になる。そのため本文の中の隣のページへのリンクは `.html` ではなく **`.md` で書く**
+（`[採点表](criteria.md#change)`）。MkDocs は `.md` を解決し、`build.py` と
+`build_argocd_notify.py` は変換後の HTML の相対リンクの `.md` を `.html` に戻す。
+`docs/src/` の外（生成物の HTML など）を指すときは GitHub 上の絶対 URL にする。
+生の HTML ブロックの中の `<a href>` は MkDocs が書き換えないので、`.md` を指すリンクは
+Markdown で書く（`argocd-notify/index.md` の評価マトリクスのように行へ `markdown="1"`、
+セルへ `markdown="span"` を付ける）。直したら `mkdocs build --strict` を流す。
 
 `build.py` は警告を出して終わることがある。「改名 / 移転を検出」なら `registry.yaml`
 の `repo` を直して取り直す。「詳細ティアだが本文が無い」は自動昇格した項目に本文が

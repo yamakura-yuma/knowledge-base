@@ -68,12 +68,12 @@
 ## 方式の一覧
 
 <div class="pagegrid">
-<a class="pcard" href="notifications.html"><b>① Argo CD Notifications</b><span>trigger の条件式を評価し、service で送る。Argo CD に同梱</span></a>
-<a class="pcard" href="hooks.html"><b>② PostSync / PostDelete Job</b><span>application-controller が hook の Job を実行する</span></a>
-<a class="pcard" href="knative.html"><b>③ Knative Eventing</b><span>ApiServerSource → Broker / Trigger。CloudEvents で運ぶ</span></a>
-<a class="pcard" href="argo-events.html"><b>④ Argo Events</b><span>resource EventSource → EventBus → Sensor</span></a>
-<a class="pcard" href="finalizer.html"><b>⑤ finalizer 方式（Metacontroller）</b><span>finalizer を付け、最後の 1 つになったら hook が送る</span></a>
-<a class="pcard" href="api-stream.html"><b>⑥ Argo CD API stream</b><span>/api/v1/stream/applications を購読する常駐クライアント</span></a>
+<a class="pcard" href="notifications.md"><b>① Argo CD Notifications</b><span>trigger の条件式を評価し、service で送る。Argo CD に同梱</span></a>
+<a class="pcard" href="hooks.md"><b>② PostSync / PostDelete Job</b><span>application-controller が hook の Job を実行する</span></a>
+<a class="pcard" href="knative.md"><b>③ Knative Eventing</b><span>ApiServerSource → Broker / Trigger。CloudEvents で運ぶ</span></a>
+<a class="pcard" href="argo-events.md"><b>④ Argo Events</b><span>resource EventSource → EventBus → Sensor</span></a>
+<a class="pcard" href="finalizer.md"><b>⑤ finalizer 方式（Metacontroller）</b><span>finalizer を付け、最後の 1 つになったら hook が送る</span></a>
+<a class="pcard" href="api-stream.md"><b>⑥ Argo CD API stream</b><span>/api/v1/stream/applications を購読する常駐クライアント</span></a>
 </div>
 
 ①〜③ は依頼で指定された方式、④〜⑥ はこちらから追加で提案した方式。

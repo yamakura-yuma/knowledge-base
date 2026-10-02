@@ -385,6 +385,14 @@ def grade_cells(fragment: str) -> str:
 
 # ---------------------------------------------------------------- ページ
 
+
+# 本文のリンクは TechDocs（MkDocs）が .md から解決できるよう、隣のページを .md で指している。
+# この HTML では生成物の .html を指すので、相対リンクの .md だけを .html に戻す。
+def md_links_to_html(fragment: str) -> str:
+    return re.sub(r'(href=")((?![a-z][a-z0-9+.-]*:|/|#)[^"#]*)\.md((?:#[^"]*)?")',
+                  r"\1\2.html\3", fragment)
+
+
 def nav(active: str) -> str:
     items = "".join(f'<a href="{s}.html" class="{"on" if s == active else ""}">{html.escape(l)}</a>'
                     for s, l in PAGES)
@@ -409,7 +417,7 @@ def page(stem: str, label: str, warnings: list[str]) -> str:
             body_md = rest
     body_md = render_diagrams(body_md, warnings, src.name)
     conv = md_lib.Markdown(extensions=["tables", "fenced_code", "attr_list", "md_in_html"])
-    body = grade_cells(conv.convert(body_md))
+    body = md_links_to_html(grade_cells(conv.convert(body_md)))
     sub_html = md_lib.markdown(sub).removeprefix("<p>").removesuffix("</p>")
     return f"""<!DOCTYPE html>
 <html lang="ja">

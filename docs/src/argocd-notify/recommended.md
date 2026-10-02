@@ -19,7 +19,7 @@
 
 
 
-[このページを一言で（たとえ話と図）](index.html#grareco) は概要ページにある。
+[このページを一言で（たとえ話と図）](index.md#grareco) は概要ページにある。
 
 ## 推奨構成のアーキテクチャ
 
@@ -222,7 +222,7 @@ notes:
 
 ### デプロイ完了の取り方 {#deploy}
 
-**第一候補は、Knative で Application を観測する形。** Notifications は、trigger・template・service を `argocd` namespace の `argocd-notifications-cm` に書く。通知を変えるたびに基盤側の設定に手を入れることになるので、第一候補から外した。Argo CD の設定を管理しているチームが通知も持つ場合の代替として残す（[①](notifications.html)）。
+**第一候補は、Knative で Application を観測する形。** Notifications は、trigger・template・service を `argocd` namespace の `argocd-notifications-cm` に書く。通知を変えるたびに基盤側の設定に手を入れることになるので、第一候補から外した。Argo CD の設定を管理しているチームが通知も持つ場合の代替として残す（[①](notifications.md)）。
 
 | 案 | 重複の除去 | 状態 | 基盤側の設定 |
 |---|---|---|---|
@@ -236,14 +236,14 @@ notes:
 - Notifications カタログの `on-deployed` と同じ時刻の条件（health の `lastTransitionTime` と、operation の `startedAt`・`finishedAt` の比較）
 - 満たしたら、`id = <uid>:<operationState.syncResult.revision>:deployed` の CloudEvent を Broker に送る
 
-**Notifications と同じ条件式にして、ずれを確かめた（[run19](report.html#run19)）。** 最初の 0.1.0 のデプロイ完了は、Notifications と観測 Service がどちらも同じ時点で出した（差は 9〜18 ms）。
+**Notifications と同じ条件式にして、ずれを確かめた（[run19](report.md#run19)）。** 最初の 0.1.0 のデプロイ完了は、Notifications と観測 Service がどちらも同じ時点で出した（差は 9〜18 ms）。
 
 一方で、ずれも 2 つ見つかった。
 
 - **同じ revision に戻したとき。** 0.2.0 から 0.1.0 に戻すと、Notifications は `oncePer: revision` の記録がすでにあるので送らなかった。観測 Service は、同じ id `<uid>:0.1.0:deployed` で送った。受け手が id で重複を消すと、2 回目の 0.1.0 も消えてしまう。**ロールバックも通知したいなら、id に operation の `startedAt` を足す**（`<uid>:<revision>:<startedAt>:deployed`）。
-- **更新が多い。** 1 回の sync で、Application の update が 14 件届いた（[run3](report.html#run3)）。観測 Service は、条件を満たす update のたびに送るので、同じ id が 2〜4 通になった。受け手が id で消す前提なら問題にならない。Broker に流す量を減らしたければ、観測 Service の前に Trigger の filter（`kind: Application`）を置き、EventTransform で id を決めてから通す。
+- **更新が多い。** 1 回の sync で、Application の update が 14 件届いた（[run3](report.md#run3)）。観測 Service は、条件を満たす update のたびに送るので、同じ id が 2〜4 通になった。受け手が id で消す前提なら問題にならない。Broker に流す量を減らしたければ、観測 Service の前に Trigger の filter（`kind: Application`）を置き、EventTransform で id を決めてから通す。
 
-**安全網:** 削除側と同じ PingSource で、観測 Service が毎分 Application を list し、条件を満たすものを同じ id で送る。adapter を止めている間にデプロイした 0.2.0 も、次の周期（6 秒後）に届いた（[run19](report.html#run19)）。状態を持たずに済むのは、id が決定的だから。その代わり、Synced/Healthy のあいだは毎分同じ id が送られるので、受け手の重複除去が前提になる。**削除側と部品は共有できる。** 観測 Service 1 つに、Application の判定と Namespace の突き合わせを両方載せられる（試作は別々に書いた）。
+**安全網:** 削除側と同じ PingSource で、観測 Service が毎分 Application を list し、条件を満たすものを同じ id で送る。adapter を止めている間にデプロイした 0.2.0 も、次の周期（6 秒後）に届いた（[run19](report.md#run19)）。状態を持たずに済むのは、id が決定的だから。その代わり、Synced/Healthy のあいだは毎分同じ id が送られるので、受け手の重複除去が前提になる。**削除側と部品は共有できる。** 観測 Service 1 つに、Application の判定と Namespace の突き合わせを両方載せられる（試作は別々に書いた）。
 
 **必要な権限:** applications の get/list/watch だけ（argocd namespace の Role）。Argo CD の RBAC にも、Application の annotation にも触らない。
 
