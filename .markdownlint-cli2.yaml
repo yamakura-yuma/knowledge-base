@@ -1,0 +1,16 @@
+# `just ci` の markdown lint。既定の規則から、この文書群の書き方と合わないものだけを外す。
+# 変えるとゲートが変わるので .github/CODEOWNERS で人の承認にしてある。
+config:
+  default: true
+  # 日本語の長い行と表。折り返さずに書いている
+  MD013: false
+  # 生成物へ埋め込む HTML（archify の svg、markdown="1" の表）を書く
+  MD033: false
+  # 詳細ティアの本文（landscape/tools/）は、題を build.py が付けるので ## から始まる
+  MD041: false
+  # 図の下の「図の読み方」を見出しでなく強調で書く
+  MD036: false
+  # 図を差し込む箇所の前後に空行が続く
+  MD012: false
+  # 構造図やテンプレートを言語なしの囲みで書く
+  MD040: false
