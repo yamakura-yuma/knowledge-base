@@ -1,0 +1,16 @@
+# Backstage のカタログに載せる knowledge-base のエンティティ。Backstage (localhost:7007) が GitHub の main から読む
+# (home-k8s の clusters/kind/backstage/values.yaml の catalog.locations)。
+# backstage.io/techdocs-ref: dir:. は、このリポジトリ直下の mkdocs.yml を TechDocs が MkDocs で HTML にする、の意味。
+# 本文は docs/src の markdown。docs/src/data/ と docs/site/ は出さない (mkdocs.yml)
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: knowledge-base
+  description: 調べたことを溜めておく場所。AI ツールのランドスケープ、ハーネスのパターン・カタログ、Argo CD 完了通知の比較など
+  annotations:
+    github.com/project-slug: yamakura-yuma/knowledge-base
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: documentation
+  lifecycle: experimental
+  owner: user:yamakura-yuma

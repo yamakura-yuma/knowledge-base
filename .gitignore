@@ -10,3 +10,6 @@ apm_modules/
 # graphify の知識グラフ。機械ローカルの生成物
 graphify-out/
 __pycache__/
+
+# mkdocs build (TechDocs 用) の出力。docs/site/ は別物なので先頭を固定する
+/site/

@@ -1,0 +1,34 @@
+# Backstage の TechDocs 用。docs/src の markdown を MkDocs で HTML にする
+# (catalog-info.yaml の backstage.io/techdocs-ref: dir:.)。
+# docs/site/ は build.py が吐く別系統の HTML で、docs_dir の外にあるので出ない
+site_name: knowledge-base
+docs_dir: docs/src
+plugins:
+  - techdocs-core
+# data/ は fetch_metrics.py などが取った JSON で、読むものではない
+exclude_docs: |
+  data/
+nav:
+  - ホーム: index.md
+  - AI ツールのランドスケープ:
+      - 分類軸と母集団: landscape/index.md
+  - ツール調査:
+      - コンテキスト最適化: tool-research/context-optimization.md
+  - Argo CD 完了通知:
+      - 概要: argocd-notify/index.md
+      - 推奨: argocd-notify/recommended.md
+      - 評価基準: argocd-notify/criteria.md
+      - 実測の報告書: argocd-notify/report.md
+      - Notifications: argocd-notify/notifications.md
+      - Argo Events: argocd-notify/argo-events.md
+      - Knative: argocd-notify/knative.md
+      - Finalizer: argocd-notify/finalizer.md
+      - Hooks: argocd-notify/hooks.md
+      - API ストリーム: argocd-notify/api-stream.md
+  - ハーネスのパターン:
+      - ハーネスの形式: patterns/harness-form.md
+  - テレメトリの日報:
+      - 2026-10-01: telemetry-daily/2026-10-01.md
+  - アイデア:
+      - 概要: ideas/index.md
+      - ハーネス行列: ideas/harness-matrix.md
