@@ -25,6 +25,8 @@ uv run docs/build.py           # docs/site/ 以下の HTML を組み直す
 - **「詳細ティアだが本文が無い」** が出たら、自動昇格した項目に
   `docs/src/landscape/tools/<slug>.md` の本文が要る。
   本文を書くまでは既知の警告として残る。
+- **「現役 → 保守」** が出たら、README が保守モードを告知している（`metrics.json` の
+  `maintenance_phrase` に語句が残る）。registry.yaml に手でフラグを足さず、告知を読んで summary と本文に書く。
 - **`docs/site/` を直接編集しない。** 生成物なので次のビルドで消える。
   **`docs/src/data/metrics.json` を手で編集しない。** 実測値の置き場所であって、意見の置き場所ではない。
 

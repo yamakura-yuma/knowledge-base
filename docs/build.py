@@ -48,6 +48,7 @@ PLACEMENT_LABEL = {"terminal": "ターミナル", "ide": "IDE", "cloud": "クラ
 STATUS_LABEL = {
     "hot": "勢いあり",
     "active": "現役",
+    "maintenance": "保守",
     "stale": "停滞",
     "ended": "終了",
     "unknown": "指標なし",
@@ -101,6 +102,9 @@ def decide_status(tool: dict, m: dict) -> str:
         return "ended"
     if m.get("archived"):
         return "ended"
+    # README が保守モードを告知している。push があっても現役とは呼ばない（終了よりは下）。
+    if m.get("maintenance_phrase"):
+        return "maintenance"
     pushed = days_since(m.get("pushed_at"))
     if pushed is None:
         return "unknown"
@@ -116,7 +120,7 @@ def decide_tier(tool: dict, m: dict, status: str) -> tuple[str, bool]:
     if tool.get("tier"):
         return tool["tier"], True
     stars = m.get("stars")
-    if status in ("hot", "active") and stars is not None and stars >= STAR_THRESHOLD:
+    if status in ("hot", "active", "maintenance") and stars is not None and stars >= STAR_THRESHOLD:
         return "detail", False
     return "history", False
 
@@ -333,6 +337,7 @@ CSS = """
           border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
           border:1px solid currentColor; }
   .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-maintenance{color:var(--stale)}
   .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
 
   /* ---- 層の図 ---- */
@@ -391,6 +396,7 @@ CSS = """
   #f-live:checked ~ .tblwrap tr[data-status=stale],
   #f-dead:checked ~ .tblwrap tr[data-status=hot],
   #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=maintenance],
   #f-dead:checked ~ .tblwrap tr[data-status=unknown]
     { display:none; }
 
@@ -785,6 +791,7 @@ def page(reg, metrics, rows, warnings) -> str:
 <ul>
   <li><strong>勢いあり</strong> — 直近 {ACTIVE_DAYS} 日に push があり、かつ同期間のリリースが 10 件以上</li>
   <li><strong>現役</strong> — 直近 {ACTIVE_DAYS} 日に push がある</li>
+  <li><strong>保守</strong> — README の冒頭で保守モード（新機能を受けず、修正と依存更新だけを続ける）を告知している。終了より下、勢いあり・現役・停滞より上</li>
   <li><strong>停滞</strong> — {STALE_DAYS} 日以上 push がない</li>
   <li><strong>終了</strong> — 公式に終了が告知された、またはリポジトリがアーカイブ済み</li>
   <li><strong>指標なし</strong> — 公開リポジトリが無く、同じ物差しに載せられない</li>

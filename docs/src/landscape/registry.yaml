@@ -33,6 +33,7 @@ meta:
   status_rules:
     active: 直近 90 日以内にリリースがある
     hot: active かつ、直近 90 日のリリース数が 3 以上、または star が直近に大きく伸びた
+    maintenance: README の冒頭で保守モード（新機能を受けず、修正と依存更新だけを続ける）を告知している。fetch_metrics.py が検知して metrics に語句を残す。ended より下、hot / active / stale より上
     stale: 6 か月以上リリースがない
     ended: 公式にアーカイブ・統合・提供終了した
 

@@ -57,6 +57,7 @@
           border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
           border:1px solid currentColor; }
   .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-maintenance{color:var(--stale)}
   .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
 
   /* ---- 層の図 ---- */
@@ -115,6 +116,7 @@
   #f-live:checked ~ .tblwrap tr[data-status=stale],
   #f-dead:checked ~ .tblwrap tr[data-status=hot],
   #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=maintenance],
   #f-dead:checked ~ .tblwrap tr[data-status=unknown]
     { display:none; }
 
