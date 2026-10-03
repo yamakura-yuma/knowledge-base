@@ -176,7 +176,7 @@ def main() -> int:
         repos = {k: v for k, v in repos.items() if k in want}
 
     token = gh_token()
-    needed = len(repos) * 2  # repos/{r} と releases/ で 2 回ずつ
+    needed = len(repos) * 3  # repos/{r}、releases/、readme で 3 回ずつ
     if not token:
         print(f"error: gh の認証トークンが取れない。"
               f"今回は {needed} リクエストが必要だが、未認証の上限は 60 req/h しかなく、"
