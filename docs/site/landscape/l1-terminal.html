@@ -57,6 +57,7 @@
           border-radius:4px; vertical-align:2px; margin-left:6px; white-space:nowrap;
           border:1px solid currentColor; }
   .p-hot{color:var(--hot)} .p-active{color:var(--ok)} .p-stale{color:var(--stale)}
+  .p-maintenance{color:var(--stale)}
   .p-ended{color:var(--dead)} .p-unknown{color:var(--ink-3)} .p-manual{color:var(--l0)}
 
   /* ---- 層の図 ---- */
@@ -115,6 +116,7 @@
   #f-live:checked ~ .tblwrap tr[data-status=stale],
   #f-dead:checked ~ .tblwrap tr[data-status=hot],
   #f-dead:checked ~ .tblwrap tr[data-status=active],
+  #f-dead:checked ~ .tblwrap tr[data-status=maintenance],
   #f-dead:checked ~ .tblwrap tr[data-status=unknown]
     { display:none; }
 
@@ -189,7 +191,7 @@
 <div class="wrap">
 <header>
   <h1>エージェント本体（ターミナル）</h1>
-  <p class="sub">AI コーディングツール・ランドスケープ ／ L1　実測値の取得日 2026-09-30</p>
+  <p class="sub">AI コーディングツール・ランドスケープ ／ L1　実測値の取得日 2026-10-04</p>
 </header>
 <nav class="nav"><a href="../landscape/index.html" class="">全体</a><a href="../landscape/l1-terminal.html" class="on">ターミナル</a><a href="../landscape/l1-ide.html" class="">IDE</a><a href="../landscape/l1-cloud.html" class="">クラウド</a><a href="../landscape/l2.html" class="">モデルアクセス</a><a href="../landscape/l3.html" class="">共通基盤</a><a href="../landscape/l0.html" class="">モデル提供元</a><a href="../tool-research/context-optimization.html" class="">文脈の最適化</a></nav>
 
@@ -349,7 +351,7 @@ OAuth は Claude Code など Anthropic 純正アプリ向けで、他社のア�
 差し込み（Headroom プラグイン群の hermes）を同梱している。</p><div class="src">出典 <a href="https://github.com/NousResearch/hermes-agent">github.com/NousResearch/hermes-agent</a><a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a>｜確認 2026-09-30</div></article><h2>行だけ残した 9 項目</h2><p>GitHub Copilot CLI、Grok CLI、Kimi CLI、Mistral Vibe、ZCode、GPT Engineer、smol developer、SWE-agent、Kimi Code CLI。終了・停滞、あるいは自動昇格ラインに届かなかったもの。<strong>人気を理由に落としたものは無い。</strong>詳細を書いていないだけで、上の表には出ている。</p>
 <footer>
   分類は「リクエストが通る経路上の位置」を主軸、実行場所を副軸に取った。
-  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-09-30、
+  星の数・push 日時・リリース数・アーカイブ状態は GitHub API の実測値（取得日 2026-10-04、
   <code>docs/fetch_metrics.py</code>）。それ以外の事実は各カードの出典と確認日のとおり。
   裏が取れなかった値は空欄にしてあり、推測では埋めていない。<br>
   正本は <code>docs/src/landscape/registry.yaml</code>・<code>docs/src/landscape/tools/*.md</code>・<code>docs/src/&lt;話題&gt;/*.md</code>。

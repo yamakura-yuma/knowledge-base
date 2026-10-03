@@ -48,7 +48,9 @@ uv run docs/fetch_metrics.py
 uv run docs/build.py
 ```
 
-前回の `index.html` との差分を見て、状態（勢いあり / 現役 / 停滞 / 終了）が変わった項目を特定する。
+前回の `index.html` との差分を見て、状態（勢いあり / 現役 / 保守 / 停滞 / 終了）が変わった項目を特定する。
+`保守` は README の冒頭に保守モードの告知がある項目で、`fetch_metrics.py` が検知して `maintenance_phrase`
+に語句を残す。registry.yaml に手で書かない。出たら告知の原文を読んで summary と本文に反映する。
 特に **`stale` に落ちた項目と `archived` になった項目**は、公式に何かあった可能性が高いので個別に調べる。
 
 ### 3. 終了・改名・統合を反映する

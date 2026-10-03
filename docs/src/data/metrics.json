@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-30",
+  "fetched_at": "2026-10-04",
   "repos": {
     "agent-skills": {
       "archived": false,
@@ -1770,6 +1770,7 @@
       "homepage": "https://microsoft.github.io/graphrag/",
       "last_release": "2026-09-24",
       "license": "MIT",
+      "maintenance_phrase": "in maintenance mode",
       "pushed_at": "2026-09-28",
       "release_dates": [
         "2026-09-24",
@@ -1818,7 +1819,7 @@
       ],
       "releases_truncated": false,
       "resolved_repo": "microsoft/graphrag",
-      "stars": 36166
+      "stars": 36198
     },
     "grok-cli": {
       "archived": false,

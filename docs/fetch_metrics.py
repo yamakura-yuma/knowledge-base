@@ -17,9 +17,11 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import json
 import pathlib
+import re
 import subprocess
 import sys
 import urllib.error
@@ -35,6 +37,16 @@ WINDOW_DAYS = 90
 # 中身の無いコミットが出るので、意味のある変化だけを「変化」とみなす。
 STAR_NOISE_ABS = 50
 STAR_NOISE_PCT = 0.01
+# 保守モードの告知は README の冒頭に置かれる。深い節の「maintenance mode」（運用機能の
+# 説明など）を拾わないよう、先頭だけを見る。語句は microsoft/graphrag の告知
+# （"largely in maintenance mode"）と、registry の全リポジトリの README で誤検出が出ないことを
+# 見て決めた。広げるときは docs/test_fetch_metrics.py に実例を足す。
+README_HEAD_CHARS = 4000
+MAINTENANCE_PATTERN = re.compile(
+    r"\b(?:in|into)\s+maintenance[\s-]+(?:only[\s-]+)?mode\b"
+    r"|\bmaintenance[\s-]+only\b",
+    re.IGNORECASE,
+)
 
 
 def gh_token() -> str | None:
@@ -70,6 +82,12 @@ def api_get(path: str, token: str | None):
         raise ApiError(f"network: {e.reason}") from e
 
 
+def detect_maintenance(readme: str) -> str | None:
+    """README の冒頭に保守モードの告知があれば、該当した語句を返す。無ければ None。"""
+    m = MAINTENANCE_PATTERN.search(readme[:README_HEAD_CHARS])
+    return m.group(0) if m else None
+
+
 def fetch_repo(repo: str, token: str | None) -> dict:
     r = api_get(f"repos/{repo}", token)
     out = {
@@ -98,6 +116,13 @@ def fetch_repo(repo: str, token: str | None) -> dict:
     out["first_release"] = dates[-1] if dates else None
     # releases が 100 件で頭打ちなら first_release は「取れた中で最古」でしかない
     out["releases_truncated"] = len(rels) >= 100
+    # README が取れなかったときは判定しない（キーを置かない）。None は「告知なしと確認した」の意味。
+    try:
+        readme = api_get(f"repos/{repo}/readme", token)
+        text = base64.b64decode(readme.get("content") or "").decode("utf-8", "replace")
+        out["maintenance_phrase"] = detect_maintenance(text)
+    except (ApiError, ValueError):
+        pass
     return out
 
 
@@ -180,6 +205,9 @@ def main() -> int:
             continue
         if data["resolved_repo"] and data["resolved_repo"].lower() != repo.lower():
             renamed.append((slug, repo, data["resolved_repo"]))
+        # README が取れなかった回は判定を持たない。前回の判定があれば温存する。
+        if "maintenance_phrase" not in data and "maintenance_phrase" in previous.get(slug, {}):
+            data["maintenance_phrase"] = previous[slug]["maintenance_phrase"]
         fetched[slug] = data
         star = data["stars"]
         print(f"  {slug:24s} {repo:36s} ★{star if star is not None else '-':>7}"
