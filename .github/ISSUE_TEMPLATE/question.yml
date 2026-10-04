@@ -1,0 +1,29 @@
+name: 質問
+description: |
+  このリポジトリの内容や使い方について質問があるときに使ってください。
+  気軽に聞いてください。
+labels:
+  - question
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 質問
+      description: |
+        質問の内容を具体的に書いてください。
+        該当するページやファイルがあれば、パスも書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: なぜその質問をするのかを書いてください。
+    validations:
+      required: false
+  - type: textarea
+    id: note
+    attributes:
+      label: 補足
+    validations:
+      required: false

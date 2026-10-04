@@ -1,0 +1,58 @@
+name: 不具合の報告
+description: |
+  生成スクリプトの失敗、リンク切れ、表示の崩れ、数字や記述の誤りを報告します。
+  不具合かどうか分からないときは「困りごとの相談」を使ってください。
+labels:
+  - bug
+body:
+  - type: textarea
+    id: overview
+    attributes:
+      label: 概要
+      description: 何がおかしいかを一言で書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: how-to-reproduce
+    attributes:
+      label: 再現手順
+      description: |
+        他の人が同じ結果を再現できる手順を書いてください。
+        実行したコマンドと出力、またはおかしなページ・ファイルのパスを貼ってください。
+      value: |
+        1.
+
+        ```console
+        $
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: 期待する動作
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behaviour
+    attributes:
+      label: 実際の動作
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境
+      description: |
+        分かる範囲で書いてください。
+        - 対象の話題（landscape / tool-research / argocd-notify / patterns / telemetry-daily）
+        - 実行したスクリプト（`docs/build.py` など）と `uv --version`、`python3 --version`
+        - OS
+    validations:
+      required: false
+  - type: textarea
+    id: note
+    attributes:
+      label: 補足
+    validations:
+      required: false
