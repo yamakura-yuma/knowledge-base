@@ -1,0 +1,48 @@
+name: 要望
+description: |
+  調査の追加、記述の修正、生成スクリプトの改善などを依頼します。
+  何をどこに入れてほしいか、どうなれば終わりかを書いてください。
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: overview
+    attributes:
+      label: 概要
+      description: 何をしてほしいかを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象（ファイル・パス）
+      description: |
+        変更してほしいファイルやディレクトリを書いてください。
+        例: `docs/src/landscape/registry.yaml`、`docs/src/argocd-notify/`
+        新しいファイルを足すときは、置きたい場所を書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: 完了条件
+      description: |
+        どうなれば終わりかを、確かめられる形で書いてください。
+        例: 「`uv run docs/build.py` が警告なしで通り、`just ci` が緑になる」
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: なぜ必要かを書いてください。
+    validations:
+      required: false
+  - type: textarea
+    id: note
+    attributes:
+      label: 補足
+    validations:
+      required: false

@@ -1,0 +1,17 @@
+name: その他
+description: |
+  ほかのテンプレートに当てはまらないときに使ってください。
+body:
+  - type: textarea
+    id: content
+    attributes:
+      label: 内容
+      description: 書きたいことを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: 補足
+    validations:
+      required: false

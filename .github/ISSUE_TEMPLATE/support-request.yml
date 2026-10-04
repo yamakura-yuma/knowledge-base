@@ -1,0 +1,41 @@
+name: 困りごとの相談
+description: |
+  不具合かどうか分からない、使い方や進め方で困っているときに使ってください。
+  不具合と分かっているときは「不具合の報告」を使ってください。
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること
+      description: 何がうまくいっていないかを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: やったこと
+      description: |
+        試した手順、実行したコマンドと出力を貼ってください。
+      value: |
+        ```console
+        $
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境
+      description: |
+        分かる範囲で書いてください。
+        - 対象の話題（landscape / tool-research / argocd-notify / patterns / telemetry-daily）
+        - 実行したスクリプトと `uv --version`、`python3 --version`
+        - OS
+    validations:
+      required: false
+  - type: textarea
+    id: note
+    attributes:
+      label: 補足
+    validations:
+      required: false
