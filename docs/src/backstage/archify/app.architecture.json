@@ -1,0 +1,165 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "環境のタブ：注釈の値を選んだ環境に合わせて部品に渡す",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "cat",
+   "type": "database",
+   "label": "① catalog-info.yaml",
+   "sublabel": "env.<環境>.<キー>",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sw",
+   "type": "frontend",
+   "label": "② 環境の切り替え",
+   "sublabel": "[dev] [prod]・?env=",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ov",
+   "type": "backend",
+   "label": "③ entityForEnvironment",
+   "sublabel": "プラグインの注釈に重ねる",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "pl",
+   "type": "frontend",
+   "label": "④ プラグインの部品",
+   "sublabel": "Grafana・ArgoCD・Azure",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "own",
+   "type": "frontend",
+   "label": "⑤ 自前の部品",
+   "sublabel": "Swagger・Temporal",
+   "pos": [
+    620,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "as",
+   "type": "backend",
+   "label": "⑥ ApplicationSet",
+   "sublabel": "list: dev・prod",
+   "pos": [
+    40,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ns",
+   "type": "external",
+   "label": "⑦ namespace dev・prod",
+   "sublabel": "<名前>-<環境>",
+   "pos": [
+    620,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage のフロントエンド（environments）",
+   "wraps": [
+    "sw",
+    "ov",
+    "pl",
+    "own"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "kind クラスタ",
+   "wraps": [
+    "as",
+    "ns"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "cat",
+   "to": "sw",
+   "label": "環境の並び"
+  },
+  {
+   "id": "c1",
+   "from": "sw",
+   "to": "ov",
+   "label": "選んだ環境"
+  },
+  {
+   "id": "c2",
+   "from": "ov",
+   "to": "pl",
+   "label": "EntityProvider",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "sw",
+   "to": "own",
+   "label": "env.values"
+  },
+  {
+   "id": "c4",
+   "from": "as",
+   "to": "ns",
+   "label": "Application を作る",
+   "variant": "emphasis"
+  }
+ ]
+}

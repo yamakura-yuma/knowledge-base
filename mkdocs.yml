@@ -25,6 +25,16 @@ nav:
       - Finalizer: argocd-notify/finalizer.md
       - Hooks: argocd-notify/hooks.md
       - API ストリーム: argocd-notify/api-stream.md
+  - Backstage の設定:
+      - 入口: backstage/index.md
+      - 本体と環境のタブ: backstage/app.md
+      - Swagger: backstage/swagger.md
+      - ArgoCD: backstage/argocd.md
+      - Azure: backstage/azure.md
+      - Temporal: backstage/temporal.md
+      - Grafana: backstage/grafana.md
+      - TechDocs: backstage/techdocs.md
+      - 検索: backstage/search.md
   - ハーネスのパターン:
       - ハーネスの形式: patterns/harness-form.md
   - テレメトリの日報:

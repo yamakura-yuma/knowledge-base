@@ -1,0 +1,172 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Azure：資格情報が無くても起動し、揃えば Azure を読む",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "file",
+   "type": "security",
+   "label": "① azure.env",
+   "sublabel": "Git の外。無くてよい",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "② Secret",
+   "sublabel": "backstage-azure",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "ファイルがあるときだけ"
+  },
+  {
+   "id": "ld",
+   "type": "backend",
+   "label": "③ azure-sites の載せ分け",
+   "sublabel": "揃えば公式・欠ければ代役",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "tab",
+   "type": "frontend",
+   "label": "④ Azure のタブ",
+   "sublabel": "App Service・Functions",
+   "pos": [
+    620,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "rp",
+   "type": "backend",
+   "label": "⑤ azure-resources",
+   "sublabel": "環境のタグで取り込む",
+   "pos": [
+    910,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "arg",
+   "type": "cloud",
+   "label": "⑥ Resource Graph",
+   "sublabel": "Reader で読む",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "res",
+   "type": "database",
+   "label": "⑦ Resource",
+   "sublabel": "namespace dev・prod",
+   "pos": [
+    620,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage の Pod",
+   "wraps": [
+    "sec",
+    "ld",
+    "tab",
+    "rp",
+    "res"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "file",
+   "to": "sec",
+   "label": "just up"
+  },
+  {
+   "id": "c1",
+   "from": "sec",
+   "to": "ld",
+   "label": "AZURE_*",
+   "variant": "dashed"
+  },
+  {
+   "id": "c2",
+   "from": "tab",
+   "to": "ld",
+   "label": "/api/azure-sites"
+  },
+  {
+   "id": "c3",
+   "from": "ld",
+   "to": "arg",
+   "label": "Web アプリを問い合わせ",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "rp",
+   "to": "arg",
+   "label": "KQL",
+   "variant": "dashed"
+  },
+  {
+   "id": "c5",
+   "from": "rp",
+   "to": "res",
+   "label": "取り込む"
+  },
+  {
+   "id": "c6",
+   "from": "res",
+   "to": "tab",
+   "label": "dependencyOf"
+  }
+ ]
+}

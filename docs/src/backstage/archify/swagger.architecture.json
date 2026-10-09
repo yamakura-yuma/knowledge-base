@@ -1,0 +1,135 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Swagger のタブ：Component のページで API の定義を読み、試す",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "comp",
+   "type": "frontend",
+   "label": "① Component sample-api",
+   "sublabel": "Swagger のタブ",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "api",
+   "type": "database",
+   "label": "② API sample-api",
+   "sublabel": "openapi.yaml を $text",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "wd",
+   "type": "frontend",
+   "label": "③ OpenApiDefinitionWidget",
+   "sublabel": "servers を差し替え",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "px",
+   "type": "security",
+   "label": "④ プロキシ",
+   "sublabel": "/sample-api-<環境>",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "GET だけ"
+  },
+  {
+   "id": "svc",
+   "type": "backend",
+   "label": "⑤ sample-api",
+   "sublabel": "Service（ClusterIP）",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage",
+   "wraps": [
+    "comp",
+    "api",
+    "wd",
+    "px"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "namespace dev・prod",
+   "wraps": [
+    "svc"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "comp",
+   "to": "api",
+   "label": "providesApis",
+   "labelAt": [
+    126,
+    188
+   ]
+  },
+  {
+   "id": "c1",
+   "from": "api",
+   "to": "wd",
+   "label": "定義"
+  },
+  {
+   "id": "c2",
+   "from": "wd",
+   "to": "px",
+   "label": "Try it out + Bearer",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "px",
+   "to": "svc",
+   "label": "GET",
+   "variant": "emphasis"
+  }
+ ]
+}

@@ -1,0 +1,133 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "TechDocs：開いたときに Pod の中で mkdocs が build する",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ui",
+   "type": "frontend",
+   "label": "① TechDocs のタブ",
+   "sublabel": "/docs も同じ",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "tb",
+   "type": "backend",
+   "label": "② techdocs-backend",
+   "sublabel": "builder: local",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "gh",
+   "type": "cloud",
+   "label": "③ GitHub の main",
+   "sublabel": "mkdocs.yml・docs_dir",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "mk",
+   "type": "backend",
+   "label": "④ mkdocs",
+   "sublabel": "/opt/venv",
+   "pos": [
+    330,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "techdocs-core 1.7.1"
+  },
+  {
+   "id": "st",
+   "type": "database",
+   "label": "⑤ build した HTML",
+   "sublabel": "Pod の中（local）",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "Pod を作り直すと消える"
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage の Pod",
+   "wraps": [
+    "tb",
+    "mk",
+    "st"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "ui",
+   "to": "tb",
+   "label": "開く"
+  },
+  {
+   "id": "c1",
+   "from": "tb",
+   "to": "gh",
+   "label": "取る・更新を確かめる"
+  },
+  {
+   "id": "c2",
+   "from": "tb",
+   "to": "mk",
+   "label": "build",
+   "labelAt": [
+    416,
+    188
+   ]
+  },
+  {
+   "id": "c3",
+   "from": "mk",
+   "to": "st",
+   "label": "置く"
+  },
+  {
+   "id": "c4",
+   "from": "st",
+   "to": "ui",
+   "label": "配る",
+   "variant": "emphasis"
+  }
+ ]
+}
