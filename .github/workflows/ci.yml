@@ -10,4 +10,4 @@ permissions:
   contents: read
 jobs:
   ci:
-    uses: yamakura-yuma/dotfiles/.github/workflows/just-ci.yml@2f805acaaab554d52617fae890405a72e626fb6a
+    uses: yamakura-yuma/dotfiles/.github/workflows/just-ci.yml@36b87604c93cc0ae5748b04327edc0c666b74fdc

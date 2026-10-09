@@ -81,10 +81,9 @@ just ci                        # PR のゲート。markdown の lint と内部�
 行かないので、先に流しても前回の数字が出るだけになる。
 
 `just ci` は PR の必須チェックで、`.github/workflows/ci.yml` が dotfiles の再利用 workflow
-経由で走らせる。段階の分け方は dotfiles の
+経由で走らせる。ゲートの考え方は dotfiles の
 [`docs/gates.md`](https://github.com/yamakura-yuma/dotfiles/blob/main/docs/gates.md)。
-ゲート自身（`.github/`、`justfile`、`.markdownlint-cli2.yaml`、`docs/check_links.py`）は
-`.github/CODEOWNERS` で人の承認が要る。外部リンクは見ない（揺れて PR を止めるため）。
+外部リンクは見ない（揺れて PR を止めるため）。
 
 どのスクリプトも冪等で、実データに差が無ければファイルに触らない。続けて2回流して
 git の差分が出ないことが、正しく終わった証拠になる。
