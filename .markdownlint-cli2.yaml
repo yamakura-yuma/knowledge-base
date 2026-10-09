@@ -1,5 +1,4 @@
 # `just ci` の markdown lint。既定の規則から、この文書群の書き方と合わないものだけを外す。
-# 変えるとゲートが変わるので .github/CODEOWNERS で人の承認にしてある。
 config:
   default: true
   # 日本語の長い行と表。折り返さずに書いている
