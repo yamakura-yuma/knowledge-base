@@ -16,3 +16,4 @@ lint:
 # 内部リンクの切れ（外部リンクは見ない）
 links:
     python3 docs/check_links.py
+# gate verification
