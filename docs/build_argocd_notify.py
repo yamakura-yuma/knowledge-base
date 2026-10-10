@@ -316,18 +316,23 @@ def diagram(spec: dict, warnings: list[str], where: str) -> str:
     return f'<div class="dgm">{cap_html}{"".join(out)}</div>'
 
 
-ARCHIFY = HERE.parent / "apm_modules" / "tt-a1i" / "archify" / "archify" / "bin" / "archify.mjs"
+# apm の版によって、展開先が alias の下（archify/）か repo の下（tt-a1i/archify/archify/）かが変わる
+ARCHIFY = next((p for p in (HERE.parent / "apm_modules" / "archify" / "bin" / "archify.mjs",
+                            HERE.parent / "apm_modules" / "tt-a1i" / "archify" / "archify" / "bin" / "archify.mjs")
+                if p.exists()), HERE.parent / "apm_modules" / "archify" / "bin" / "archify.mjs")
 ARCHIFY_TYPES = {"architecture", "workflow", "sequence", "dataflow", "lifecycle"}
 
 
-def archify_svg(name: str, warnings: list[str], where: str) -> str:
-    """docs/src/argocd-notify/archify/<name>.<type>.json を archify で描き、<svg> 要素だけを取り出す。
+def archify_svg(name: str, warnings: list[str], where: str, src_dir: pathlib.Path = SRC) -> str:
+    """<src_dir>/archify/<name>.<type>.json を archify で描き、<svg> 要素だけを取り出す。
+
+    src_dir の既定は docs/src/argocd-notify。別の話題（build_backstage.py）は自分のディレクトリを渡す。
 
     archify は検査と描画の道具としてだけ使う。出力の HTML（ビューアの JS を含む）はページに入れず、
     JS を含まない <svg> 要素だけを埋め込む。色はページの CSS（.arch の節）が当てる。
     check-update.mjs（ネットワークで更新を確かめる）は render からは呼ばれない。
     """
-    src = SRC / "archify" / f"{name}.json"
+    src = src_dir / "archify" / f"{name}.json"
     kind = name.rsplit(".", 1)[-1]
     if kind not in ARCHIFY_TYPES or not src.exists():
         warnings.append(f"{where}: archify の原稿が無い: {src.name}")
@@ -358,12 +363,12 @@ def archify_svg(name: str, warnings: list[str], where: str) -> str:
     return f'<figure class="arch">{svg}</figure>'
 
 
-def render_diagrams(text: str, warnings: list[str], where: str) -> str:
+def render_diagrams(text: str, warnings: list[str], where: str, src_dir: pathlib.Path = SRC) -> str:
     def sub(m):
         return diagram(yaml.safe_load(m.group(1)), warnings, where)
 
     text = re.sub(r"^<!--\s*archify:\s*([\w.-]+)\s*-->$",
-                  lambda m: archify_svg(m.group(1), warnings, where), text, flags=re.M)
+                  lambda m: archify_svg(m.group(1), warnings, where, src_dir), text, flags=re.M)
     return re.sub(r"^```diagram\n(.*?)^```\n", sub, text, flags=re.S | re.M)
 
 

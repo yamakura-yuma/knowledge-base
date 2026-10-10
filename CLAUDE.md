@@ -3,7 +3,7 @@
 調べたことを溜めておく場所。コードではなく文書が主で、markdown を正本にし、読む用の
 HTML はそこから生成する。いま入っているのは AI ツールのランドスケープ、ハーネスに
 入れる外部ツールの調査、Argo CD の完了通知の発行方法の比較、
-ハーネスのパターン・カタログ、テレメトリの日報の5つ。
+ハーネスのパターン・カタログ、テレメトリの日報、home-k8s の Backstage の設定の6つ。
 
 ハーネス（エージェント設定）そのものの説明はここに書かない。正本は dotfiles リポジトリの
 [`docs/`](https://github.com/yamakura-yuma/dotfiles/tree/main/docs)（手元では
@@ -47,12 +47,18 @@ HTML はそこから生成する。いま入っているのは AI ツールの�
   （`<!-- numbers:begin -->`〜`<!-- numbers:end -->`）は `docs/collect_telemetry.py` が書き、
   提案の節はエージェントが `UPDATE_PROMPT.md` に従って書く。Orca の automation が毎日回す。
   HTML は生成せず、`build.py` にも載せない。集計値は `docs/src/data/telemetry/<名前>.json`
+- `docs/src/backstage/` — 話題⑥ home-k8s（yamakura-yuma/home-k8s）の Backstage の設定。入口の `index.md`、
+  本体と環境のタブの `app.md`、アプリ・プラグインごとのページ（swagger・argocd・azure・temporal・grafana・
+  techdocs・search）。各ページはセットアップの項目（パッケージと版、app-config、注釈、Secret、プロキシ、
+  chart の values、kind のポート、確認の方法）と理由に絞り、手順の細部は home-k8s の docs へリンクする。
+  事実は home-k8s の `main` のファイルで確かめる。argocd-notify と同じく独立した系統で、専用の
+  `docs/build_backstage.py` が生成する（CSS と archify の描き方は `build_argocd_notify.py` のものを使う）
 - `docs/src/data/` — `fetch_metrics.py` が GitHub API から取った実測値
   （`metrics.json`）と、そこから機械的に決まる状態（`status.json`）。
   実測値の置き場所であって意見の置き場所ではないので、手で編集しない
 - `docs/site/` — `build.py` が吐く HTML。次のビルドで消えるので直接編集しない。
   直すのは必ず `docs/src/` 側
-- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` /
+- `docs/build.py` / `docs/fetch_metrics.py` / `docs/build_argocd_notify.py` / `docs/build_backstage.py` /
   `docs/collect_candidates.py` / `docs/collect_articles.py` / `docs/patterns_page.py` /
   `docs/patterns_reports.py` / `docs/collect_telemetry.py` — 生成系。`docs/check_links.py` は
   生成ではなく `just ci` の内部リンク検査（標準ライブラリだけ）。このリポジトリのコードはこれだけ。
@@ -71,6 +77,7 @@ uv run docs/collect_candidates.py  # パターンの出典候補を集める。g
 uv run docs/collect_articles.py    # パターンの使用報告の候補（技術記事）を集める。認証は不要
 uv run docs/build.py           # landscape / tool-research / patterns の HTML を組み直す
 uv run docs/build_argocd_notify.py  # argocd-notify の HTML を組み直す（独立）
+uv run docs/build_backstage.py      # backstage の HTML を組み直す（独立。要 Node と apm install）
 uv run docs/collect_telemetry.py    # テレメトリの日報の数字を書く（独立。要 home-k8s の Grafana）
 uvx --with mkdocs-techdocs-core mkdocs build --strict -d /tmp/kb-techdocs  # TechDocs 用のビルドが警告なしで通るか確かめる
 apm install                    # apm.yml から ./.claude/ にエージェント設定を展開する
@@ -91,7 +98,7 @@ git の差分が出ないことが、正しく終わった証拠になる。
 `docs/src/` の markdown は、Backstage の TechDocs（MkDocs）と `docs/site/` の HTML の
 両方の正本になる。そのため本文の中の隣のページへのリンクは `.html` ではなく **`.md` で書く**
 （`[採点表](criteria.md#change)`）。MkDocs は `.md` を解決し、`build.py` と
-`build_argocd_notify.py` は変換後の HTML の相対リンクの `.md` を `.html` に戻す。
+`build_argocd_notify.py`・`build_backstage.py` は変換後の HTML の相対リンクの `.md` を `.html` に戻す。
 `docs/src/` の外（生成物の HTML など）を指すときは GitHub 上の絶対 URL にする。
 生の HTML ブロックの中の `<a href>` は MkDocs が書き換えないので、`.md` を指すリンクは
 Markdown で書く（`argocd-notify/index.md` の評価マトリクスのように行へ `markdown="1"`、

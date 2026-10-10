@@ -1,0 +1,169 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "home-k8s の Backstage：1 つの Pod が画面・カタログ・プロキシを持つ",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "br",
+   "type": "external",
+   "label": "① ブラウザ",
+   "sublabel": "localhost:7007",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "bs",
+   "type": "backend",
+   "label": "② Backstage の Pod",
+   "sublabel": "画面も API も配る",
+   "pos": [
+    330,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "イメージは kind load"
+  },
+  {
+   "id": "gh",
+   "type": "cloud",
+   "label": "③ GitHub の main",
+   "sublabel": "catalog-info.yaml・文書",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sec",
+   "type": "security",
+   "label": "④ Secret",
+   "sublabel": "just up が Git の外から作る",
+   "pos": [
+    330,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "env",
+   "type": "backend",
+   "label": "⑤ dev・prod の中身",
+   "sublabel": "sample-api・Grafana",
+   "pos": [
+    620,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "argo",
+   "type": "backend",
+   "label": "⑥ ArgoCD",
+   "sublabel": "Application の状態",
+   "pos": [
+    620,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "az",
+   "type": "cloud",
+   "label": "⑦ Azure",
+   "sublabel": "資格情報があるときだけ",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "kind クラスタ（study-kind）",
+   "wraps": [
+    "bs",
+    "sec",
+    "env",
+    "argo"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "br",
+   "to": "bs",
+   "label": "画面・API",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c1",
+   "from": "bs",
+   "to": "gh",
+   "label": "読む",
+   "labelDx": 80
+  },
+  {
+   "id": "c2",
+   "from": "sec",
+   "to": "bs",
+   "label": "環境変数",
+   "variant": "dashed"
+  },
+  {
+   "id": "c3",
+   "from": "bs",
+   "to": "env",
+   "label": "プロキシ",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "bs",
+   "to": "argo",
+   "label": "プロキシ（Bearer）"
+  },
+  {
+   "id": "c5",
+   "from": "bs",
+   "to": "az",
+   "label": "Resource Graph",
+   "variant": "dashed",
+   "fromSide": "top",
+   "toSide": "left"
+  }
+ ]
+}

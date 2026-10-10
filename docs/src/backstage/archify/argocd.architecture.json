@@ -1,0 +1,153 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "ArgoCD のタブ：読み取り専用のトークンをプロキシだけが持つ",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "tab",
+   "type": "frontend",
+   "label": "① ArgoCD のタブ",
+   "sublabel": "argocd-app-name を重ねる",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "px",
+   "type": "security",
+   "label": "② プロキシ",
+   "sublabel": "/argocd/api",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "GET だけ"
+  },
+  {
+   "id": "sec",
+   "type": "database",
+   "label": "③ Secret",
+   "sublabel": "backstage-argocd",
+   "pos": [
+    330,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "just",
+   "type": "external",
+   "label": "④ just up",
+   "sublabel": "argocd-secrets.sh",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "srv",
+   "type": "backend",
+   "label": "⑤ argocd-server",
+   "sublabel": "アカウント backstage",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "applications, get だけ"
+  },
+  {
+   "id": "apps",
+   "type": "external",
+   "label": "⑥ Application",
+   "sublabel": "sample-api-dev・-prod",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "namespace backstage",
+   "wraps": [
+    "tab",
+    "px",
+    "sec"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "namespace argocd",
+   "wraps": [
+    "srv",
+    "apps"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "tab",
+   "to": "px",
+   "label": "GET"
+  },
+  {
+   "id": "c1",
+   "from": "sec",
+   "to": "px",
+   "label": "ARGOCD_AUTH_TOKEN",
+   "variant": "dashed"
+  },
+  {
+   "id": "c2",
+   "from": "just",
+   "to": "sec",
+   "label": "トークンを作る",
+   "variant": "dashed"
+  },
+  {
+   "id": "c3",
+   "from": "px",
+   "to": "srv",
+   "label": "Bearer",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c4",
+   "from": "srv",
+   "to": "apps",
+   "label": "読む"
+  }
+ ]
+}

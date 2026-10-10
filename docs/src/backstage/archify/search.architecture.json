@@ -1,0 +1,145 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "検索：文書の画面が検索欄を出すので、検索の API を載せる",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "ui",
+   "type": "frontend",
+   "label": "① 文書の画面の検索欄",
+   "sublabel": "TechDocs・/docs",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "sb",
+   "type": "backend",
+   "label": "② search-backend",
+   "sublabel": "/api/search/query",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "ix",
+   "type": "database",
+   "label": "③ Lunr の索引",
+   "sublabel": "メモリ",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "起動後と 10 分ごと"
+  },
+  {
+   "id": "cat",
+   "type": "backend",
+   "label": "④ module-catalog",
+   "sublabel": "カタログの索引",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "td",
+   "type": "backend",
+   "label": "⑤ module-techdocs",
+   "sublabel": "build 済みの文書だけ",
+   "pos": [
+    910,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "em",
+   "type": "security",
+   "label": "⑥ searchEngine.ts",
+   "sublabel": "索引が無ければ 0 件",
+   "pos": [
+    330,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage のバックエンド",
+   "wraps": [
+    "sb",
+    "ix",
+    "cat",
+    "td",
+    "em"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "ui",
+   "to": "sb",
+   "label": "問い合わせ",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c1",
+   "from": "sb",
+   "to": "ix",
+   "label": "引く"
+  },
+  {
+   "id": "c2",
+   "from": "cat",
+   "to": "ix",
+   "label": "集める"
+  },
+  {
+   "id": "c3",
+   "from": "td",
+   "to": "ix",
+   "label": "集める"
+  },
+  {
+   "id": "c4",
+   "from": "em",
+   "to": "sb",
+   "label": "500 を 0 件に",
+   "variant": "dashed"
+  }
+ ]
+}

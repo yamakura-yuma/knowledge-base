@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swagger（api-docs）</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#fbfbfa; --surface:#fff; --surface-2:#f4f4f2; --ink:#1c1c1a; --ink-2:#57564f;
+    --ink-3:#8a8880; --line:#e2e1dc;
+    --l1:#2f5fa8; --l2:#8a5a12; --l3:#2f6e4f; --l0:#6b4f8a;
+    --hot:#b4342a; --ok:#2f6e4f; --stale:#8a6a12; --dead:#9b9a94;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#16161a; --surface:#1e1e23; --surface-2:#26262c; --ink:#eceae6; --ink-2:#b3b1ab;
+      --ink-3:#95938c; --line:#33333a;
+      --l1:#8fb3ea; --l2:#d8b25c; --l3:#7fc7a0; --l0:#b79ae0;
+      --hot:#f2837a; --ok:#7fc7a0; --stale:#d8b25c; --dead:#5c5b57;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+         line-height:1.75; font-size:15px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:48px 20px 96px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  h1 { font-size:26px; line-height:1.4; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { color:var(--ink-2); margin:0; font-size:14px; }
+  h2 { font-size:19px; margin:56px 0 6px; padding-top:28px; border-top:1px solid var(--line); }
+  h3 { font-size:15px; margin:28px 0 8px; }
+  p { margin:10px 0; color:var(--ink-2); }
+  p strong, li strong, td strong { color:var(--ink); font-weight:600; }
+  a { color:var(--l1); }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+         padding:1px 5px; border-radius:4px; }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface);
+        border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  ul, ol { margin:10px 0; padding-left:22px; color:var(--ink-2); }
+  li { margin:5px 0; }
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--ink-3); font-weight:600; font-size:11.5px; letter-spacing:.03em; }
+  .tblwrap { overflow-x:auto; }
+  .nav { display:flex; flex-wrap:wrap; gap:4px; margin:18px 0 8px;
+         padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .nav a { font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:5px;
+           border:1px solid var(--line); color:var(--ink-2); text-decoration:none;
+           background:var(--surface); }
+  .nav a:hover { border-color:var(--ink-3); }
+  .nav a.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .dgm { border:1px solid var(--line); border-radius:8px; background:var(--surface);
+         padding:16px 18px; margin:18px 0; }
+  .dgm > .cap { font-family:var(--mono); font-size:12px; color:var(--ink-3); margin:-4px 0 12px; }
+  .pagegrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:10px; margin:16px 0; }
+  .pcard { display:block; padding:13px 15px; border:1px solid var(--line); border-radius:8px;
+           background:var(--surface); text-decoration:none; }
+  .pcard:hover { border-color:var(--ink-3); }
+  .pcard b { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .pcard span { color:var(--ink-3); font-size:12px; }
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line);
+           color:var(--ink-3); font-size:12.5px; }
+
+  /* SVG 図。色は CSS 変数から取るので、明暗どちらのテーマでも読める */
+  .fig { display:block; width:100%; height:auto; margin:4px 0; font-family:var(--sans); }
+  .fig text { fill:var(--ink-2); font-size:12px; }
+  .fig .t-ink { fill:var(--ink); font-weight:600; }
+  .fig .t-mono { font-family:var(--mono); font-size:11px; fill:var(--ink-3); }
+  .fig .t-zone { font-family:var(--mono); font-size:12px; fill:var(--ink-3); font-weight:600; }
+  .fig .zone { fill:none; stroke:var(--line); stroke-width:1.2; stroke-dasharray:5 4; }
+  .fig .zone-platform { fill:color-mix(in srgb, var(--l1) 5%, transparent); stroke:var(--l1); }
+  .fig .zone-app { fill:color-mix(in srgb, var(--l3) 6%, transparent); stroke:var(--l3); }
+  .fig .zone-ext { fill:var(--surface-2); }
+  .fig .nd { fill:var(--bg); stroke:var(--ink-3); stroke-width:1.2; }
+  .fig .nd-crd { fill:var(--surface-2); stroke:var(--ink-3); stroke-dasharray:3 2; }
+  .fig .nd-state { fill:color-mix(in srgb, var(--l2) 12%, var(--bg)); stroke:var(--l2); stroke-width:1.4; }
+  .fig .nd-ext { fill:var(--bg); stroke:var(--l3); stroke-width:1.6; }
+  .fig .nd-app { fill:var(--surface-2); stroke:var(--ink); stroke-width:1.4; }
+  .fig .nd-bad { fill:var(--bg); stroke:var(--hot); stroke-width:1.6; }
+  .fig .ln { stroke:var(--ink-3); stroke-width:1.4; fill:none; }
+  .fig .ln-watch { stroke:var(--l1); stroke-dasharray:6 3; }
+  .fig .ln-http { stroke:var(--ink-2); }
+  .fig .ln-ce { stroke:var(--l3); stroke-width:2; }
+  .fig .ln-patch { stroke:var(--l2); stroke-dasharray:2 3; stroke-width:1.8; }
+  .fig .ln-bad { stroke:var(--hot); stroke-dasharray:4 3; }
+  .fig .ln-rbac { stroke:var(--ink-3); stroke-dasharray:1 3; }
+  .fig .ln-l1 { stroke:var(--l1); } .fig .ln-l3 { stroke:var(--l3); } .fig .ln-hot { stroke:var(--hot); }
+  .fig .ln-dash { stroke-dasharray:4 3; }
+  .fig .ar { fill:var(--ink-3); }
+  .fig .ar-watch { fill:var(--l1); } .fig .ar-http { fill:var(--ink-2); } .fig .ar-ce { fill:var(--l3); }
+  .fig .ar-patch { fill:var(--l2); } .fig .ar-bad { fill:var(--hot); } .fig .ar-rbac { fill:var(--ink-3); }
+  .fig .lbl-bg { fill:var(--surface); }
+  .fig .band { fill:var(--surface-2); }
+  .fig .mk-ok { fill:var(--ok); } .fig .mk-bad { fill:var(--hot); } .fig .mk-mid { fill:var(--stale); }
+  .fig .t-bad { fill:var(--hot); }
+  .fig .divider { stroke:var(--ink); stroke-width:1.6; stroke-dasharray:8 5; }
+
+  /* ページ冒頭のたとえ話（eli5） */
+  .eli5 { font-size:16px; line-height:1.9; color:var(--ink); max-width:46em; margin:22px 0 6px; }
+  /* archify で描いた図。archify の意味の色（frontend・backend・messagebus・security など）を
+     サイトの明暗 2 テーマに合わせて定義する。ビューアの CSS と JS は取り込まない */
+  figure.arch { margin:10px 0 26px; }
+  figure.arch svg { display:block; width:100%; height:auto; font-family:var(--sans); }
+  .arch { --a-text:var(--ink); --a-muted:var(--ink-2); --a-dim:var(--ink-3); --a-mask:var(--bg);
+          --a-arrow:var(--ink-3); --a-emph:#0f7a55; --a-lane:color-mix(in srgb, var(--ink) 3%, transparent);
+          --fe:#0e7490; --be:#047857; --db:#6d28d9; --cl:#b45309; --sec:#be123c; --mb:#c2410c; --ext:#57564f; }
+  @media (prefers-color-scheme: dark) {
+    .arch { --a-emph:#34d399; --fe:#22d3ee; --be:#34d399; --db:#a78bfa; --cl:#fbbf24; --sec:#fb7185;
+            --mb:#fb923c; --ext:#94a3b8; }
+  }
+  .arch .c-grid { fill:none; stroke:none; } .arch rect[fill^="url(#ax-"] { fill:var(--bg); }
+  .arch .c-mask { fill:var(--a-mask); stroke:none; }
+  .arch .c-frontend { fill:color-mix(in srgb, var(--fe) 14%, var(--bg)); stroke:var(--fe); }
+  .arch .c-backend { fill:color-mix(in srgb, var(--be) 14%, var(--bg)); stroke:var(--be); }
+  .arch .c-database { fill:color-mix(in srgb, var(--db) 14%, var(--bg)); stroke:var(--db); }
+  .arch .c-cloud { fill:color-mix(in srgb, var(--cl) 14%, var(--bg)); stroke:var(--cl); }
+  .arch .c-security { fill:color-mix(in srgb, var(--sec) 12%, var(--bg)); stroke:var(--sec); }
+  .arch .c-messagebus { fill:color-mix(in srgb, var(--mb) 14%, var(--bg)); stroke:var(--mb); }
+  .arch .c-external { fill:color-mix(in srgb, var(--ext) 12%, var(--bg)); stroke:var(--ext); }
+  .arch .c-lane { fill:var(--a-lane); stroke:var(--line); stroke-dasharray:6,6; }
+  .arch .c-security-group { fill:transparent; stroke:var(--sec); stroke-dasharray:4,4; }
+  .arch .c-region { fill:color-mix(in srgb, var(--cl) 5%, transparent); stroke:var(--cl); stroke-dasharray:8,4; }
+  .arch text { fill:var(--a-text); }
+  .arch .t-primary { fill:var(--a-text); } .arch .t-muted { fill:var(--a-muted); } .arch .t-dim { fill:var(--a-dim); }
+  .arch .t-frontend { fill:var(--fe); } .arch .t-backend { fill:var(--be); } .arch .t-database { fill:var(--db); }
+  .arch .t-cloud { fill:var(--cl); } .arch .t-security { fill:var(--sec); } .arch .t-messagebus { fill:var(--mb); }
+  .arch .t-external { fill:var(--ext); }
+  .arch .semantic-sigil > * { vector-effect:non-scaling-stroke; }
+  .arch .semantic-sigil .sigil-fill { fill:currentColor; stroke:none; }
+  .arch .s-frontend { color:var(--fe); } .arch .s-backend { color:var(--be); } .arch .s-database { color:var(--db); }
+  .arch .s-cloud { color:var(--cl); } .arch .s-security { color:var(--sec); } .arch .s-messagebus { color:var(--mb); }
+  .arch .s-external { color:var(--ext); }
+  .arch .a-default { stroke:var(--a-arrow); fill:none; } .arch .a-emphasis { stroke:var(--a-emph); fill:none; }
+  .arch .a-dashed { stroke:var(--db); fill:none; stroke-dasharray:4,4; }
+  .arch .a-security { stroke:var(--sec); fill:none; }
+  .arch .m-default { fill:var(--a-arrow); } .arch .m-emphasis { fill:var(--a-emph); }
+  .arch .m-security { fill:var(--sec); } .arch .m-dashed { fill:var(--db); }
+
+  /* 評価マトリクス。◎○△× を背景色でも分ける */
+  table.mx { font-size:12.5px; }
+  table.mx td, table.mx th { text-align:center; }
+  table.mx td:first-child, table.mx th:first-child { text-align:left; white-space:nowrap; }
+  table.mx th { white-space:normal; min-width:4.5em; vertical-align:bottom; }
+  table.mx td small { display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35;
+                      margin-top:2px; font-family:var(--mono); }
+  .g3, .g2, .g1, .g0 { display:inline-block; min-width:2.2em; padding:1px 6px; border-radius:4px;
+                       font-family:var(--mono); font-size:12px; font-weight:600; }
+  .g3 { background:color-mix(in srgb, var(--ok) 22%, transparent); color:var(--ok); }
+  .g2 { background:color-mix(in srgb, var(--l1) 16%, transparent); color:var(--l1); }
+  .g1 { background:color-mix(in srgb, var(--stale) 20%, transparent); color:var(--stale); }
+  .g0 { background:color-mix(in srgb, var(--hot) 18%, transparent); color:var(--hot); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Swagger（api-docs）</h1>
+  <p class="sub"><code>@backstage/plugin-api-docs</code> で、sample-api の Component のページに <strong>Swagger</strong> のタブを置く。OpenAPI の定義を Swagger UI で出し、Try it out の向き先を dev・prod のプロキシで切り替える。</p>
+</header>
+<nav class="nav"><a href="index.html" class="">入口</a><a href="app.html" class="">本体と環境のタブ</a><a href="swagger.html" class="on">Swagger</a><a href="argocd.html" class="">ArgoCD</a><a href="azure.html" class="">Azure</a><a href="temporal.html" class="">Temporal</a><a href="grafana.html" class="">Grafana</a><a href="techdocs.html" class="">TechDocs</a><a href="search.html" class="">検索</a></nav>
+<p class="eli5">API の定義（OpenAPI）は、お店のメニュー表のようなものです。Backstage では本来、メニュー表は「API」という別のページに載ります。でも、お店（Component）のページを見ている人に「メニューは隣の建物です」と言うのは不親切です。そこで home-k8s では、お店のページのタブにメニュー表をそのまま貼りました。さらに「試しに注文する」ボタン（Try it out）を押したときの注文先を、dev 店か prod 店かで切り替えます。注文は直接お店に行かず、受付（Backstage のプロキシ）を通るので、受付が通す注文（GET）しか届きません。</p>
+
+<figure class="arch"><svg viewBox="0 0 1152 416" role="img" lang="en" aria-labelledby="ax-swagger-architecture-archify-diagram-title ax-swagger-architecture-archify-diagram-description">
+        <title id="ax-swagger-architecture-archify-diagram-title">Swagger のタブ：Component のページで API の定義を読み、試す</title>
+        <desc id="ax-swagger-architecture-archify-diagram-description">An architecture diagram generated by Archify.</desc>
+        <defs>
+          <marker id="ax-swagger-architecture-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="ax-swagger-architecture-arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="ax-swagger-architecture-arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="ax-swagger-architecture-arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="ax-swagger-architecture-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ax-swagger-architecture-grid)" />
+        <rect x="10" y="80" width="812" height="268" rx="12" class="c-region" stroke-width="1"/>
+        <rect x="880" y="80" width="232" height="114" rx="12" class="c-region" stroke-width="1"/>
+        <path d="M 126 174 L 126 264" class="a-default" stroke-width="1.5" marker-end="url(#ax-swagger-architecture-arrowhead)"/>
+        <path d="M 212 296 L 263 296 Q 271 296 271 288 L 271 150 Q 271 142 279 142 L 330 142" class="a-default" stroke-width="1.5" marker-end="url(#ax-swagger-architecture-arrowhead)"/>
+        <path d="M 502 142 L 620 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-swagger-architecture-arrowhead-emphasis)"/>
+        <path d="M 792 142 L 910 142" class="a-emphasis" stroke-width="1.8" marker-end="url(#ax-swagger-architecture-arrowhead-emphasis)"/>
+        <g id="ax-swagger-architecture-node-comp" tabindex="0" role="button" aria-label="Focus ① Component sample-api, Swagger のタブ, Backstage" aria-pressed="false">
+          <title>① Component sample-api · Swagger のタブ · Backstage</title>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="110" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(46 116) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="126" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">① Component sample-api</text>
+        <text x="126" y="156" class="t-muted" font-size="9" text-anchor="middle">Swagger のタブ</text>
+        </g>
+        <g id="ax-swagger-architecture-node-api" tabindex="0" role="button" aria-label="Focus ② API sample-api, openapi.yaml を $text, Backstage" aria-pressed="false">
+          <title>② API sample-api · openapi.yaml を $text · Backstage</title>
+          <rect x="40" y="264" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="264" width="172" height="64" rx="6" class="c-database" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-database" transform="translate(46 270) scale(0.6875)">
+            <ellipse cx="8" cy="4" rx="5" ry="2"/>
+            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          </g>
+          <text x="126" y="294" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">② API sample-api</text>
+        <text x="126" y="310" class="t-muted" font-size="9" text-anchor="middle">openapi.yaml を $text</text>
+        </g>
+        <g id="ax-swagger-architecture-node-wd" tabindex="0" role="button" aria-label="Focus ③ OpenApiDefinitionWidget, servers を差し替え, Backstage" aria-pressed="false">
+          <title>③ OpenApiDefinitionWidget · servers を差し替え · Backstage</title>
+          <rect x="330" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="330" y="110" width="172" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-frontend" transform="translate(336 116) scale(0.6875)">
+            <rect x="2" y="3" width="12" height="10" rx="2"/>
+            <path d="M2 6.5h12"/>
+            <circle cx="4.1" cy="4.8" r=".7" class="sigil-fill"/>
+            <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
+          </g>
+          <text x="416" y="140" class="t-primary" font-size="10.9" font-weight="600" text-anchor="middle">③ OpenApiDefinitionWidget</text>
+        <text x="416" y="156" class="t-muted" font-size="9" text-anchor="middle">servers を差し替え</text>
+        </g>
+        <g id="ax-swagger-architecture-node-px" tabindex="0" role="button" aria-label="Focus ④ プロキシ, /sample-api-&lt;環境&gt;, Backstage" aria-pressed="false">
+          <title>④ プロキシ · /sample-api-&lt;環境&gt; · Backstage · GET だけ</title>
+          <rect x="620" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="620" y="110" width="172" height="64" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-security" transform="translate(626 116) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text x="706" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">④ プロキシ</text>
+        <text x="706" y="156" class="t-muted" font-size="9" text-anchor="middle">/sample-api-&lt;環境&gt;</text>
+        <text x="706" y="166" class="t-security" font-size="7" text-anchor="middle">GET だけ</text>
+        </g>
+        <g id="ax-swagger-architecture-node-svc" tabindex="0" role="button" aria-label="Focus ⑤ sample-api, Service（ClusterIP）, namespace dev・prod" aria-pressed="false">
+          <title>⑤ sample-api · Service（ClusterIP） · namespace dev・prod</title>
+          <rect x="910" y="110" width="172" height="64" rx="6" class="c-mask"/>
+          <rect x="910" y="110" width="172" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" class="semantic-sigil s-backend" transform="translate(916 116) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text x="996" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">⑤ sample-api</text>
+        <text x="996" y="156" class="t-muted" font-size="9" text-anchor="middle">Service（ClusterIP）</text>
+        </g>
+        <g>
+          <rect x="92.2" y="178" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="126" y="188" class="t-muted" font-size="8" text-anchor="middle">providesApis</text>
+        </g>
+        <g>
+          <rect x="256" y="199" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="271" y="209" class="t-muted" font-size="8" text-anchor="middle">定義</text>
+        </g>
+        <g>
+          <rect x="510.4" y="122" width="101.2" height="14" rx="3" class="c-mask"/>
+          <text x="561" y="132" class="t-backend" font-size="8" text-anchor="middle">Try it out + Bearer</text>
+        </g>
+        <g>
+          <rect x="836" y="122" width="30" height="14" rx="3" class="c-mask"/>
+          <text x="851" y="132" class="t-backend" font-size="8" text-anchor="middle">GET</text>
+        </g>
+        <g>
+          <rect x="14" y="90" width="58.6" height="16" rx="3" class="c-mask"/>
+          <text x="18" y="103" class="t-cloud" font-size="9" font-weight="600">Backstage</text>
+        </g>
+        <g>
+          <rect x="884" y="90" width="112.6" height="16" rx="3" class="c-mask"/>
+          <text x="888" y="103" class="t-cloud" font-size="9" font-weight="600">namespace dev・prod</text>
+        </g>
+      </svg></figure>
+
+<p><strong>図の読み方</strong></p>
+<ul>
+<li>① Component <code>sample-api</code> は <code>providesApis: [sample-api]</code> で ② API エンティティと結ばれる。API の定義はサービスのコードの隣の <code>openapi.yaml</code> を <code>$text</code> で読む</li>
+<li>③ タブは API エンティティの定義を、プラグインの部品 <code>OpenApiDefinitionWidget</code>（swagger-ui-react のラッパー）に渡す。そのとき <code>servers</code> を選んだ環境のプロキシ 1 つに差し替える</li>
+<li>④ Try it out の要求は、Backstage のトークン（<code>Authorization: Bearer</code>）を付けてプロキシへ。プロキシは GET だけを通す</li>
+<li>⑤ プロキシの先は namespace <code>dev</code>・<code>prod</code> の Service <code>sample-api</code></li>
+</ul>
+<p>（色と線の読み方: 左の枠が Backstage、右の枠が環境の namespace。緑の線は主な流れ。）</p>
+<h2>何を選び、なぜそうしたか</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>選んだもの</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>プラグイン</td>
+<td><code>@backstage/plugin-api-docs</code> の <code>/alpha</code></td>
+<td>新しいフロントエンドシステムの入口がある。入れると API エンティティの <strong>Definition</strong>（<code>entity-content:api-docs/definition</code>）、Component の <strong>APIs</strong>（<code>entity-content:api-docs/apis</code>）、<code>/api-docs</code> の一覧も付く</td>
+</tr>
+<tr>
+<td>部品</td>
+<td><code>OpenApiDefinitionWidget</code> を自前のタブで使う</td>
+<td>同じパッケージの <code>ApiDefinitionCard</code> は、いま開いているエンティティ（Component）の <code>spec.definition</code> を読むので、Component のタブには使えない。<code>providesApis</code> の API を <code>useRelatedEntities</code> で引き、その定義を部品に渡す</td>
+</tr>
+<tr>
+<td>向き先の切り替え</td>
+<td><code>servers</code> を選んだ環境のプロキシ 1 つに差し替える</td>
+<td><code>openapi.yaml</code> に書いた <code>servers</code>（相対の経路 2 つ）のままだと、Try it out にトークンが付かず、バックエンドに 401 で断られる</td>
+</tr>
+<tr>
+<td>定義の置き場</td>
+<td><code>services/sample-api/openapi.yaml</code>（正本は 1 つ）</td>
+<td><code>app.py</code> が <code>/openapi.yaml</code> で配るものと、API エンティティが読むものを同じファイルにする</td>
+</tr>
+</tbody>
+</table>
+<h2>セットアップの項目</h2>
+<h3>パッケージと版</h3>
+<table>
+<thead>
+<tr>
+<th>パッケージ</th>
+<th>版</th>
+<th>置き場所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@backstage/plugin-api-docs</code></td>
+<td>0.14.5（<code>/alpha</code>）</td>
+<td><code>backstage/packages/app</code></td>
+</tr>
+<tr>
+<td><code>js-yaml</code></td>
+<td>4.3.2（<code>package.json</code> は <code>^4.1.0</code>）</td>
+<td><code>backstage/packages/app</code>。定義を読んで <code>servers</code> を差し替える</td>
+</tr>
+</tbody>
+</table>
+<p><code>App.tsx</code> の <code>features</code> に <code>apiDocsPlugin</code>（<code>@backstage/plugin-api-docs/alpha</code>）を足す。タブそのものは自前の <a href="https://github.com/yamakura-yuma/home-k8s/blob/main/backstage/packages/app/src/modules/environments/SwaggerView.tsx"><code>SwaggerView.tsx</code></a> と <a href="https://github.com/yamakura-yuma/home-k8s/blob/main/backstage/packages/app/src/modules/environments/openapi.ts"><code>openapi.ts</code></a> で、<a href="app.html">本体と環境のタブ</a> の <code>createEnvironmentContent</code> に乗せる（拡張 <code>entity-content:environments/swagger</code>、経路 <code>/swagger</code>）。</p>
+<h3>app-config</h3>
+<p><code>app.extensions</code> には何も書かない（api-docs の拡張は既定のまま有効）。使うのは下のプロキシだけ。</p>
+<h3>エンティティの注釈</h3>
+<p><a href="https://github.com/yamakura-yuma/home-k8s/blob/main/services/sample-api/catalog-info.yaml"><code>services/sample-api/catalog-info.yaml</code></a> に、Component と API を同じファイルで書く。</p>
+<pre><code class="language-yaml">kind: Component
+metadata:
+  name: sample-api
+  annotations:
+    home-k8s/environments: dev,prod
+    home-k8s/env.dev.api-proxy: /sample-api-dev
+    home-k8s/env.prod.api-proxy: /sample-api-prod
+spec:
+  providesApis:
+    - sample-api
+---
+kind: API
+metadata:
+  name: sample-api
+spec:
+  type: openapi
+  definition:
+    $text: ./openapi.yaml
+</code></pre>
+<p>タブが要るのはキー <code>api-proxy</code> だけ。注釈の無い環境は切り替えに並ばない。</p>
+<h3>Secret・資格情報</h3>
+<p>無し。sample-api は認証を持たない。Try it out には Backstage のゲストのトークンが要る（バックエンドの認証のため）。swagger-ui の fetch は Backstage の <code>fetchApi</code> を通らないので、<code>requestInterceptor</code> で向き先への要求にだけ <code>Authorization: Bearer</code> を付ける（<code>identityApi.getCredentials()</code>）。ほかの URL にはトークンを渡さない。</p>
+<h3>バックエンドのプロキシ</h3>
+<pre><code class="language-yaml">proxy:
+  endpoints:
+    '/sample-api-dev':
+      target: http://sample-api.dev.svc.cluster.local
+      allowedMethods: [GET]
+    '/sample-api-prod':
+      target: http://sample-api.prod.svc.cluster.local
+      allowedMethods: [GET]
+</code></pre>
+<p><code>servers</code> は <code>discoveryApi.getBaseUrl('proxy')</code> に注釈の値を続けたもの（<code>http://localhost:7007/api/proxy/sample-api-dev</code>）。プロキシが GET だけを通すので、タブも Try it out を GET に絞っている（<code>SwaggerView.tsx</code> の <code>SUBMIT_METHODS</code>）。POST などを足すときは、<code>allowedMethods</code> と <code>SUBMIT_METHODS</code> を一緒に直す。</p>
+<h3>chart の values・ArgoCD の Application</h3>
+<p>Backstage の側は無し。sample-api は ApplicationSet <code>sample-api</code>（<a href="https://github.com/yamakura-yuma/home-k8s/blob/main/clusters/kind/argocd/apps/sample-api.yaml"><code>apps/sample-api.yaml</code></a>）が Application <code>sample-api-dev</code>・<code>sample-api-prod</code> として同期する。</p>
+<h3>kind のポート</h3>
+<p>無し。ブラウザが開くのは Backstage（7007）だけで、sample-api の Service は ClusterIP のまま。</p>
+<h3>確認の方法</h3>
+<pre><code class="language-sh">tok=$(curl -s -X POST http://localhost:7007/api/auth/guest/refresh | jq -r .backstageIdentity.token)
+curl -s -H &quot;Authorization: Bearer $tok&quot; http://localhost:7007/api/proxy/sample-api-dev/info    # &quot;environment&quot;: &quot;dev&quot;
+curl -s -H &quot;Authorization: Bearer $tok&quot; http://localhost:7007/api/catalog/entities/by-name/component/default/sample-api \
+  | jq '.relations[] | select(.type==&quot;providesApi&quot;)'
+</code></pre>
+<p>画面は <a href="http://localhost:7007/catalog/default/component/sample-api/swagger">http://localhost:7007/catalog/default/component/sample-api/swagger</a> を開く（<code>?env=prod</code> で prod）。<code>GET /info</code> の Try it out → Execute で、Response body の <code>environment</code> が選んだ環境になる。URL は <code>/catalog/default/component/sample-api/swagger</code> のままで、別のエンティティへ移らない。</p>
+<p>API エンティティの Definition（<a href="http://localhost:7007/catalog/default/api/sample-api/definition">http://localhost:7007/catalog/default/api/sample-api/definition</a>）でも同じ定義が読めるが、こちらは <code>openapi.yaml</code> の <code>servers</code> のままでトークンが付かないので、Try it out は 401 で断られる。共有（<code>just share</code>）の caddy は <code>/api/proxy/*</code> を通さないので、共有先では Try it out が動かない（定義は読める）。</p>
+<h2>詳しい手順</h2>
+<ul>
+<li><a href="https://github.com/yamakura-yuma/home-k8s/blob/main/docs/cluster/swagger-tab.md">docs/cluster/swagger-tab.md</a></li>
+<li><a href="https://github.com/yamakura-yuma/home-k8s/blob/main/services/sample-api/openapi.yaml"><code>services/sample-api/openapi.yaml</code></a></li>
+</ul>
+<p>home-k8s の swagger-tab.md の「マージ後に、クラスタで確かめる手順」にあるイメージのタグ <code>0.5.0</code> は、この PR を入れた時点の値。いまのイメージは <code>home-k8s-backstage:0.10.0</code>（<a href="index.html#common">入口</a>）。</p>
+<footer>
+  正本は <code>docs/src/backstage/*.md</code>。この HTML は <code>docs/build_backstage.py</code>
+  の生成物なので直接編集しないこと。書いた事実は yamakura-yuma/home-k8s の main（2026-10-10 時点）のファイルと照らし合わせた。
+</footer>
+</div>
+</body>
+</html>

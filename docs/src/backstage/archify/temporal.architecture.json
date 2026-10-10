@@ -1,0 +1,181 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Temporal のタブ：Web UI を iframe で出すために 2 か所を開ける",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "tab",
+   "type": "frontend",
+   "label": "① Temporal のタブ",
+   "sublabel": "iframe の src = temporal-url",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "csp",
+   "type": "security",
+   "label": "② Backstage の CSP",
+   "sublabel": "frame-src に 2 つ",
+   "pos": [
+    40,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "port",
+   "type": "external",
+   "label": "③ localhost:8233・8234",
+   "sublabel": "kind の extraPortMappings",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "cd",
+   "type": "security",
+   "label": "④ temporal-ui-embed",
+   "sublabel": "Caddy",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "X-Frame-Options を外す"
+  },
+  {
+   "id": "web",
+   "type": "frontend",
+   "label": "⑤ temporal-web",
+   "sublabel": "Web UI",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "fe",
+   "type": "backend",
+   "label": "⑥ temporal-frontend",
+   "sublabel": "chart temporal 1.7.0",
+   "pos": [
+    910,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "pg",
+   "type": "database",
+   "label": "⑦ PostgreSQL",
+   "sublabel": "temporal-support",
+   "pos": [
+    910,
+    418
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage",
+   "wraps": [
+    "tab",
+    "csp"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "namespace dev（prod も同じ）",
+   "wraps": [
+    "cd",
+    "web",
+    "fe",
+    "pg"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "tab",
+   "to": "port",
+   "label": "iframe",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c1",
+   "from": "csp",
+   "to": "tab",
+   "label": "埋め込みを許す",
+   "variant": "dashed"
+  },
+  {
+   "id": "c2",
+   "from": "port",
+   "to": "cd",
+   "label": "NodePort",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "cd",
+   "to": "web",
+   "label": "8080"
+  },
+  {
+   "id": "c4",
+   "from": "web",
+   "to": "fe",
+   "label": "7233",
+   "labelAt": [
+    996,
+    188
+   ]
+  },
+  {
+   "id": "c5",
+   "from": "fe",
+   "to": "pg",
+   "label": "5432",
+   "labelAt": [
+    996,
+    342
+   ]
+  }
+ ]
+}

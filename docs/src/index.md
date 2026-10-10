@@ -7,6 +7,7 @@
 | landscape | AI コーディングツールのランドスケープ。分類軸と母集団の決め方 | [landscape/index.md](landscape/index.md) |
 | tool-research | ハーネスに入れる外部ツールの調査 | [tool-research/context-optimization.md](tool-research/context-optimization.md) |
 | argocd-notify | Argo CD のデプロイ完了・削除完了のイベントをどう発行するかの比較 | [argocd-notify/index.md](argocd-notify/index.md) |
+| backstage | home-k8s の Backstage の設定。アプリ・プラグインごとのセットアップの項目 | [backstage/index.md](backstage/index.md) |
 | patterns | ハーネスのパターン・カタログ（見立て） | [patterns/harness-form.md](patterns/harness-form.md) |
 | telemetry-daily | テレメトリの日報 | [telemetry-daily/2026-10-01.md](telemetry-daily/2026-10-01.md) |
 | ideas | まだ試していない構想 | [ideas/index.md](ideas/index.md) |

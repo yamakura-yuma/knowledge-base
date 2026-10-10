@@ -1,0 +1,156 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Grafana のタブ：環境ごとの Grafana をプロキシ越しに読む",
+  "quality_profile": "showcase",
+  "legend": {
+   "mode": "hidden"
+  }
+ },
+ "components": [
+  {
+   "id": "tab",
+   "type": "frontend",
+   "label": "① Grafana のタブ",
+   "sublabel": "host-id・selector を重ねる",
+   "pos": [
+    40,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "card",
+   "type": "frontend",
+   "label": "② ダッシュボードのカード",
+   "sublabel": "Grafana プラグイン",
+   "pos": [
+    330,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "px",
+   "type": "security",
+   "label": "③ プロキシ",
+   "sublabel": "/grafana-<環境>/api",
+   "pos": [
+    620,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ],
+   "tag": "Basic 認証を付ける"
+  },
+  {
+   "id": "gf",
+   "type": "backend",
+   "label": "④ Grafana",
+   "sublabel": "Viewer の backstage",
+   "pos": [
+    910,
+    110
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "st",
+   "type": "database",
+   "label": "⑤ Prometheus・Loki・Tempo",
+   "sublabel": "OTel Collector が集める",
+   "pos": [
+    910,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  },
+  {
+   "id": "lk",
+   "type": "external",
+   "label": "⑥ localhost:3001・3002",
+   "sublabel": "ダッシュボードのリンク先",
+   "pos": [
+    330,
+    264
+   ],
+   "size": [
+    172,
+    64
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Backstage",
+   "wraps": [
+    "tab",
+    "card",
+    "px"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "namespace dev・prod",
+   "wraps": [
+    "gf",
+    "st"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "c0",
+   "from": "tab",
+   "to": "card",
+   "label": "EntityProvider"
+  },
+  {
+   "id": "c1",
+   "from": "card",
+   "to": "px",
+   "label": "/api/search",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c2",
+   "from": "px",
+   "to": "gf",
+   "label": "Basic",
+   "variant": "emphasis"
+  },
+  {
+   "id": "c3",
+   "from": "st",
+   "to": "gf",
+   "label": "データソース"
+  },
+  {
+   "id": "c4",
+   "from": "card",
+   "to": "lk",
+   "label": "リンク",
+   "variant": "dashed",
+   "labelAt": [
+    416,
+    188
+   ]
+  }
+ ]
+}
