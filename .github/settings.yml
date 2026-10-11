@@ -32,7 +32,7 @@ repository:
   # dependabot_security_updates は PATCH では書けず、enable_automated_security_fixes で表す。
   # secret_scanning_validity_checks（今は disabled）は PATCH の入力に無いので書かない。
   # enable_* は書いたときだけ PUT（false なら DELETE）が飛ぶ。topics は空なので書かない
-  # （空文字を書くと [""] を PUT する）。
+  # （書くならカンマ区切りの文字列。リストで書くとアプリの split で落ちる）。
   security_and_analysis:
     secret_scanning:
       status: enabled
