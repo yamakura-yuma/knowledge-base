@@ -1,0 +1,610 @@
+{
+  "current": {
+    "cache_read_ratio": 0.9585084485666979,
+    "cache_read_ratio_by_worker": {
+      "coordinator": {
+        "input_tokens_total": 3090713.0,
+        "ratio": 0.851193235994413
+      },
+      "coordinator-chat-backstage-dev-ui-tabs": {
+        "input_tokens_total": 15328254.0,
+        "ratio": 0.9191875343401799
+      },
+      "coordinator-chat-crossplane-function-kro-speed": {
+        "input_tokens_total": 6453519.0,
+        "ratio": 0.9498599136378153
+      },
+      "coordinator-chat-environment-access-control": {
+        "input_tokens_total": 8876898.0,
+        "ratio": 0.9417570191749415
+      },
+      "coordinator-chat-golang-k8s-deployer-microservice": {
+        "input_tokens_total": 8563705.0,
+        "ratio": 0.9601437695483439
+      },
+      "coordinator-chat-idp-oss-options": {
+        "input_tokens_total": 38294377.0,
+        "ratio": 0.976351776136742
+      },
+      "coordinator-kro-speed-bench": {
+        "input_tokens_total": 42529935.0,
+        "ratio": 0.9707364471636272
+      },
+      "home-k8s-access-control-survey": {
+        "input_tokens_total": 6762905.0,
+        "ratio": 0.8666166388556397
+      },
+      "home-k8s-backstage-docs-stale-fix": {
+        "input_tokens_total": 1319983.0,
+        "ratio": 0.8991623376967733
+      },
+      "home-k8s-backstage-env-obs-fix": {
+        "input_tokens_total": 2409181.0,
+        "ratio": 0.9236860991349343
+      },
+      "home-k8s-gitops-deployer-platform": {
+        "input_tokens_total": 18623533.0,
+        "ratio": 0.9788096597997813
+      },
+      "home-k8s-idp-oss-options": {
+        "input_tokens_total": 10701208.0,
+        "ratio": 0.8657974875359866
+      },
+      "home-k8s-keycloak-base": {
+        "input_tokens_total": 21090196.0,
+        "ratio": 0.9718322674668363
+      },
+      "home-k8s-keycloak-user-mfa": {
+        "input_tokens_total": 7098654.0,
+        "ratio": 0.9588827684797709
+      },
+      "home-k8s-oidc-apiserver-headlamp": {
+        "input_tokens_total": 29050529.0,
+        "ratio": 0.9718774140050944
+      },
+      "home-k8s-oidc-argocd-grafana": {
+        "input_tokens_total": 16596098.0,
+        "ratio": 0.9627528109318226
+      },
+      "home-k8s-oidc-temporal-backstage": {
+        "input_tokens_total": 48761542.0,
+        "ratio": 0.9822957403603028
+      },
+      "home-k8s-tailscale-operator": {
+        "input_tokens_total": 15395836.0,
+        "ratio": 0.9530808200347158
+      },
+      "knowledge-base-kb-backstage-setup": {
+        "input_tokens_total": 3952403.0,
+        "ratio": 0.8321203581719779
+      }
+    },
+    "cost_by_model": {
+      "claude-opus-5-5": 219.10982400000003,
+      "claude-sonnet-5-5": 3.8129921
+    },
+    "cost_by_worker_model": {
+      "coordinator-chat-backstage-dev-ui-tabs|claude-opus-5-5": 13.181144,
+      "coordinator-chat-crossplane-function-kro-speed|claude-opus-5-5": 5.151158800000001,
+      "coordinator-chat-environment-access-control|claude-opus-5-5": 7.438166199999999,
+      "coordinator-chat-golang-k8s-deployer-microservice|claude-opus-5-5": 8.252327600000001,
+      "coordinator-chat-idp-oss-options|claude-opus-5-5": 17.7739336,
+      "coordinator-kro-speed-bench|claude-opus-5-5": 30.224824599999998,
+      "coordinator|claude-sonnet-5-5": 2.4645828,
+      "home-k8s-access-control-survey|claude-opus-5-5": 10.639141200000005,
+      "home-k8s-backstage-docs-stale-fix|claude-opus-5-5": 0.2083258,
+      "home-k8s-backstage-docs-stale-fix|claude-sonnet-5-5": 0.6014179999999999,
+      "home-k8s-backstage-env-obs-fix|claude-opus-5-5": 0.6720348,
+      "home-k8s-backstage-env-obs-fix|claude-sonnet-5-5": 0.7469913,
+      "home-k8s-gitops-deployer-platform|claude-opus-5-5": 9.8731598,
+      "home-k8s-idp-oss-options|claude-opus-5-5": 18.538426799999996,
+      "home-k8s-keycloak-base|claude-opus-5-5": 15.30521459999999,
+      "home-k8s-keycloak-user-mfa|claude-opus-5-5": 7.0730784,
+      "home-k8s-oidc-apiserver-headlamp|claude-opus-5-5": 18.13137259999999,
+      "home-k8s-oidc-argocd-grafana|claude-opus-5-5": 13.431779,
+      "home-k8s-oidc-temporal-backstage|claude-opus-5-5": 24.855776,
+      "home-k8s-tailscale-operator|claude-opus-5-5": 12.447108199999999,
+      "knowledge-base-kb-backstage-setup|claude-opus-5-5": 5.912852000000001
+    },
+    "cost_per_request": 3.6544723950819678,
+    "cost_total_loki": 222.92281610000003,
+    "failed_commands": {
+      "cat (ShellError)": 4,
+      "docker exec (ShellError)": 5,
+      "exec (ShellError)": 2,
+      "for (ShellError)": 1,
+      "gh pr (ShellError)": 1,
+      "git log (ShellError)": 2,
+      "git status (ShellError)": 1,
+      "grep (ShellError)": 3,
+      "ls (ShellError)": 2,
+      "nix develop (ShellError)": 1,
+      "orca orchestration (ShellError)": 2,
+      "orca terminal (ShellError)": 1,
+      "orca worktree (ShellError)": 1,
+      "pkill (ShellError)": 4,
+      "python3 (ShellError)": 4,
+      "sed (ShellError)": 2,
+      "tail (ShellError)": 1,
+      "unset (ShellError)": 1,
+      "until (ShellError)": 1
+    },
+    "mcp_calls": {},
+    "mcp_connected": {
+      "claude.ai Claude Docs": 15.0,
+      "codegraph": 15.0,
+      "headroom": 15.0
+    },
+    "requests": 61.0,
+    "skills_activated": {},
+    "tool_failure_rate": 0.02092050209205021,
+    "tool_failures": 40.0,
+    "tool_failures_by_tool": {
+      "Bash": 39.0,
+      "Read": 1.0
+    },
+    "tool_results": 1912.0
+  },
+  "data_since": "2026-09-30 09:59",
+  "fable": {
+    "current": {
+      "claude-fable-5-1": 46.90110995470089
+    },
+    "previous": {
+      "claude-fable-5-1": 28.62692094604769
+    }
+  },
+  "installed_skills": [
+    "archify",
+    "architect",
+    "arena",
+    "automate-me",
+    "blast-radius",
+    "bro",
+    "built-in-browser",
+    "chrome-browser",
+    "cognitive-rhythm-writing",
+    "computer-use",
+    "control-cli",
+    "control-ui",
+    "core-communication",
+    "core-dispatch",
+    "core-harness",
+    "core-retro",
+    "core-tools",
+    "create-verification-skill",
+    "deep-research",
+    "deslop",
+    "docs",
+    "docx",
+    "drawio-skill",
+    "eli5",
+    "explainer",
+    "explainer-book",
+    "figure-it-out",
+    "find-skills",
+    "first-reader",
+    "google-workspace",
+    "graphify",
+    "grill-me",
+    "grilling",
+    "handoff",
+    "how",
+    "humanizer-ja",
+    "impeccable",
+    "import-memory",
+    "interrogate",
+    "japanese-tech-writing",
+    "linear-tickets",
+    "maintain-verification-skill",
+    "make-bot-ui",
+    "morning",
+    "nav-retro",
+    "no-comments",
+    "orca-cli",
+    "orca-emulator",
+    "orca-emulator-android",
+    "orca-linear",
+    "orca-per-workspace-env",
+    "orchestration",
+    "p-mode",
+    "pdf",
+    "ponytail",
+    "ponytail-audit",
+    "ponytail-debt",
+    "ponytail-gain",
+    "ponytail-help",
+    "ponytail-review",
+    "poteto-mode",
+    "pptx",
+    "principle-attack-the-premise",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-outcome-oriented-execution",
+    "principle-prove-it-works",
+    "principle-redesign-from-first-principles",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-test-behavior-not-implementation",
+    "principle-type-system-discipline",
+    "pstack-on-claude-code",
+    "recall",
+    "reflect",
+    "setup-pstack",
+    "show-me",
+    "show-me-your-work",
+    "skill-creator",
+    "swarm",
+    "tdd",
+    "teach",
+    "technical-writing",
+    "to-questionnaire",
+    "typescript-best-practices",
+    "unslop",
+    "update-landscape",
+    "wait-what",
+    "why",
+    "writing-for-agents",
+    "xlsx"
+  ],
+  "name": "2026-10-11",
+  "orca": {
+    "current": {
+      "by_model": {},
+      "dispatches": 0,
+      "escalations": 0,
+      "followups": 0,
+      "followups_per_dispatch": null,
+      "questions": 0,
+      "time_to_done_median_min": null,
+      "user_takeover": 0,
+      "worker_done_rejected": 0
+    },
+    "previous": {
+      "by_model": {},
+      "dispatches": 0,
+      "escalations": 0,
+      "followups": 0,
+      "followups_per_dispatch": null,
+      "questions": 0,
+      "time_to_done_median_min": null,
+      "user_takeover": 0,
+      "worker_done_rejected": 0
+    }
+  },
+  "period": "1d",
+  "previous": {
+    "cache_read_ratio": 0.895585864838173,
+    "cache_read_ratio_by_worker": {
+      "(Orca の外)": {
+        "input_tokens_total": 17902670.0,
+        "ratio": 0.7734445755856528
+      },
+      "coordinator": {
+        "input_tokens_total": 3667875.0,
+        "ratio": 0.879228981358416
+      },
+      "coordinator-cache-miss-cause": {
+        "input_tokens_total": 9272954.0,
+        "ratio": 0.05863870348111292
+      },
+      "coordinator-chat-agent-guardrails-inventory": {
+        "input_tokens_total": 19622798.0,
+        "ratio": 0.9608438103475355
+      },
+      "coordinator-chat-backstage-dev-ui-tabs": {
+        "input_tokens_total": 43567580.0,
+        "ratio": 0.9563720087275905
+      },
+      "coordinator-chat-haiku-5-5-unavailable": {
+        "input_tokens_total": 434966.0,
+        "ratio": 0.09332453571083717
+      },
+      "coordinator-chat-headroom-issues-haiku-cost": {
+        "input_tokens_total": 12841960.0,
+        "ratio": 0.6165151581222804
+      },
+      "coordinator-chat-stage-c-gate-review": {
+        "input_tokens_total": 8668171.0,
+        "ratio": 0.9535717511802663
+      },
+      "coordinator-chat-token-efficiency-orchestration": {
+        "input_tokens_total": 5784052.0,
+        "ratio": 0.8116514166885084
+      },
+      "coordinator-guardrails-bump-coordinator": {
+        "input_tokens_total": 705718.0,
+        "ratio": 0.9405640780028284
+      },
+      "coordinator-guardrails-coordinator-allow": {
+        "input_tokens_total": 600860.0,
+        "ratio": 0.9283377159404853
+      },
+      "coordinator-guardrails-coordinator-allow-2": {
+        "input_tokens_total": 419383.0,
+        "ratio": 0.9042402767875665
+      },
+      "coordinator-headroom-answers": {
+        "input_tokens_total": 2654983.0,
+        "ratio": 0.88403805222105
+      },
+      "coordinator-headroom-cache-safe-trial": {
+        "input_tokens_total": 7441770.0,
+        "ratio": 0.4454805778732748
+      },
+      "dotfiles-guardrails-followup-dotfiles": {
+        "input_tokens_total": 3648285.0,
+        "ratio": 0.9224413662858028
+      },
+      "dotfiles-guardrails-removal-dotfiles": {
+        "input_tokens_total": 8466492.0,
+        "ratio": 0.9262604866336612
+      },
+      "dotfiles-guardrails-stage-c-docs": {
+        "input_tokens_total": 1350512.0,
+        "ratio": 0.8892923572689468
+      },
+      "dotfiles-guardrails-stage-c-docs-2": {
+        "input_tokens_total": 109044.0,
+        "ratio": 0.7031381827519166
+      },
+      "dotfiles-haiku-direct-launch": {
+        "input_tokens_total": 1952792.0,
+        "ratio": 0.8494919069721711
+      },
+      "dotfiles-haiku-direct-remove": {
+        "input_tokens_total": 1751460.0,
+        "ratio": 0.8890434266269284
+      },
+      "dotfiles-headroom-cache-mode": {
+        "input_tokens_total": 8784657.0,
+        "ratio": 0.9380441376367911
+      },
+      "dotfiles-stage-c-remove-dotfiles": {
+        "input_tokens_total": 4683700.0,
+        "ratio": 0.936372739500822
+      },
+      "home-k8s-backstage-argocd-tab": {
+        "input_tokens_total": 22953950.0,
+        "ratio": 0.9745437277679877
+      },
+      "home-k8s-backstage-azure-resources": {
+        "input_tokens_total": 16383721.0,
+        "ratio": 0.9589401577333989
+      },
+      "home-k8s-backstage-azure-tab": {
+        "input_tokens_total": 25884327.0,
+        "ratio": 0.9765487045500546
+      },
+      "home-k8s-backstage-env-foundation": {
+        "input_tokens_total": 21669684.0,
+        "ratio": 0.9506077245981067
+      },
+      "home-k8s-backstage-env-obs-fix": {
+        "input_tokens_total": 3747672.0,
+        "ratio": 0.9670795629927059
+      },
+      "home-k8s-backstage-grafana-tab": {
+        "input_tokens_total": 44052888.0,
+        "ratio": 0.9757958887962124
+      },
+      "home-k8s-backstage-swagger-tab": {
+        "input_tokens_total": 9952231.0,
+        "ratio": 0.956146114373752
+      },
+      "home-k8s-backstage-temporal-tab": {
+        "input_tokens_total": 14369009.0,
+        "ratio": 0.949254607607247
+      },
+      "home-k8s-stage-c-remove-home-k8s": {
+        "input_tokens_total": 2108945.0,
+        "ratio": 0.9545644860344864
+      },
+      "knowledge-base-kb-backstage-setup": {
+        "input_tokens_total": 19476133.0,
+        "ratio": 0.9504080199082642
+      },
+      "knowledge-base-stage-c-remove-knowledge-base": {
+        "input_tokens_total": 1078923.0,
+        "ratio": 0.9155695077405894
+      },
+      "temporal-saga-stage-c-remove-temporal-workflow-kit": {
+        "input_tokens_total": 906217.0,
+        "ratio": 0.8972751559505063
+      }
+    },
+    "cost_by_model": {
+      "claude-haiku-5-5": 0.042792365,
+      "claude-opus-5-5": 268.377724,
+      "claude-sonnet-5-5": 88.37626060000001
+    },
+    "cost_by_worker_model": {
+      "(Orca の外)|claude-haiku-5-5": 0.02022045,
+      "(Orca の外)|claude-sonnet-5-5": 18.688101600000003,
+      "coordinator-cache-miss-cause|claude-opus-5-5": 73.57691080000001,
+      "coordinator-chat-agent-guardrails-inventory|claude-opus-5-5": 11.173059800000003,
+      "coordinator-chat-backstage-dev-ui-tabs|claude-opus-5-5": 26.847847800000004,
+      "coordinator-chat-haiku-5-5-unavailable|claude-opus-5-5": 3.2251466000000004,
+      "coordinator-chat-headroom-issues-haiku-cost|claude-opus-5-5": 41.8985876,
+      "coordinator-chat-stage-c-gate-review|claude-opus-5-5": 6.460211600000002,
+      "coordinator-chat-token-efficiency-orchestration|claude-opus-5-5": 10.113978799999998,
+      "coordinator-guardrails-bump-coordinator|claude-sonnet-5-5": 0.3364586,
+      "coordinator-guardrails-coordinator-allow-2|claude-sonnet-5-5": 0.2560586,
+      "coordinator-guardrails-coordinator-allow|claude-sonnet-5-5": 0.3210537,
+      "coordinator-headroom-answers|claude-opus-5-5": 4.5695262,
+      "coordinator-headroom-cache-safe-trial|claude-opus-5-5": 38.666830799999985,
+      "coordinator|claude-sonnet-5-5": 2.5762564,
+      "dotfiles-guardrails-followup-dotfiles|claude-opus-5-5": 0.4650172,
+      "dotfiles-guardrails-followup-dotfiles|claude-sonnet-5-5": 3.0462836000000006,
+      "dotfiles-guardrails-removal-dotfiles|claude-haiku-5-5": 0.02031984,
+      "dotfiles-guardrails-removal-dotfiles|claude-opus-5-5": 0.6863949999999999,
+      "dotfiles-guardrails-removal-dotfiles|claude-sonnet-5-5": 4.169355099999999,
+      "dotfiles-guardrails-stage-c-docs-2|claude-sonnet-5-5": 0.1440476,
+      "dotfiles-guardrails-stage-c-docs|claude-opus-5-5": 0.3806042,
+      "dotfiles-guardrails-stage-c-docs|claude-sonnet-5-5": 0.6494408,
+      "dotfiles-haiku-direct-launch|claude-opus-5-5": 0.25629440000000003,
+      "dotfiles-haiku-direct-launch|claude-sonnet-5-5": 2.170656800000001,
+      "dotfiles-haiku-direct-remove|claude-opus-5-5": 0.4112994,
+      "dotfiles-haiku-direct-remove|claude-sonnet-5-5": 0.8574869000000002,
+      "dotfiles-headroom-cache-mode|claude-opus-5-5": 7.886171200000003,
+      "dotfiles-stage-c-remove-dotfiles|claude-opus-5-5": 1.0569415999999998,
+      "dotfiles-stage-c-remove-dotfiles|claude-sonnet-5-5": 2.5967497000000006,
+      "home-k8s-backstage-argocd-tab|claude-opus-5-5": 0.8882224000000002,
+      "home-k8s-backstage-argocd-tab|claude-sonnet-5-5": 8.494924200000002,
+      "home-k8s-backstage-azure-resources|claude-opus-5-5": 0.7816320000000001,
+      "home-k8s-backstage-azure-resources|claude-sonnet-5-5": 7.2843751,
+      "home-k8s-backstage-azure-tab|claude-haiku-5-5": 0.0022520749999999997,
+      "home-k8s-backstage-azure-tab|claude-opus-5-5": 0.8370332000000001,
+      "home-k8s-backstage-azure-tab|claude-sonnet-5-5": 8.797059,
+      "home-k8s-backstage-env-foundation|claude-opus-5-5": 15.372470800000002,
+      "home-k8s-backstage-env-obs-fix|claude-sonnet-5-5": 1.0585882,
+      "home-k8s-backstage-grafana-tab|claude-opus-5-5": 3.4681455999999997,
+      "home-k8s-backstage-grafana-tab|claude-sonnet-5-5": 13.831449799999996,
+      "home-k8s-backstage-swagger-tab|claude-opus-5-5": 0.6327168,
+      "home-k8s-backstage-swagger-tab|claude-sonnet-5-5": 4.785230600000002,
+      "home-k8s-backstage-temporal-tab|claude-opus-5-5": 1.3295841999999998,
+      "home-k8s-backstage-temporal-tab|claude-sonnet-5-5": 6.5849243999999985,
+      "home-k8s-stage-c-remove-home-k8s|claude-opus-5-5": 0.25724899999999995,
+      "home-k8s-stage-c-remove-home-k8s|claude-sonnet-5-5": 0.6930848000000002,
+      "knowledge-base-kb-backstage-setup|claude-opus-5-5": 16.8961776,
+      "knowledge-base-stage-c-remove-knowledge-base|claude-opus-5-5": 0.1136302,
+      "knowledge-base-stage-c-remove-knowledge-base|claude-sonnet-5-5": 0.5313946,
+      "temporal-saga-stage-c-remove-temporal-workflow-kit|claude-opus-5-5": 0.12603920000000002,
+      "temporal-saga-stage-c-remove-temporal-workflow-kit|claude-sonnet-5-5": 0.5032805000000001
+    },
+    "cost_per_request": 3.075834284181034,
+    "cost_total_loki": 356.796776965,
+    "failed_commands": {
+      "--context (ShellError)": 1,
+      "cat (ShellError)": 7,
+      "cp (ShellError)": 1,
+      "docker exec (ShellError)": 1,
+      "docker logs (ShellError)": 1,
+      "docker rm (ShellError)": 2,
+      "find (ShellError)": 1,
+      "for (ShellError)": 1,
+      "gh pr (ShellError)": 1,
+      "git (ShellError)": 1,
+      "grep (ShellError)": 4,
+      "helm template (ShellError)": 1,
+      "kill (ShellError)": 1,
+      "ls (ShellError)": 3,
+      "mkdir (ShellError)": 2,
+      "orca orchestration (ShellError)": 1,
+      "orca terminal (ShellError)": 2,
+      "orca worktree (ShellError)": 2,
+      "pkill (ShellError)": 2,
+      "python3 (ShellError)": 4,
+      "rm (ShellError)": 1,
+      "sed (ShellError)": 3,
+      "tail (ShellError)": 1
+    },
+    "mcp_calls": {
+      "headroom": 15.0
+    },
+    "mcp_connected": {
+      "claude.ai Claude Docs": 61.0,
+      "codegraph": 61.0,
+      "headroom": 61.0
+    },
+    "requests": 116.0,
+    "skills_activated": {
+      "claude-api": 2.0,
+      "japanese-tech-writing": 1.0
+    },
+    "tool_failure_rate": 0.018819503849443968,
+    "tool_failures": 44.0,
+    "tool_failures_by_tool": {
+      "Bash": 44.0
+    },
+    "tool_results": 2338.0
+  },
+  "prom_quality": {
+    "increase_by_model": {
+      "claude-fable-5-1": 46.90110995470089,
+      "claude-haiku-5-5": 0.0,
+      "claude-opus-5-5": 173.0190357909203,
+      "claude-sonnet-5-5": 3.8279369174873774
+    },
+    "resets_by_model": {
+      "claude-fable-5-1": 0.0,
+      "claude-haiku-5-5": 0.0,
+      "claude-opus-5-5": 0.0,
+      "claude-sonnet-5-5": 0.0
+    }
+  },
+  "skills_activated_7d": {
+    "claude-api": 2.0,
+    "dataviz": 1.0,
+    "japanese-tech-writing": 1.0,
+    "nav-retro": 1.0
+  },
+  "trend": [
+    {
+      "cache_read_ratio": 0.7569862997933559,
+      "cost_usd": 353.3468505999999,
+      "end": "10-05 09:00",
+      "requests": 67.0,
+      "tool_failure_rate": 0.02182428651371013
+    },
+    {
+      "cache_read_ratio": 0.6453845958689877,
+      "cost_usd": 20.024044999999997,
+      "end": "10-06 09:00",
+      "requests": 3.0,
+      "tool_failure_rate": 0.02666666666666667
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "10-07 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "10-08 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": 0.5495493890163181,
+      "cost_usd": 74.05492908000001,
+      "end": "10-09 09:00",
+      "requests": 30.0,
+      "tool_failure_rate": 0.017777777777777778
+    },
+    {
+      "cache_read_ratio": 0.895585864838173,
+      "cost_usd": 356.79677696500016,
+      "end": "10-10 09:00",
+      "requests": 116.0,
+      "tool_failure_rate": 0.018819503849443968
+    },
+    {
+      "cache_read_ratio": 0.9585084485666979,
+      "cost_usd": 222.9228161,
+      "end": "10-11 09:00",
+      "requests": 61.0,
+      "tool_failure_rate": 0.02092050209205021
+    }
+  ],
+  "window": {
+    "current": "2026-10-10 09:00 〜 2026-10-11 09:00",
+    "previous": "2026-10-09 09:00 〜 2026-10-10 09:00"
+  }
+}
