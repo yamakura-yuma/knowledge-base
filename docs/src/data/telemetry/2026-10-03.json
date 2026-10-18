@@ -1,0 +1,836 @@
+{
+  "current": {
+    "cache_read_ratio": 0.6433303548538389,
+    "cache_read_ratio_by_worker": {
+      "(Orca の外)": {
+        "input_tokens_total": 832498.0,
+        "ratio": 0.4866738418590795
+      },
+      "coordinator": {
+        "input_tokens_total": 6587750.0,
+        "ratio": 0.7883005578535919
+      },
+      "coordinator-auto-pr-issue-triage-run-4-20261002T2346": {
+        "input_tokens_total": 267408.0,
+        "ratio": 0.8201736672051696
+      },
+      "coordinator-chat-agent-activity-visualization": {
+        "input_tokens_total": 13790872.0,
+        "ratio": 0.8846368815546979
+      },
+      "coordinator-chat-argocd-grafana-backstage": {
+        "input_tokens_total": 17505051.0,
+        "ratio": 0.7930345361461671
+      },
+      "coordinator-chat-auto-merge-gates": {
+        "input_tokens_total": 24735520.0,
+        "ratio": 0.1881699677225302
+      },
+      "coordinator-chat-backstage-knowledge-catalog": {
+        "input_tokens_total": 7645889.0,
+        "ratio": 0.43086238892560436
+      },
+      "coordinator-chat-claude-guide-improvements": {
+        "input_tokens_total": 1759658.0,
+        "ratio": 0.8474243290457577
+      },
+      "coordinator-chat-completion-reviewer-distribution": {
+        "input_tokens_total": 11927745.0,
+        "ratio": 0.34993663932285607
+      },
+      "coordinator-chat-daily-insights-issues": {
+        "input_tokens_total": 3068739.0,
+        "ratio": 0.5194804771601625
+      },
+      "coordinator-chat-expose-localhost": {
+        "input_tokens_total": 3371032.0,
+        "ratio": 0.91575428533458
+      },
+      "coordinator-chat-home-k8s-persistence": {
+        "input_tokens_total": 5594639.0,
+        "ratio": 0.4864077914589306
+      },
+      "coordinator-chat-orca-no-startup-terminal": {
+        "input_tokens_total": 7645817.0,
+        "ratio": 0.8086220216884605
+      },
+      "coordinator-chat-topic-chat-completion-handoff": {
+        "input_tokens_total": 4190617.0,
+        "ratio": 0.8233148006606187
+      },
+      "coordinator-chat-triage-auto-labeling": {
+        "input_tokens_total": 5094991.0,
+        "ratio": 0.47841262133730955
+      },
+      "coordinator-coordinator-bump-routing-facts": {
+        "input_tokens_total": 219788.0,
+        "ratio": 0.8307823903033833
+      },
+      "coordinator-coordinator-bump-single-terminal": {
+        "input_tokens_total": 682779.0,
+        "ratio": 0.798665453975591
+      },
+      "coordinator-coordinator-bump-topic-handoff": {
+        "input_tokens_total": 650594.0,
+        "ratio": 0.823462866242234
+      },
+      "coordinator-design-daily-insights": {
+        "input_tokens_total": 4045076.0,
+        "ratio": 0.9609339849238927
+      },
+      "coordinator-entry-w3": {
+        "input_tokens_total": 224757.0,
+        "ratio": 0.833931757409113
+      },
+      "coordinator-impl-coordinator-harness": {
+        "input_tokens_total": 1290648.0,
+        "ratio": 0.8449042651443306
+      },
+      "coordinator-impl-coordinator-merge-fix": {
+        "input_tokens_total": 285395.0,
+        "ratio": 0.8739466353650204
+      },
+      "coordinator-impl-coordinator-timeout": {
+        "input_tokens_total": 499151.0,
+        "ratio": 0.8793270974114046
+      },
+      "coordinator-triage-labels-coordinator": {
+        "input_tokens_total": 1762730.0,
+        "ratio": 0.8212499929087268
+      },
+      "coordinator-verify-harness-coordinator": {
+        "input_tokens_total": 54670.0,
+        "ratio": 0.5743369306749588
+      },
+      "dotfiles-claude-guide-gap-analysis": {
+        "input_tokens_total": 824717.0,
+        "ratio": 0.8720251916718098
+      },
+      "dotfiles-completion-reviewer-design": {
+        "input_tokens_total": 6623666.0,
+        "ratio": 0.6493518845907991
+      },
+      "dotfiles-dotfiles-techdocs": {
+        "input_tokens_total": 1005017.0,
+        "ratio": 0.8446832242638682
+      },
+      "dotfiles-entry-design": {
+        "input_tokens_total": 3898635.0,
+        "ratio": 0.9394477810823532
+      },
+      "dotfiles-entry-w1": {
+        "input_tokens_total": 3573643.0,
+        "ratio": 0.654079604482037
+      },
+      "dotfiles-entry-w2": {
+        "input_tokens_total": 1540687.0,
+        "ratio": 0.893324211861332
+      },
+      "dotfiles-gate-dotfiles": {
+        "input_tokens_total": 2868495.0,
+        "ratio": 0.9416471006573134
+      },
+      "dotfiles-gate-probe-dotfiles": {
+        "input_tokens_total": 764567.0,
+        "ratio": 0.9280220046117607
+      },
+      "dotfiles-gate-stage-c-check": {
+        "input_tokens_total": 4277519.0,
+        "ratio": 0.9528993325336486
+      },
+      "dotfiles-gate-template": {
+        "input_tokens_total": 3649743.0,
+        "ratio": 0.27016313203422815
+      },
+      "dotfiles-impl-dotfiles-harness": {
+        "input_tokens_total": 3114231.0,
+        "ratio": 0.9321700927130967
+      },
+      "dotfiles-impl-nav-retro": {
+        "input_tokens_total": 815238.0,
+        "ratio": 0.8361423289885899
+      },
+      "dotfiles-impl-worker-start-timeout": {
+        "input_tokens_total": 1072638.0,
+        "ratio": 0.8945235950991853
+      },
+      "dotfiles-model-routing-design": {
+        "input_tokens_total": 1887415.0,
+        "ratio": 0.8439161498663516
+      },
+      "dotfiles-open-topic-chat-single-terminal": {
+        "input_tokens_total": 1010523.0,
+        "ratio": 0.8352269072549561
+      },
+      "dotfiles-orca-agent-visualization": {
+        "input_tokens_total": 45604781.0,
+        "ratio": 0.32702275228555533
+      },
+      "dotfiles-routing-facts-impl": {
+        "input_tokens_total": 3227945.0,
+        "ratio": 0.48315538213941067
+      },
+      "dotfiles-tmp-ws-probe": {
+        "input_tokens_total": 331622.0,
+        "ratio": 0.8919884687988131
+      },
+      "dotfiles-topic-handoff-procedure": {
+        "input_tokens_total": 6536160.0,
+        "ratio": 0.8821359942229077
+      },
+      "dotfiles-triage-labels-dotfiles": {
+        "input_tokens_total": 522586.0,
+        "ratio": 0.6485420581492807
+      },
+      "dotfiles-verify-harness-dotfiles": {
+        "input_tokens_total": 26504.0,
+        "ratio": 0.4592514337458497
+      },
+      "dotfiles-worker-extra-terminal-investigation": {
+        "input_tokens_total": 4195342.0,
+        "ratio": 0.47541511514436724
+      },
+      "home-k8s": {
+        "input_tokens_total": 372296.0,
+        "ratio": 0.907436555858779
+      },
+      "home-k8s-argocd-observability": {
+        "input_tokens_total": 7545866.0,
+        "ratio": 0.8693658222926302
+      },
+      "home-k8s-backstage-grafana": {
+        "input_tokens_total": 24207867.0,
+        "ratio": 0.49772927123236427
+      },
+      "home-k8s-backstage-techdocs": {
+        "input_tokens_total": 14315694.0,
+        "ratio": 0.9625362207378839
+      },
+      "home-k8s-gate-bump-home-k8s": {
+        "input_tokens_total": 673144.0,
+        "ratio": 0.8538693058246081
+      },
+      "home-k8s-gate-home-k8s": {
+        "input_tokens_total": 3895970.0,
+        "ratio": 0.8975531125753021
+      },
+      "home-k8s-gate-probe-home-k8s": {
+        "input_tokens_total": 1038484.0,
+        "ratio": 0.9495235362316607
+      },
+      "home-k8s-home-k8s-persistence-design": {
+        "input_tokens_total": 3521423.0,
+        "ratio": 0.892164900382601
+      },
+      "home-k8s-home-k8s-persistence-impl": {
+        "input_tokens_total": 21953180.0,
+        "ratio": 0.857450902329412
+      },
+      "home-k8s-impl-homek8s-harness": {
+        "input_tokens_total": 1569488.0,
+        "ratio": 0.7677764978132996
+      },
+      "home-k8s-just-consolidate": {
+        "input_tokens_total": 7893900.0,
+        "ratio": 0.5720481637720265
+      },
+      "home-k8s-share-localhost-services": {
+        "input_tokens_total": 1849339.0,
+        "ratio": 0.881424119644911
+      },
+      "home-k8s-verify-harness-homek8s": {
+        "input_tokens_total": 48824.0,
+        "ratio": 0.5853473701458299
+      },
+      "knowledge-base-gate-bump-knowledge-base": {
+        "input_tokens_total": 779772.0,
+        "ratio": 0.9236520418789081
+      },
+      "knowledge-base-gate-knowledge-base": {
+        "input_tokens_total": 3010362.0,
+        "ratio": 0.9230321801829813
+      },
+      "knowledge-base-gate-probe-knowledge-base": {
+        "input_tokens_total": 642320.0,
+        "ratio": 0.8743585751650268
+      },
+      "knowledge-base-gate-verify-knowledge-base": {
+        "input_tokens_total": 954900.0,
+        "ratio": 0.9243302963661116
+      },
+      "knowledge-base-impl-kb-harness": {
+        "input_tokens_total": 1480434.0,
+        "ratio": 0.8459282885964521
+      },
+      "knowledge-base-kb-techdocs": {
+        "input_tokens_total": 1624173.0,
+        "ratio": 0.8832328822114393
+      },
+      "knowledge-base-kb-techdocs-links": {
+        "input_tokens_total": 5870931.0,
+        "ratio": 0.9269306690880884
+      },
+      "knowledge-base-verify-harness-kb": {
+        "input_tokens_total": 57770.0,
+        "ratio": 0.5701921412497837
+      },
+      "temporal-saga-gate-bump-temporal": {
+        "input_tokens_total": 1168169.0,
+        "ratio": 0.8960518555106325
+      },
+      "temporal-saga-gate-probe-temporal": {
+        "input_tokens_total": 723812.0,
+        "ratio": 0.8912576746447972
+      },
+      "temporal-saga-gate-temporal": {
+        "input_tokens_total": 2051916.0,
+        "ratio": 0.914470182989947
+      },
+      "temporal-saga-gate-temporal-codeowners": {
+        "input_tokens_total": 635198.0,
+        "ratio": 0.8505033076300618
+      },
+      "temporal-saga-impl-saga-harness": {
+        "input_tokens_total": 1506609.0,
+        "ratio": 0.7424036362453695
+      },
+      "temporal-saga-verify-harness-saga": {
+        "input_tokens_total": 56119.0,
+        "ratio": 0.574582583438764
+      }
+    },
+    "cost_by_model": {
+      "claude-haiku-4-5-20251001": 0.5913324,
+      "claude-opus-5-5": 929.5188818,
+      "claude-sonnet-5-5": 80.54890929999999
+    },
+    "cost_by_worker_model": {
+      "(Orca の外)|claude-haiku-4-5-20251001": 0.2371876,
+      "(Orca の外)|claude-sonnet-5-5": 1.3246508,
+      "coordinator-auto-pr-issue-triage-run-4-20261002T2346|claude-sonnet-5-5": 0.28530720000000004,
+      "coordinator-chat-agent-activity-visualization|claude-opus-5-5": 15.768986799999999,
+      "coordinator-chat-argocd-grafana-backstage|claude-opus-5-5": 34.72687099999999,
+      "coordinator-chat-auto-merge-gates|claude-opus-5-5": 163.86177840000002,
+      "coordinator-chat-backstage-knowledge-catalog|claude-opus-5-5": 37.0573052,
+      "coordinator-chat-claude-guide-improvements|claude-opus-5-5": 3.3793464,
+      "coordinator-chat-completion-reviewer-distribution|claude-opus-5-5": 64.721095,
+      "coordinator-chat-daily-insights-issues|claude-opus-5-5": 13.503680000000001,
+      "coordinator-chat-expose-localhost|claude-opus-5-5": 3.3223444,
+      "coordinator-chat-home-k8s-persistence|claude-opus-5-5": 24.164665199999995,
+      "coordinator-chat-orca-no-startup-terminal|claude-opus-5-5": 13.8503902,
+      "coordinator-chat-topic-chat-completion-handoff|claude-opus-5-5": 7.2720594,
+      "coordinator-chat-triage-auto-labeling|claude-opus-5-5": 23.1360296,
+      "coordinator-coordinator-bump-routing-facts|claude-sonnet-5-5": 0.2052547,
+      "coordinator-coordinator-bump-single-terminal|claude-opus-5-5": 0.33319600000000005,
+      "coordinator-coordinator-bump-single-terminal|claude-sonnet-5-5": 0.4672414,
+      "coordinator-coordinator-bump-topic-handoff|claude-opus-5-5": 0.46166959999999996,
+      "coordinator-coordinator-bump-topic-handoff|claude-sonnet-5-5": 0.2836564,
+      "coordinator-design-daily-insights|claude-opus-5-5": 5.287844200000001,
+      "coordinator-entry-w3|claude-sonnet-5-5": 0.2033844,
+      "coordinator-impl-coordinator-harness|claude-opus-5-5": 0.7936986,
+      "coordinator-impl-coordinator-harness|claude-sonnet-5-5": 1.1275817,
+      "coordinator-impl-coordinator-merge-fix|claude-sonnet-5-5": 0.22235899999999995,
+      "coordinator-impl-coordinator-timeout|claude-opus-5-5": 0.1083242,
+      "coordinator-impl-coordinator-timeout|claude-sonnet-5-5": 0.3138927,
+      "coordinator-triage-labels-coordinator|claude-opus-5-5": 1.339525,
+      "coordinator-triage-labels-coordinator|claude-sonnet-5-5": 0.8622503999999999,
+      "coordinator-verify-harness-coordinator|claude-haiku-4-5-20251001": 0.052063899999999996,
+      "coordinator|claude-sonnet-5-5": 7.098097400000001,
+      "dotfiles-claude-guide-gap-analysis|claude-sonnet-5-5": 0.6950533000000001,
+      "dotfiles-completion-reviewer-design|claude-opus-5-5": 22.019728999999998,
+      "dotfiles-dotfiles-techdocs|claude-opus-5-5": 0.277957,
+      "dotfiles-dotfiles-techdocs|claude-sonnet-5-5": 1.2164872,
+      "dotfiles-entry-design|claude-opus-5-5": 5.840034799999999,
+      "dotfiles-entry-w1|claude-opus-5-5": 0.8822287999999999,
+      "dotfiles-entry-w1|claude-sonnet-5-5": 6.021088600000001,
+      "dotfiles-entry-w2|claude-opus-5-5": 0.4593184,
+      "dotfiles-entry-w2|claude-sonnet-5-5": 0.7178447,
+      "dotfiles-gate-dotfiles|claude-opus-5-5": 0.32553899999999997,
+      "dotfiles-gate-dotfiles|claude-sonnet-5-5": 2.0852115,
+      "dotfiles-gate-probe-dotfiles|claude-sonnet-5-5": 0.4419495,
+      "dotfiles-gate-stage-c-check|claude-opus-5-5": 0.5690763999999999,
+      "dotfiles-gate-stage-c-check|claude-sonnet-5-5": 2.7624166,
+      "dotfiles-gate-template|claude-opus-5-5": 23.710953199999995,
+      "dotfiles-impl-dotfiles-harness|claude-opus-5-5": 0.5668588,
+      "dotfiles-impl-dotfiles-harness|claude-sonnet-5-5": 1.8568562999999998,
+      "dotfiles-impl-nav-retro|claude-sonnet-5-5": 0.794972,
+      "dotfiles-impl-worker-start-timeout|claude-opus-5-5": 0.4599182,
+      "dotfiles-impl-worker-start-timeout|claude-sonnet-5-5": 0.8947472999999997,
+      "dotfiles-model-routing-design|claude-opus-5-5": 3.886995000000001,
+      "dotfiles-open-topic-chat-single-terminal|claude-opus-5-5": 1.2241165999999999,
+      "dotfiles-open-topic-chat-single-terminal|claude-sonnet-5-5": 0.43971260000000006,
+      "dotfiles-orca-agent-visualization|claude-opus-5-5": 255.0099931999999,
+      "dotfiles-routing-facts-impl|claude-opus-5-5": 0.5967128,
+      "dotfiles-routing-facts-impl|claude-sonnet-5-5": 7.909079500000001,
+      "dotfiles-tmp-ws-probe|claude-haiku-4-5-20251001": 0.11701329999999999,
+      "dotfiles-topic-handoff-procedure|claude-opus-5-5": 3.4222116000000007,
+      "dotfiles-topic-handoff-procedure|claude-sonnet-5-5": 4.3012458,
+      "dotfiles-triage-labels-dotfiles|claude-opus-5-5": 0.6689634,
+      "dotfiles-triage-labels-dotfiles|claude-sonnet-5-5": 0.3408919,
+      "dotfiles-verify-harness-dotfiles|claude-haiku-4-5-20251001": 0.0312662,
+      "dotfiles-worker-extra-terminal-investigation|claude-opus-5-5": 21.690295800000005,
+      "home-k8s-argocd-observability|claude-opus-5-5": 12.919059599999997,
+      "home-k8s-backstage-grafana|claude-opus-5-5": 106.01750880000003,
+      "home-k8s-backstage-techdocs|claude-opus-5-5": 11.1413508,
+      "home-k8s-gate-bump-home-k8s|claude-sonnet-5-5": 0.5696404,
+      "home-k8s-gate-home-k8s|claude-opus-5-5": 1.2392414,
+      "home-k8s-gate-home-k8s|claude-sonnet-5-5": 2.6218986,
+      "home-k8s-gate-probe-home-k8s|claude-sonnet-5-5": 0.4959345,
+      "home-k8s-home-k8s-persistence-design|claude-opus-5-5": 5.2160470000000005,
+      "home-k8s-home-k8s-persistence-impl|claude-opus-5-5": 31.1525688,
+      "home-k8s-impl-homek8s-harness|claude-opus-5-5": 1.0012408,
+      "home-k8s-impl-homek8s-harness|claude-sonnet-5-5": 1.5022509,
+      "home-k8s-just-consolidate|claude-opus-5-5": 1.6863518,
+      "home-k8s-just-consolidate|claude-sonnet-5-5": 14.709175400000001,
+      "home-k8s-share-localhost-services|claude-sonnet-5-5": 1.4168299000000002,
+      "home-k8s-verify-harness-homek8s|claude-haiku-4-5-20251001": 0.045040899999999995,
+      "home-k8s|claude-sonnet-5-5": 0.2225725,
+      "knowledge-base-gate-bump-knowledge-base|claude-sonnet-5-5": 1.1264486,
+      "knowledge-base-gate-knowledge-base|claude-opus-5-5": 0.4220776,
+      "knowledge-base-gate-knowledge-base|claude-sonnet-5-5": 2.5204525999999996,
+      "knowledge-base-gate-probe-knowledge-base|claude-sonnet-5-5": 0.4992211,
+      "knowledge-base-gate-verify-knowledge-base|claude-sonnet-5-5": 1.2691111,
+      "knowledge-base-impl-kb-harness|claude-opus-5-5": 0.6469181999999999,
+      "knowledge-base-impl-kb-harness|claude-sonnet-5-5": 1.3702154999999998,
+      "knowledge-base-kb-techdocs-links|claude-opus-5-5": 1.0154861999999998,
+      "knowledge-base-kb-techdocs-links|claude-sonnet-5-5": 3.0808410000000004,
+      "knowledge-base-kb-techdocs|claude-opus-5-5": 0.5486046,
+      "knowledge-base-kb-techdocs|claude-sonnet-5-5": 1.26392,
+      "knowledge-base-verify-harness-kb|claude-haiku-4-5-20251001": 0.056009,
+      "temporal-saga-gate-bump-temporal|claude-sonnet-5-5": 0.7982025,
+      "temporal-saga-gate-probe-temporal|claude-sonnet-5-5": 0.5222201000000001,
+      "temporal-saga-gate-temporal-codeowners|claude-sonnet-5-5": 0.5565661000000001,
+      "temporal-saga-gate-temporal|claude-opus-5-5": 0.6525895999999999,
+      "temporal-saga-gate-temporal|claude-sonnet-5-5": 1.6083321000000002,
+      "temporal-saga-impl-saga-harness|claude-opus-5-5": 1.1601254,
+      "temporal-saga-impl-saga-harness|claude-sonnet-5-5": 1.5238435,
+      "temporal-saga-verify-harness-saga|claude-haiku-4-5-20251001": 0.0527515
+    },
+    "cost_per_request": 4.930044504878049,
+    "cost_total_loki": 1010.6591235000001,
+    "failed_commands": {
+      "(その他) (ShellError)": 1,
+      "-t (ShellError)": 1,
+      "cat (ShellError)": 11,
+      "chmod (ShellError)": 1,
+      "docker exec (ShellError)": 4,
+      "docker images (ShellError)": 1,
+      "for (ShellError)": 10,
+      "gh api (ShellError)": 2,
+      "gh pr (ShellError)": 1,
+      "git (ShellError)": 1,
+      "git fetch (ShellError)": 1,
+      "git log (ShellError)": 2,
+      "git ls-files (ShellError)": 1,
+      "git pull (ShellError)": 1,
+      "git status (ShellError)": 1,
+      "git switch (ShellError)": 1,
+      "grep (ShellError)": 3,
+      "kubectl (ShellError)": 1,
+      "ls (ShellError)": 1,
+      "mkdir (ShellError)": 3,
+      "nix (ShellError)": 1,
+      "orca automations (ShellError)": 1,
+      "orca eval (ShellError)": 3,
+      "orca orchestration (ShellError)": 8,
+      "orca terminal (ShellError)": 1,
+      "orca worktree (ShellError)": 7,
+      "perl (ShellError)": 1,
+      "pkill (ShellError)": 6,
+      "ps (ShellError)": 1,
+      "python3 (ShellError)": 1,
+      "sed (ShellError)": 6,
+      "timeout (ShellError)": 2,
+      "wait-worker-events (ShellError)": 1
+    },
+    "mcp_calls": {
+      "headroom": 109.0
+    },
+    "mcp_connected": {
+      "claude.ai Claude Docs": 86.0,
+      "codegraph": 86.0,
+      "headroom": 86.0
+    },
+    "requests": 205.0,
+    "skills_activated": {
+      "insights": 1.0,
+      "p-mode": 2.0,
+      "reflect": 1.0,
+      "writing-for-agents": 2.0
+    },
+    "tool_failure_rate": 0.027717893440098552,
+    "tool_failures": 90.0,
+    "tool_failures_by_tool": {
+      "Agent": 2.0,
+      "Bash": 87.0,
+      "Read": 1.0
+    },
+    "tool_results": 3247.0
+  },
+  "data_since": "2026-09-30 09:59",
+  "fable": {
+    "current": {
+      "claude-fable-5-1": 50.47189319320348
+    },
+    "previous": {
+      "claude-fable-5-1": 1.9973827272727274
+    }
+  },
+  "installed_skills": [
+    "architect",
+    "arena",
+    "automate-me",
+    "blast-radius",
+    "bro",
+    "built-in-browser",
+    "chrome-browser",
+    "cognitive-rhythm-writing",
+    "computer-use",
+    "control-cli",
+    "control-ui",
+    "core-communication",
+    "core-dispatch",
+    "core-harness",
+    "core-retro",
+    "core-tools",
+    "create-verification-skill",
+    "deep-research",
+    "deslop",
+    "docs",
+    "docx",
+    "drawio-skill",
+    "explainer",
+    "explainer-book",
+    "figure-it-out",
+    "find-skills",
+    "first-reader",
+    "google-workspace",
+    "graphify",
+    "grill-me",
+    "grilling",
+    "handoff",
+    "how",
+    "humanizer-ja",
+    "import-memory",
+    "interrogate",
+    "japanese-tech-writing",
+    "linear-tickets",
+    "maintain-verification-skill",
+    "make-bot-ui",
+    "morning",
+    "no-comments",
+    "orca-cli",
+    "orca-emulator",
+    "orca-emulator-android",
+    "orca-linear",
+    "orca-per-workspace-env",
+    "orchestration",
+    "p-mode",
+    "pdf",
+    "ponytail",
+    "ponytail-audit",
+    "ponytail-debt",
+    "ponytail-gain",
+    "ponytail-help",
+    "ponytail-review",
+    "poteto-mode",
+    "pptx",
+    "principle-attack-the-premise",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-outcome-oriented-execution",
+    "principle-prove-it-works",
+    "principle-redesign-from-first-principles",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-test-behavior-not-implementation",
+    "principle-type-system-discipline",
+    "pstack-on-claude-code",
+    "recall",
+    "reflect",
+    "setup-pstack",
+    "show-me",
+    "show-me-your-work",
+    "skill-creator",
+    "swarm",
+    "tdd",
+    "teach",
+    "technical-writing",
+    "to-questionnaire",
+    "typescript-best-practices",
+    "unslop",
+    "update-landscape",
+    "wait-what",
+    "why",
+    "writing-for-agents",
+    "xlsx"
+  ],
+  "name": "2026-10-03",
+  "orca": {
+    "current": {
+      "by_model": {
+        "": {
+          "dispatches": 12,
+          "escalations": 2.0,
+          "followups": 4.0,
+          "followups_per_dispatch": 0.3333333333333333,
+          "questions": 4.0,
+          "time_to_done_median_min": 4.683333333333334,
+          "user_takeover": 1,
+          "worker_done_rejected": 6.0
+        },
+        "claude-haiku-4-5-20251001": {
+          "dispatches": 9,
+          "escalations": 0,
+          "followups": 0,
+          "followups_per_dispatch": 0.0,
+          "questions": 0,
+          "time_to_done_median_min": 1.05,
+          "user_takeover": 0,
+          "worker_done_rejected": 3.0
+        },
+        "claude-opus-5-5": {
+          "dispatches": 23,
+          "escalations": 2.0,
+          "followups": 4.0,
+          "followups_per_dispatch": 0.17391304347826086,
+          "questions": 8.0,
+          "time_to_done_median_min": 17.016666666666666,
+          "user_takeover": 2,
+          "worker_done_rejected": 2.0
+        },
+        "claude-sonnet-5-5": {
+          "dispatches": 70,
+          "escalations": 0,
+          "followups": 20.0,
+          "followups_per_dispatch": 0.2857142857142857,
+          "questions": 6.0,
+          "time_to_done_median_min": 8.883333333333333,
+          "user_takeover": 4,
+          "worker_done_rejected": 0
+        }
+      },
+      "dispatches": 114,
+      "escalations": 4.0,
+      "followups": 28.0,
+      "followups_per_dispatch": 0.24561403508771928,
+      "questions": 18.0,
+      "time_to_done_median_min": 9.15,
+      "user_takeover": 7,
+      "worker_done_rejected": 11.0
+    },
+    "previous": {
+      "by_model": {
+        "claude-opus-5-5": {
+          "dispatches": 2,
+          "escalations": 0,
+          "followups": 0,
+          "followups_per_dispatch": 0.0,
+          "questions": 2.0,
+          "time_to_done_median_min": 12.283333333333333,
+          "user_takeover": 0,
+          "worker_done_rejected": 0
+        },
+        "claude-sonnet-5-5": {
+          "dispatches": 4,
+          "escalations": 0,
+          "followups": 0,
+          "followups_per_dispatch": 0.0,
+          "questions": 2.0,
+          "time_to_done_median_min": 12.45,
+          "user_takeover": 0,
+          "worker_done_rejected": 0
+        }
+      },
+      "dispatches": 6,
+      "escalations": 0,
+      "followups": 0,
+      "followups_per_dispatch": 0.0,
+      "questions": 4.0,
+      "time_to_done_median_min": 12.283333333333333,
+      "user_takeover": 0,
+      "worker_done_rejected": 0
+    }
+  },
+  "period": "1d",
+  "previous": {
+    "cache_read_ratio": 0.8724000315721071,
+    "cache_read_ratio_by_worker": {
+      "coordinator-auto-pr-issue-triage-run-2-20261001T0007": {
+        "input_tokens_total": 241993.0,
+        "ratio": 0.8327472282256099
+      },
+      "coordinator-chat-agent-activity-visualization": {
+        "input_tokens_total": 503455.0,
+        "ratio": 0.760292379656573
+      },
+      "coordinator-chat-grafana-dashboards-claude-k8s-otel": {
+        "input_tokens_total": 4003200.0,
+        "ratio": 0.8113511690647482
+      },
+      "coordinator-chat-grounding-trial": {
+        "input_tokens_total": 132395.0,
+        "ratio": 0.7600891272329016
+      },
+      "coordinator-chat-heartbeat-silent-ack": {
+        "input_tokens_total": 3294333.0,
+        "ratio": 0.8562291668753583
+      },
+      "coordinator-chat-intent-grounding-by-coordinator": {
+        "input_tokens_total": 3070039.0,
+        "ratio": 0.8456892567162828
+      },
+      "coordinator-coordinator-bump-intent-grounding": {
+        "input_tokens_total": 498344.0,
+        "ratio": 0.9070601833271796
+      },
+      "dotfiles-heartbeat-live-test": {
+        "input_tokens_total": 418140.0,
+        "ratio": 0.9059310278853973
+      },
+      "dotfiles-heartbeat-silent-ack-impl": {
+        "input_tokens_total": 406928.0,
+        "ratio": 0.8528707781229112
+      },
+      "home-k8s-grafana-session-id-home-k8s": {
+        "input_tokens_total": 6724174.0,
+        "ratio": 0.9398065844221164
+      },
+      "knowledge-base-auto-telemetry-daily-run-3-20261001T0000": {
+        "input_tokens_total": 129206.0,
+        "ratio": 0.7483553395353157
+      }
+    },
+    "cost_by_model": {
+      "claude-opus-5-5": 24.45491960000001,
+      "claude-sonnet-5-5": 1.2322427
+    },
+    "cost_by_worker_model": {
+      "coordinator-auto-pr-issue-triage-run-2-20261001T0007|claude-sonnet-5-5": 0.2553278,
+      "coordinator-chat-agent-activity-visualization|claude-opus-5-5": 1.0515466,
+      "coordinator-chat-grafana-dashboards-claude-k8s-otel|claude-opus-5-5": 6.8931082,
+      "coordinator-chat-grounding-trial|claude-opus-5-5": 0.2871944,
+      "coordinator-chat-heartbeat-silent-ack|claude-opus-5-5": 4.5321608,
+      "coordinator-chat-intent-grounding-by-coordinator|claude-opus-5-5": 4.5389318,
+      "coordinator-coordinator-bump-intent-grounding|claude-sonnet-5-5": 0.3282971,
+      "dotfiles-heartbeat-live-test|claude-sonnet-5-5": 0.22766319999999995,
+      "dotfiles-heartbeat-silent-ack-impl|claude-opus-5-5": 0.1491072,
+      "dotfiles-heartbeat-silent-ack-impl|claude-sonnet-5-5": 0.2653612,
+      "home-k8s-grafana-session-id-home-k8s|claude-opus-5-5": 7.0028706,
+      "knowledge-base-auto-telemetry-daily-run-3-20261001T0000|claude-sonnet-5-5": 0.1555934
+    },
+    "cost_per_request": 1.9759355615384624,
+    "cost_total_loki": 25.68716230000001,
+    "failed_commands": {
+      "ls (ShellError)": 1
+    },
+    "mcp_calls": {
+      "headroom": 4.0
+    },
+    "mcp_connected": {
+      "claude.ai Claude Docs": 7.0,
+      "codegraph": 7.0,
+      "headroom": 7.0
+    },
+    "requests": 13.0,
+    "skills_activated": {},
+    "tool_failure_rate": 0.010869565217391304,
+    "tool_failures": 2.0,
+    "tool_failures_by_tool": {
+      "Agent": 1.0,
+      "Bash": 1.0
+    },
+    "tool_results": 184.0
+  },
+  "prom_quality": {
+    "increase_by_model": {
+      "claude-fable-5-1": 50.47189319320348,
+      "claude-haiku-4-5-20251001": 0.8447293,
+      "claude-opus-5-5": 905.6707099283235,
+      "claude-sonnet-5-5": 68.62937528759248
+    },
+    "resets_by_model": {
+      "claude-fable-5-1": 0.0,
+      "claude-haiku-4-5-20251001": 0.0,
+      "claude-opus-5-5": 0.0,
+      "claude-sonnet-5-5": 0.0
+    }
+  },
+  "skills_activated_7d": {
+    "dataviz": 1.0,
+    "insights": 1.0,
+    "japanese-tech-writing": 2.0,
+    "p-mode": 9.0,
+    "ponytail-help": 1.0,
+    "reflect": 1.0,
+    "writing-for-agents": 5.0
+  },
+  "trend": [
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-27 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-28 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-29 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": null,
+      "cost_usd": 0.0,
+      "end": "09-30 09:00",
+      "requests": 0.0,
+      "tool_failure_rate": null
+    },
+    {
+      "cache_read_ratio": 0.652206687082829,
+      "cost_usd": 1282.3931040999998,
+      "end": "10-01 09:00",
+      "requests": 303.0,
+      "tool_failure_rate": 0.024833589349718382
+    },
+    {
+      "cache_read_ratio": 0.8724000315721071,
+      "cost_usd": 25.68716230000002,
+      "end": "10-02 09:00",
+      "requests": 13.0,
+      "tool_failure_rate": 0.010869565217391304
+    },
+    {
+      "cache_read_ratio": 0.6433303548538389,
+      "cost_usd": 1010.6591235000002,
+      "end": "10-03 09:00",
+      "requests": 205.0,
+      "tool_failure_rate": 0.027717893440098552
+    }
+  ],
+  "window": {
+    "current": "2026-10-02 09:00 〜 2026-10-03 09:00",
+    "previous": "2026-10-01 09:00 〜 2026-10-02 09:00"
+  }
+}
